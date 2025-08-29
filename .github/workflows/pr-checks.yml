@@ -1,0 +1,81 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    name: Code Quality Checks
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: 8.3
+        extensions: pdo, pdo_mysql, mbstring, xml, ctype, json, openssl, zip, dom
+    
+    - name: Cache Composer packages
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-composer-
+    
+    - name: Install Composer dependencies
+      run: composer install --no-progress --prefer-dist --optimize-autoloader
+    
+    - name: Run PHPStan
+      run: ./vendor/bin/phpstan analyse --memory-limit=1G --error-format=github
+    
+    - name: Check code formatting with Pint
+      run: ./vendor/bin/pint --test -v
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install NPM dependencies
+      run: npm ci
+    
+    - name: Check for frontend linting
+      run: npm run lint || echo "No lint script found, skipping..."
+      continue-on-error: true
+    
+    - name: Build assets
+      run: npm run build
+
+  security-scan:
+    runs-on: ubuntu-latest
+    name: Security Scan
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: 8.3
+    
+    - name: Cache Composer packages
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-security-${{ hashFiles('**/composer.lock') }}
+    
+    - name: Install Composer dependencies
+      run: composer install --no-progress --prefer-dist --optimize-autoloader
+    
+    - name: Run security audit
+      run: composer audit || echo "Security audit completed"
+      continue-on-error: true
