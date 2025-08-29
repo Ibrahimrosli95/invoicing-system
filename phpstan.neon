@@ -1,0 +1,25 @@
+includes:
+    - vendor/nunomaduro/larastan/extension.neon
+
+parameters:
+    paths:
+        - app/
+        - database/
+        - routes/
+        - tests/
+
+    # Rule level (0 is the loosest and 9 is the strictest)
+    level: 8
+
+    ignoreErrors:
+        # Ignore blade templates
+        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder.*#'
+        
+    excludePaths:
+        - bootstrap/*
+        - storage/*
+        - vendor/*
+        - node_modules/*
+
+    # Report unused suppression
+    reportUnmatchedIgnoredErrors: false
