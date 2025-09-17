@@ -1,8 +1,14 @@
 *.log
 .DS_Store
 .env
+.env.*
+!.env.example
+!.env.example.dev
+!.env.example.prod
 .env.backup
 .env.production
+.env.local
+.env.testing
 .phpactor.json
 .phpunit.result.cache
 /.fleet
@@ -23,6 +29,46 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 
+# Security-sensitive files
+*.sqlite*
+*.db
+*.sql
+*.dump
+*.backup
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+id_rsa*
+*.ssh
+*_secret
+*_private
+config.local.*
+secrets.*
+
+# Database files
+/database/*.sqlite*
+/database/*.db
+/database/database.*
+
+# Log files and debugging
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/debugbar/*
+!/storage/debugbar/.gitignore
+*.error.log
+*.access.log
+error_log
+access_log
+
+# Sensitive storage directories
+/storage/private/*
+!/storage/private/.gitkeep
+/storage/secure/*
+!/storage/secure/.gitkeep
+
 # Project-specific ignores
 /storage/pdfs/*
 !/storage/pdfs/.gitkeep
@@ -40,3 +86,36 @@ Thumbs.db
 # Documentation drafts
 *.draft.md
 .notes
+
+# Deployment-specific
+.cpanel_deploy/config.local
+deploy.log
+maintenance.flag
+
+# Cache and temporary files
+.cache/
+temp/
+tmp/
+*.tmp
+*.temp
+
+# Editor and IDE
+*.sublime-project
+*.sublime-workspace
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Package managers
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json.backup
+
+# Testing
+/phpunit.xml
+/phpunit.xml.dist
+/.phpunit.cache
+/coverage/
+/tests/coverage/
