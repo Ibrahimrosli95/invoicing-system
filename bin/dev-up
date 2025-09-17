@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Load environment variables
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
+echo "🚀 Starting Laravel development environment..."
+
+# Start Docker containers
+docker compose -f docker/docker-compose.yml up -d
+
+echo "⏳ Waiting for MySQL to be ready..."
+
+# Wait for MySQL healthcheck
+timeout=60
+counter=0
+while ! docker compose -f docker/docker-compose.yml exec -T db mysqladmin ping -h localhost -u root -p${LOCAL_DB_PASS:-secret} --silent > /dev/null 2>&1; do
+    if [ $counter -ge $timeout ]; then
+        echo "❌ MySQL failed to start within ${timeout} seconds"
+        exit 1
+    fi
+    sleep 1
+    counter=$((counter + 1))
+    echo -n "."
+done
+
+echo ""
+echo "✅ MySQL is ready!"
+echo "📊 Database: ${LOCAL_DB_NAME:-laravel_db}"
+echo "🔗 Connection: 127.0.0.1:${LOCAL_DB_PORT:-3306}"
+echo "👤 User: ${LOCAL_DB_USER:-laravel_user}"
+echo ""
+echo "💡 Next steps:"
+echo "   php artisan migrate"
+echo "   php artisan db:seed"

@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Load environment variables
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
+# Create backups directory if it doesn't exist
+mkdir -p backups
+
+# Generate timestamp
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+BACKUP_FILE="backups/dev_${TIMESTAMP}.sql"
+
+echo "💾 Creating database backup..."
+echo "📊 Database: ${LOCAL_DB_NAME:-laravel_db}"
+echo "📁 File: ${BACKUP_FILE}"
+
+# Create backup
+mysqldump -h 127.0.0.1 -P ${LOCAL_DB_PORT:-3306} -u ${LOCAL_DB_USER:-laravel_user} -p${LOCAL_DB_PASS:-secret} \
+  --routines --triggers --single-transaction \
+  ${LOCAL_DB_NAME:-laravel_db} > "${BACKUP_FILE}"
+
+# Get file size
+FILESIZE=$(ls -lah "${BACKUP_FILE}" | awk '{print $5}')
+
+echo "✅ Backup completed successfully"
+echo "📦 Size: ${FILESIZE}"
+echo "💡 Restore with: mysql -h 127.0.0.1 -P ${LOCAL_DB_PORT:-3306} -u ${LOCAL_DB_USER:-laravel_user} -p${LOCAL_DB_PASS:-secret} ${LOCAL_DB_NAME:-laravel_db} < ${BACKUP_FILE}"

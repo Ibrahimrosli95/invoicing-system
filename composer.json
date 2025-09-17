@@ -7,13 +7,21 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "bacon/bacon-qr-code": "*",
+        "intervention/image-laravel": "*",
         "laravel/framework": "^12.0",
+        "laravel/horizon": "*",
         "laravel/tinker": "^2.10.1",
-        "sentry/sentry-laravel": "^4.15"
+        "maatwebsite/excel": "*",
+        "pragmarx/google2fa": "*",
+        "sentry/sentry-laravel": "^4.15",
+        "spatie/browsershot": "*",
+        "spatie/laravel-permission": "*"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.16",
         "fakerphp/faker": "^1.23",
+        "laravel/breeze": "*",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.24",
         "laravel/sail": "^1.41",

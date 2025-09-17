@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Load environment variables
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
+echo "🔌 Connecting to MySQL database..."
+echo "📊 Database: ${LOCAL_DB_NAME:-laravel_db}"
+echo "👤 User: ${LOCAL_DB_USER:-laravel_user}"
+echo ""
+
+# Connect to MySQL
+mysql -h 127.0.0.1 -P ${LOCAL_DB_PORT:-3306} -u ${LOCAL_DB_USER:-laravel_user} -p${LOCAL_DB_PASS:-secret} ${LOCAL_DB_NAME:-laravel_db}

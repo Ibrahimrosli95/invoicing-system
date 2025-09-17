@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "🛑 Stopping Laravel development environment..."
+
+# Stop Docker containers
+docker compose -f docker/docker-compose.yml down
+
+echo "✅ Development environment stopped"
+echo "💾 Database data preserved in Docker volume 'mysql_data'"
+echo ""
+echo "💡 To completely remove data:"
+echo "   docker compose -f docker/docker-compose.yml down -v"

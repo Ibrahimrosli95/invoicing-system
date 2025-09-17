@@ -1,0 +1,466 @@
+<x-app-layout>
+    <x-slot name="header">
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('My Dashboard') }}
+            </h2>
+            <div class="text-sm text-gray-500">
+                Welcome back, {{ auth()->user()->name }}
+            </div>
+        </div>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <!-- Personal Performance Summary -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- My Revenue -->
+                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <div class="text-sm font-medium text-gray-500">My Revenue</div>
+                                <div class="text-2xl font-bold text-gray-900">RM {{ number_format($metrics['my_revenue'], 2) }}</div>
+                                <div class="text-xs text-gray-400 mt-1">
+                                    Goal: RM {{ number_format($metrics['revenue_target'], 0) }}
+                                    <span class="ml-1 text-{{ $metrics['revenue_progress'] >= 100 ? 'green' : ($metrics['revenue_progress'] >= 80 ? 'yellow' : 'red') }}-600">
+                                        ({{ number_format($metrics['revenue_progress'], 1) }}%)
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-green-600 h-2 rounded-full transition-all duration-300" 
+                                     style="width: {{ min($metrics['revenue_progress'], 100) }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Active Leads -->
+                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <div class="text-sm font-medium text-gray-500">Active Leads</div>
+                                <div class="text-2xl font-bold text-gray-900">{{ $metrics['active_leads'] }}</div>
+                                <div class="text-xs text-gray-400 mt-1">
+                                    {{ $metrics['new_leads_this_week'] }} new this week
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Conversion Rate -->
+                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <div class="text-sm font-medium text-gray-500">Conversion Rate</div>
+                                <div class="text-2xl font-bold text-gray-900">{{ number_format($metrics['conversion_rate'], 1) }}%</div>
+                                <div class="text-xs text-gray-400 mt-1">
+                                    {{ $metrics['won_leads'] }}/{{ $metrics['total_opportunities'] }} opportunities
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending Tasks -->
+                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+                    <div class="p-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <div class="text-sm font-medium text-gray-500">Pending Tasks</div>
+                                <div class="text-2xl font-bold text-gray-900">{{ $metrics['pending_tasks'] }}</div>
+                                <div class="text-xs text-gray-400 mt-1">
+                                    {{ $metrics['overdue_tasks'] }} overdue
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- My Pipeline -->
+                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">My Sales Pipeline</h3>
+                        <canvas id="pipelineChart" height="300"></canvas>
+                    </div>
+                </div>
+
+                <!-- Monthly Performance -->
+                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">My Monthly Performance</h3>
+                        <canvas id="performanceChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Action Items -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Today's Tasks -->
+                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-900">Today's Tasks</h3>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {{ count($todays_tasks) }} tasks
+                        </span>
+                    </div>
+                    <div class="p-6">
+                        @if(count($todays_tasks) > 0)
+                            <div class="space-y-3">
+                                @foreach($todays_tasks as $task)
+                                <div class="flex items-center space-x-3 p-3 rounded-lg border 
+                                    @if($task['priority'] == 'HIGH') border-red-200 bg-red-50
+                                    @elseif($task['priority'] == 'MEDIUM') border-yellow-200 bg-yellow-50
+                                    @else border-gray-200 bg-white
+                                    @endif">
+                                    <input type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                           @if($task['completed']) checked @endif>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-gray-900 @if($task['completed']) line-through @endif">
+                                            {{ $task['description'] }}
+                                        </p>
+                                        <p class="text-xs text-gray-500">
+                                            {{ $task['type'] }} • {{ $task['customer_name'] }}
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                            @if($task['priority'] == 'HIGH') bg-red-100 text-red-800
+                                            @elseif($task['priority'] == 'MEDIUM') bg-yellow-100 text-yellow-800
+                                            @else bg-green-100 text-green-800
+                                            @endif">
+                                            {{ $task['priority'] }}
+                                        </span>
+                                        @if($task['overdue'])
+                                            <span class="text-red-600 text-xs">Overdue</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="text-center py-6">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <h3 class="mt-2 text-sm font-medium text-gray-900">All done for today!</h3>
+                                <p class="mt-1 text-sm text-gray-500">No tasks scheduled for today.</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- My Hot Leads -->
+                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-900">My Hot Leads</h3>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            {{ count($hot_leads) }} leads
+                        </span>
+                    </div>
+                    <div class="p-6">
+                        @if(count($hot_leads) > 0)
+                            <div class="space-y-4">
+                                @foreach($hot_leads as $lead)
+                                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div>
+                                            <h4 class="text-sm font-medium text-gray-900">{{ $lead['company_name'] }}</h4>
+                                            <p class="text-sm text-gray-600">{{ $lead['contact_person'] }}</p>
+                                            <p class="text-xs text-gray-500">{{ $lead['phone'] }}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="text-sm font-medium text-gray-900">RM {{ number_format($lead['estimated_value'], 0) }}</span>
+                                            <div class="text-xs text-gray-500">{{ $lead['days_since_contact'] }} days ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                            @if($lead['status'] == 'NEW') bg-blue-100 text-blue-800
+                                            @elseif($lead['status'] == 'CONTACTED') bg-yellow-100 text-yellow-800
+                                            @elseif($lead['status'] == 'QUOTED') bg-purple-100 text-purple-800
+                                            @else bg-gray-100 text-gray-800
+                                            @endif">
+                                            {{ $lead['status'] }}
+                                        </span>
+                                        <div class="flex space-x-2">
+                                            <a href="/leads/{{ $lead['id'] }}" class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                                                View
+                                            </a>
+                                            @if($lead['status'] !== 'QUOTED')
+                                            <a href="/quotations/create?lead_id={{ $lead['id'] }}" class="text-green-600 hover:text-green-800 text-xs font-medium">
+                                                Quote
+                                            </a>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="text-center py-6">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <h3 class="mt-2 text-sm font-medium text-gray-900">Great job!</h3>
+                                <p class="mt-1 text-sm text-gray-500">No leads requiring immediate attention.</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity & Quick Actions -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- My Recent Activities -->
+                <div class="lg:col-span-2 bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">My Recent Activities</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="flow-root">
+                            <ul class="-mb-8">
+                                @foreach($recent_activities as $index => $activity)
+                                <li>
+                                    <div class="relative pb-8">
+                                        @if($index < count($recent_activities) - 1)
+                                        <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                                        @endif
+                                        <div class="relative flex space-x-3">
+                                            <div>
+                                                <span class="h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white
+                                                    @if($activity['type'] == 'lead_created') bg-blue-500
+                                                    @elseif($activity['type'] == 'quotation_sent') bg-green-500
+                                                    @elseif($activity['type'] == 'deal_won') bg-yellow-500
+                                                    @else bg-gray-500
+                                                    @endif">
+                                                    @if($activity['type'] == 'lead_created')
+                                                        <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                                        </svg>
+                                                    @elseif($activity['type'] == 'quotation_sent')
+                                                        <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                        </svg>
+                                                    @elseif($activity['type'] == 'deal_won')
+                                                        <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                                                        </svg>
+                                                    @else
+                                                        <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                        </svg>
+                                                    @endif
+                                                </span>
+                                            </div>
+                                            <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                                <div>
+                                                    <p class="text-sm text-gray-900">{{ $activity['description'] }}</p>
+                                                    @if(isset($activity['details']))
+                                                        <p class="text-sm text-gray-500">{{ $activity['details'] }}</p>
+                                                    @endif
+                                                </div>
+                                                <div class="text-right text-sm whitespace-nowrap text-gray-500">
+                                                    <time>{{ $activity['time_ago'] }}</time>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Quick Actions</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            <a href="/leads/create" class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-3 px-4 rounded-lg text-center transition duration-150">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                    </svg>
+                                    <span>Add New Lead</span>
+                                </div>
+                            </a>
+                            
+                            <a href="/quotations/create" class="block w-full bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-3 px-4 rounded-lg text-center transition duration-150">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <span>Create Quotation</span>
+                                </div>
+                            </a>
+                            
+                            <a href="/leads/kanban" class="block w-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-3 px-4 rounded-lg text-center transition duration-150">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
+                                    </svg>
+                                    <span>View Pipeline</span>
+                                </div>
+                            </a>
+                            
+                            <a href="/service-templates" class="block w-full bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-3 px-4 rounded-lg text-center transition duration-150">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                                    </svg>
+                                    <span>Service Templates</span>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="mt-6 pt-6 border-t border-gray-200">
+                            <h4 class="text-sm font-medium text-gray-900 mb-3">Performance Goals</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">Monthly Revenue</span>
+                                        <span class="font-medium">{{ number_format($metrics['revenue_progress'], 1) }}%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                        <div class="bg-green-600 h-2 rounded-full transition-all duration-300" 
+                                             style="width: {{ min($metrics['revenue_progress'], 100) }}%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">Leads Target</span>
+                                        <span class="font-medium">{{ number_format($metrics['leads_progress'], 1) }}%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                                             style="width: {{ min($metrics['leads_progress'], 100) }}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // My Pipeline Chart
+        const pipelineCtx = document.getElementById('pipelineChart').getContext('2d');
+        new Chart(pipelineCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {!! json_encode(array_keys($pipeline_data)) !!},
+                datasets: [{
+                    data: {!! json_encode(array_values($pipeline_data)) !!},
+                    backgroundColor: [
+                        '#60A5FA', // Blue for New
+                        '#34D399', // Green for Contacted
+                        '#FBBF24', // Yellow for Quoted
+                        '#10B981', // Emerald for Won
+                        '#EF4444'  // Red for Lost
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // My Performance Chart
+        const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+        new Chart(performanceCtx, {
+            type: 'line',
+            data: {
+                labels: {!! json_encode($performance_trends['labels']) !!},
+                datasets: [{
+                    label: 'My Revenue',
+                    data: {!! json_encode($performance_trends['revenue']) !!},
+                    borderColor: '#10B981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: 'Leads Created',
+                    data: {!! json_encode($performance_trends['leads']) !!},
+                    borderColor: '#6366F1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Month'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Count / Revenue'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</x-app-layout>
