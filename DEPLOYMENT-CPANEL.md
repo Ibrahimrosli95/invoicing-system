@@ -87,8 +87,9 @@ chmod 644 /home/binapain/sales-system/.env
 
 ### Step 6: Laravel Optimization
 
+**Option A: Via SSH (if available)**
 ```bash
-# Run these commands via SSH or create PHP script:
+# Run these commands via SSH:
 cd /home/binapain/sales-system
 
 # Clear caches
@@ -111,6 +112,33 @@ cd /home/binapain/sales-system
 # Create storage link
 /usr/local/bin/ea-php83 artisan storage:link
 ```
+
+**Option B: Via Web Runner (No SSH Access)**
+🎯 **Use the included web-based Artisan runner**
+
+1. **Access the Artisan Runner:**
+   - URL: `https://yourdomain.com/sales-system/artisan-runner.php?key=Baemzone32@`
+   - Or the simple version: `https://yourdomain.com/sales-system/runner.php?key=Baemzone32@`
+
+2. **Run these commands in order:**
+   - `config:cache` - Cache configuration
+   - `route:cache` - Cache routes
+   - `view:cache` - Cache views
+   - `migrate` - Set up database
+   - `storage:link` - Link storage directory
+   - `about` - Verify Laravel installation
+
+3. **Example URLs:**
+   ```
+   https://yourdomain.com/sales-system/artisan-runner.php?key=Baemzone32@&cmd=config:cache
+   https://yourdomain.com/sales-system/artisan-runner.php?key=Baemzone32@&cmd=migrate
+   ```
+
+4. **🚨 IMPORTANT: Delete runner files after deployment!**
+   ```
+   Delete: /public_html/sales-system/runner.php
+   Delete: /public_html/sales-system/artisan-runner.php
+   ```
 
 ## 📁 Directory Structure After Deployment
 
