@@ -8,7 +8,13 @@ use App\Models\PaymentRecord;
 use App\Models\Quotation;
 use App\Models\Team;
 use App\Models\User;
+use App\Models\Lead;
+use App\Models\PricingItem;
+use App\Models\ServiceTemplate;
+use App\Models\CustomerSegment;
 use App\Services\PDFService;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -37,7 +43,7 @@ class InvoiceController extends Controller
 
         $query = Invoice::forCompany()
             ->forUserTeams()
-            ->with(['quotation', 'team', 'assignedTo', 'createdBy']);
+            ->with(['quotation', 'team', 'assignedTo', 'createdBy', 'customerSegment']);
 
         // Apply filters
         if ($request->filled('search')) {
@@ -155,11 +161,31 @@ class InvoiceController extends Controller
 
     /**
      * Show the form for creating a new invoice.
+     *
+     * Redirects to the appropriate builder based on feature flag and quotation type.
      */
-    public function create(Request $request): View
+    public function create(Request $request)
     {
         $this->authorize('create', Invoice::class);
 
+        // Check if enhanced builder is enabled
+        if (config('features.invoice_builder_v2', false)) {
+            // If quotation is specified, route to appropriate builder
+            if ($request->filled('quotation_id')) {
+                $quotation = Quotation::forCompany()->findOrFail($request->quotation_id);
+                $this->authorize('view', $quotation);
+
+                // Route based on quotation type
+                if ($quotation->type === 'service') {
+                    return redirect()->route('invoices.create.services', ['quotation_id' => $quotation->id]);
+                }
+            }
+
+            // Default to product builder
+            return redirect()->route('invoices.create.products', $request->only(['quotation_id']));
+        }
+
+        // Fallback to existing create form if feature flag is disabled
         $quotation = null;
         if ($request->filled('quotation_id')) {
             $quotation = Quotation::forCompany()->findOrFail($request->quotation_id);
@@ -189,10 +215,14 @@ class InvoiceController extends Controller
     {
         $this->authorize('create', Invoice::class);
 
+        $type = $request->input('type', Invoice::TYPE_PRODUCT);
+
         $validated = $request->validate([
+            'type' => ['nullable', Rule::in(array_keys(Invoice::getTypes()))],
             'quotation_id' => 'nullable|exists:quotations,id',
             'team_id' => 'nullable|exists:teams,id',
             'assigned_to' => 'nullable|exists:users,id',
+            'customer_segment_id' => 'nullable|exists:customer_segments,id',
             'customer_name' => 'required|string|max:100',
             'customer_phone' => 'required|string|max:20',
             'customer_email' => 'nullable|email|max:100',
@@ -200,46 +230,56 @@ class InvoiceController extends Controller
             'customer_city' => 'nullable|string|max:100',
             'customer_state' => 'nullable|string|max:100',
             'customer_postal_code' => 'nullable|string|max:20',
+            'title' => 'nullable|string|max:150',
             'description' => 'nullable|string',
             'terms_conditions' => 'nullable|string',
             'notes' => 'nullable|string',
             'due_date' => 'required|date|after_or_equal:today',
-            'payment_terms_days' => 'required|integer|min:0|max:365',
+            'payment_terms_days' => 'nullable|integer|min:0|max:365',
+            'payment_terms' => 'nullable|integer|min:0|max:365',
             'tax_percentage' => 'nullable|numeric|min:0|max:100',
             'discount_percentage' => 'nullable|numeric|min:0|max:100',
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string|max:500',
-            'items.*.unit' => 'required|string|max:20',
+            'items.*.unit' => 'nullable|string|max:20',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.item_code' => 'nullable|string|max:50',
+            'items.*.item_code' => 'nullable|string|max:100',
             'items.*.specifications' => 'nullable|string',
             'items.*.notes' => 'nullable|string',
+            'items.*.source_type' => 'nullable|string|in:pricing_item,service_template_item,manual',
+            'items.*.source_id' => 'nullable|integer',
         ]);
 
-        // Add company_id and other defaults
+        $validated['type'] = $type;
+        $validated['payment_terms'] = $validated['payment_terms'] ?? $validated['payment_terms_days'] ?? 30;
+        unset($validated['payment_terms_days']);
+
         $validated['company_id'] = auth()->user()->company_id;
         $validated['created_by'] = auth()->id();
-        $validated['status'] = 'DRAFT';
+        $validated['status'] = Invoice::STATUS_DRAFT;
+
+        $items = $validated['items'];
+        unset($validated['items']);
 
         $invoice = Invoice::create($validated);
 
-        // Create items
-        foreach ($validated['items'] as $index => $itemData) {
+        foreach ($items as $index => $item) {
             InvoiceItem::create([
                 'invoice_id' => $invoice->id,
-                'description' => $itemData['description'],
-                'unit' => $itemData['unit'],
-                'quantity' => $itemData['quantity'],
-                'unit_price' => $itemData['unit_price'],
-                'item_code' => $itemData['item_code'] ?? null,
-                'specifications' => $itemData['specifications'] ?? null,
-                'notes' => $itemData['notes'] ?? null,
+                'description' => $item['description'],
+                'unit' => $item['unit'] ?? 'pcs',
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['unit_price'],
+                'item_code' => $item['item_code'] ?? null,
+                'specifications' => $item['specifications'] ?? null,
+                'notes' => $item['notes'] ?? null,
+                'source_type' => $item['source_type'] ?? null,
+                'source_id' => $item['source_id'] ?? null,
                 'sort_order' => $index,
             ]);
         }
 
-        // Calculate totals
         $invoice->fresh()->calculateTotals();
         $invoice->save();
 
@@ -259,6 +299,7 @@ class InvoiceController extends Controller
             'team',
             'assignedTo',
             'createdBy',
+            'customerSegment',
             'items',
             'paymentRecords' => function ($query) {
                 $query->orderBy('payment_date', 'desc');
@@ -478,5 +519,134 @@ class InvoiceController extends Controller
             return redirect()->route('invoices.show', $invoice)
                 ->with('error', 'Failed to generate PDF: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Show the product invoice creation form.
+     */
+    public function createProduct(Request $request): View
+    {
+        $this->authorize('create', Invoice::class);
+
+        $quotation = null;
+        if ($request->filled('quotation_id')) {
+            $quotation = Quotation::forCompany()->findOrFail($request->quotation_id);
+            $this->authorize('view', $quotation);
+
+            // Ensure quotation type matches
+            if ($quotation->type !== 'product') {
+                return redirect()->route('invoices.create.services', ['quotation_id' => $quotation->id])
+                    ->with('info', 'Redirected to service invoice builder for service quotation.');
+            }
+        }
+
+        $formData = $this->buildInvoiceFormPayload($quotation);
+
+        return view('invoices.create-product', array_merge($formData, ['quotation' => $quotation]));
+    }
+
+    /**
+     * Show the service invoice creation form.
+     */
+    public function createService(Request $request): View
+    {
+        $this->authorize('create', Invoice::class);
+
+        $quotation = null;
+        if ($request->filled('quotation_id')) {
+            $quotation = Quotation::forCompany()->findOrFail($request->quotation_id);
+            $this->authorize('view', $quotation);
+
+            // Ensure quotation type matches
+            if ($quotation->type !== 'service') {
+                return redirect()->route('invoices.create.products', ['quotation_id' => $quotation->id])
+                    ->with('info', 'Redirected to product invoice builder for product quotation.');
+            }
+        }
+
+        $formData = $this->buildInvoiceFormPayload($quotation);
+
+        return view('invoices.create-service', array_merge($formData, ['quotation' => $quotation]));
+    }
+
+    /**
+     * Build common form payload for invoice creation.
+     */
+    private function buildInvoiceFormPayload(?Quotation $quotation = null): array
+    {
+        // Get teams for assignment
+        $teams = Team::forCompany()
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        // Get assignees (sales and finance staff)
+        $assignees = User::forCompany()
+            ->whereHas('roles', function ($query) {
+                $query->whereIn('name', ['sales_executive', 'sales_coordinator', 'finance_manager']);
+            })
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        // Get customer segments for pricing
+        $customerSegments = CustomerSegment::forCompany()
+            ->orderBy('name')
+            ->get();
+
+        // Get next invoice number preview
+        $nextNumber = Invoice::generateNumber();
+
+        // Get document defaults from company settings
+        $company = auth()->user()->company;
+        $documentDefaults = $company->settings['document'] ?? [];
+
+        // Get recent quotations/leads for client shortlist
+        $recentClients = collect();
+
+        // Add recent quotation customers
+        $recentQuotations = Quotation::forCompany()
+            ->select('customer_name', 'customer_email', 'customer_phone')
+            ->whereNotNull('customer_name')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($quotation) {
+                return [
+                    'name' => $quotation->customer_name,
+                    'email' => $quotation->customer_email,
+                    'phone' => $quotation->customer_phone,
+                    'source' => 'quotation'
+                ];
+            });
+
+        // Add recent leads
+        $recentLeads = Lead::forCompany()
+            ->select('customer_name', 'customer_email', 'customer_phone')
+            ->whereNotNull('customer_name')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($lead) {
+                return [
+                    'name' => $lead->customer_name,
+                    'email' => $lead->customer_email,
+                    'phone' => $lead->customer_phone,
+                    'source' => 'lead'
+                ];
+            });
+
+        $recentClients = $recentQuotations->concat($recentLeads)
+            ->unique('phone')
+            ->take(15);
+
+        return [
+            'teams' => $teams,
+            'assignees' => $assignees,
+            'customerSegments' => $customerSegments,
+            'nextNumber' => $nextNumber,
+            'documentDefaults' => $documentDefaults,
+            'recentClients' => $recentClients,
+        ];
     }
 }

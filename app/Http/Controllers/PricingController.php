@@ -14,13 +14,9 @@ use Illuminate\Validation\Rule;
 
 class PricingController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
 
     /**
-     * Display the pricing book with categories and items
+     * Display the pricing book with segment-based pricing tabs
      */
     public function index(Request $request)
     {
@@ -40,6 +36,8 @@ class PricingController extends Controller
                 $query->where('is_active', false);
             } elseif ($request->status === 'featured') {
                 $query->featured();
+            } elseif ($request->status === 'segment_pricing') {
+                $query->where('use_segment_pricing', true);
             }
         }
 
@@ -60,7 +58,7 @@ class PricingController extends Controller
         // Sort
         $sortBy = $request->get('sort', 'name');
         $sortDirection = $request->get('direction', 'asc');
-        
+
         $allowedSorts = ['name', 'item_code', 'unit_price', 'created_at', 'last_price_update'];
         if (in_array($sortBy, $allowedSorts)) {
             $query->orderBy($sortBy, $sortDirection);
@@ -70,6 +68,12 @@ class PricingController extends Controller
 
         $items = $query->paginate(24)->withQueryString();
 
+        // Get customer segments for tabs
+        $segments = CustomerSegment::forCompany()
+            ->active()
+            ->ordered()
+            ->get();
+
         // Get categories for filter dropdown
         $categories = PricingCategory::forCompany()
             ->active()
@@ -77,11 +81,12 @@ class PricingController extends Controller
             ->ordered()
             ->get();
 
-        // Get statistics
+        // Get statistics including segment pricing
         $stats = [
             'total_items' => PricingItem::forCompany()->count(),
             'active_items' => PricingItem::forCompany()->active()->count(),
             'featured_items' => PricingItem::forCompany()->featured()->count(),
+            'segment_pricing_items' => PricingItem::forCompany()->where('use_segment_pricing', true)->count(),
             'total_categories' => PricingCategory::forCompany()->count(),
             'needs_price_review' => PricingItem::needsPriceReview()->count(),
         ];
@@ -89,8 +94,9 @@ class PricingController extends Controller
         $viewMode = $request->get('view', 'grid'); // grid or list
 
         return view('pricing.index', compact(
-            'items', 
-            'categories', 
+            'items',
+            'segments',
+            'categories',
             'stats',
             'viewMode'
         ));
@@ -106,7 +112,12 @@ class PricingController extends Controller
             ->ordered()
             ->get();
 
-        return view('pricing.create', compact('categories'));
+        $segments = CustomerSegment::forCompany()
+            ->active()
+            ->ordered()
+            ->get();
+
+        return view('pricing.create-simplified', compact('categories', 'segments'));
     }
 
     /**
@@ -132,9 +143,13 @@ class PricingController extends Controller
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:50',
             'is_featured' => 'boolean',
+            'is_active' => 'boolean',
             'track_stock' => 'boolean',
             'stock_quantity' => 'nullable|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'use_segment_pricing' => 'boolean',
+            'segment_prices' => 'nullable|array',
+            'segment_prices.*' => 'nullable|numeric|min:0|max:99999999.99',
         ]);
 
         // Validate category belongs to company
@@ -152,22 +167,45 @@ class PricingController extends Controller
                 $validated['image_path'] = $imagePath;
             }
 
+            // Handle segment pricing
+            if ($validated['use_segment_pricing'] && !empty($validated['segment_prices'])) {
+                // Filter out empty prices and format properly
+                $segmentPrices = [];
+                foreach ($validated['segment_prices'] as $segmentId => $price) {
+                    if ($price !== null && $price > 0) {
+                        $segmentPrices[$segmentId] = number_format($price, 2, '.', '');
+                    }
+                }
+
+                if (!empty($segmentPrices)) {
+                    $validated['segment_selling_prices'] = $segmentPrices;
+                    $validated['segment_prices_updated_at'] = now();
+                }
+            }
+
+            // Remove segment_prices from validated as it's not a database column
+            unset($validated['segment_prices']);
+
+            // Set defaults
+            $validated['is_active'] = $validated['is_active'] ?? false;
+            $validated['is_featured'] = $validated['is_featured'] ?? false;
+
             // Create the pricing item
             $item = PricingItem::create($validated);
 
             DB::commit();
 
             return redirect()->route('pricing.show', $item)
-                ->with('success', 'Pricing item created successfully.');
+                ->with('success', 'Pricing item created successfully with segment pricing.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             // Delete uploaded image if it exists
             if (isset($validated['image_path'])) {
                 Storage::disk('public')->delete($validated['image_path']);
             }
-            
+
             return redirect()->back()
                 ->withErrors(['error' => 'Failed to create pricing item: ' . $e->getMessage()])
                 ->withInput();
@@ -709,5 +747,363 @@ class PricingController extends Controller
         return redirect()
             ->route('pricing.segments')
             ->with('success', "Customer segment {$status} successfully");
+    }
+
+    /**
+     * Show the import form
+     */
+    public function import()
+    {
+        return view('pricing.import');
+    }
+
+    /**
+     * Download CSV template for import
+     */
+    public function downloadTemplate()
+    {
+        $segments = CustomerSegment::forCompany()->active()->ordered()->get();
+        $categories = PricingCategory::forCompany()->active()->ordered()->get();
+
+        // Create CSV header
+        $headers = [
+            'name',
+            'item_code',
+            'description',
+            'category',
+            'unit',
+            'cost_price',
+        ];
+
+        // Add segment price columns
+        foreach ($segments as $segment) {
+            $headers[] = strtolower(str_replace(' ', '_', $segment->name)) . '_price';
+        }
+
+        $headers = array_merge($headers, [
+            'minimum_price',
+            'specifications',
+            'is_active',
+            'is_featured'
+        ]);
+
+        // Sample data row
+        $sampleData = [
+            'Sample Product',
+            'SP001',
+            'This is a sample product description',
+            $categories->first()->name ?? 'Construction Materials',
+            'pcs',
+            '100.00',
+        ];
+
+        // Add sample segment prices
+        foreach ($segments as $segment) {
+            $sampleData[] = $segment->name === 'End User' ? '150.00' :
+                           ($segment->name === 'Contractor' ? '140.00' : '125.00');
+        }
+
+        $sampleData = array_merge($sampleData, [
+            '120.00', // minimum_price
+            'High quality construction material',
+            'TRUE',
+            'FALSE'
+        ]);
+
+        // Create CSV content
+        $content = implode(',', $headers) . "\n";
+        $content .= implode(',', array_map(function($value) {
+            return '"' . str_replace('"', '""', $value) . '"';
+        }, $sampleData)) . "\n";
+
+        // Add a few more sample rows
+        for ($i = 2; $i <= 3; $i++) {
+            $row = $sampleData;
+            $row[0] = "Sample Product {$i}";
+            $row[1] = "SP00{$i}";
+            $content .= implode(',', array_map(function($value) {
+                return '"' . str_replace('"', '""', $value) . '"';
+            }, $row)) . "\n";
+        }
+
+        return response($content)
+            ->header('Content-Type', 'text/csv')
+            ->header('Content-Disposition', 'attachment; filename="pricing_import_template.csv"');
+    }
+
+    /**
+     * Process CSV import
+     */
+    public function processImport(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:10240', // 10MB max
+            'skip_duplicates' => 'boolean',
+            'update_existing' => 'boolean',
+            'validate_only' => 'boolean',
+        ]);
+
+        try {
+            $file = $request->file('csv_file');
+            $csvData = array_map('str_getcsv', file($file->path()));
+            $headers = array_map('strtolower', array_shift($csvData));
+
+            // Validate headers
+            $requiredHeaders = ['name', 'category', 'unit', 'cost_price'];
+            $missingHeaders = array_diff($requiredHeaders, $headers);
+
+            if (!empty($missingHeaders)) {
+                return redirect()->back()
+                    ->withErrors(['csv_file' => 'Missing required columns: ' . implode(', ', $missingHeaders)])
+                    ->withInput();
+            }
+
+            $segments = CustomerSegment::forCompany()->active()->get();
+            $categories = PricingCategory::forCompany()->active()->pluck('id', 'name');
+
+            $results = [
+                'total_rows' => count($csvData),
+                'success_count' => 0,
+                'error_count' => 0,
+                'errors' => [],
+                'created_items' => [],
+            ];
+
+            $validateOnly = $request->boolean('validate_only');
+            $skipDuplicates = $request->boolean('skip_duplicates');
+            $updateExisting = $request->boolean('update_existing');
+
+            if (!$validateOnly) {
+                DB::beginTransaction();
+            }
+
+            foreach ($csvData as $rowIndex => $row) {
+                $rowNumber = $rowIndex + 2; // +2 because we removed header and arrays are 0-indexed
+
+                try {
+                    $data = array_combine($headers, $row);
+
+                    // Validate required fields
+                    if (empty($data['name']) || empty($data['category']) || empty($data['unit'])) {
+                        throw new \Exception("Missing required fields");
+                    }
+
+                    // Find category
+                    $categoryId = $categories->get($data['category']);
+                    if (!$categoryId) {
+                        throw new \Exception("Category '{$data['category']}' not found");
+                    }
+
+                    // Check for duplicate item code
+                    if (!empty($data['item_code'])) {
+                        $existing = PricingItem::forCompany()
+                            ->where('item_code', $data['item_code'])
+                            ->first();
+
+                        if ($existing) {
+                            if ($skipDuplicates && !$updateExisting) {
+                                continue; // Skip this row
+                            } elseif (!$updateExisting) {
+                                throw new \Exception("Item code '{$data['item_code']}' already exists");
+                            }
+                        }
+                    }
+
+                    // Prepare pricing item data
+                    $itemData = [
+                        'name' => $data['name'],
+                        'item_code' => $data['item_code'] ?? null,
+                        'description' => $data['description'] ?? null,
+                        'pricing_category_id' => $categoryId,
+                        'unit' => $data['unit'],
+                        'cost_price' => !empty($data['cost_price']) ? (float) $data['cost_price'] : 0,
+                        'unit_price' => !empty($data['unit_price']) ? (float) $data['unit_price'] : 0,
+                        'minimum_price' => !empty($data['minimum_price']) ? (float) $data['minimum_price'] : null,
+                        'specifications' => $data['specifications'] ?? null,
+                        'is_active' => !empty($data['is_active']) && strtolower($data['is_active']) === 'true',
+                        'is_featured' => !empty($data['is_featured']) && strtolower($data['is_featured']) === 'true',
+                    ];
+
+                    // Handle segment pricing
+                    $segmentPrices = [];
+                    $hasSegmentPricing = false;
+
+                    foreach ($segments as $segment) {
+                        $priceColumn = strtolower(str_replace(' ', '_', $segment->name)) . '_price';
+                        if (isset($data[$priceColumn]) && !empty($data[$priceColumn])) {
+                            $segmentPrices[$segment->id] = number_format((float) $data[$priceColumn], 2, '.', '');
+                            $hasSegmentPricing = true;
+                        }
+                    }
+
+                    if ($hasSegmentPricing) {
+                        $itemData['segment_selling_prices'] = $segmentPrices;
+                        $itemData['use_segment_pricing'] = true;
+                        $itemData['segment_prices_updated_at'] = now();
+                    }
+
+                    if (!$validateOnly) {
+                        if (isset($existing) && $updateExisting) {
+                            $existing->update($itemData);
+                            $results['created_items'][] = "Updated: {$itemData['name']}";
+                        } else {
+                            PricingItem::create($itemData);
+                            $results['created_items'][] = "Created: {$itemData['name']}";
+                        }
+                    }
+
+                    $results['success_count']++;
+
+                } catch (\Exception $e) {
+                    $results['error_count']++;
+                    $results['errors'][] = "Row {$rowNumber}: " . $e->getMessage();
+                }
+            }
+
+            if (!$validateOnly) {
+                if ($results['error_count'] > 0 && $results['success_count'] === 0) {
+                    DB::rollBack();
+                    return redirect()->back()
+                        ->withErrors(['csv_file' => 'Import failed. Please check the errors below.'])
+                        ->with('import_results', $results)
+                        ->withInput();
+                } else {
+                    DB::commit();
+                }
+            }
+
+            $message = $validateOnly
+                ? "Validation completed. {$results['success_count']} valid rows, {$results['error_count']} errors found."
+                : "Import completed successfully. {$results['success_count']} items processed, {$results['error_count']} errors.";
+
+            return redirect()->route('pricing.index')
+                ->with('success', $message)
+                ->with('import_results', $results);
+
+        } catch (\Exception $e) {
+            if (!$validateOnly) {
+                DB::rollBack();
+            }
+
+            return redirect()->back()
+                ->withErrors(['csv_file' => 'Import failed: ' . $e->getMessage()])
+                ->withInput();
+        }
+    }
+
+    /**
+     * Search products for enhanced builders (API endpoint).
+     */
+    public function searchApi(Request $request)
+    {
+        $query = $request->get('query', '');
+        $category = $request->get('category', '');
+        $limit = $request->get('limit', 50);
+
+        if (strlen($query) < 2 && empty($category)) {
+            return response()->json(['products' => []]);
+        }
+
+        $products = PricingItem::query()
+            ->forCompany()
+            ->active()
+            ->with(['category', 'segmentPricing', 'tierPricing']);
+
+        if (!empty($query)) {
+            $products->where(function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('item_code', 'like', "%{$query}%")
+                  ->orWhere('description', 'like', "%{$query}%");
+            });
+        }
+
+        if (!empty($category)) {
+            $products->inCategory($category);
+        }
+
+        $products = $products->orderBy('name')
+            ->limit($limit)
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'item_code' => $item->item_code,
+                    'description' => $item->description,
+                    'unit_price' => $item->unit_price,
+                    'unit' => $item->unit,
+                    'stock_quantity' => $item->stock_quantity,
+                    'segment_pricing' => $item->segmentPricing->map(function ($sp) {
+                        return [
+                            'customer_segment_id' => $sp->customer_segment_id,
+                            'unit_price' => $sp->unit_price,
+                        ];
+                    }),
+                    'tier_pricing' => $item->tierPricing->map(function ($tp) {
+                        return [
+                            'min_quantity' => $tp->min_quantity,
+                            'unit_price' => $tp->unit_price,
+                        ];
+                    }),
+                    'category' => $item->category ? $item->category->name : null,
+                ];
+            });
+
+        return response()->json(['products' => $products]);
+    }
+
+    /**
+     * Get item segment pricing (API endpoint).
+     */
+    public function getItemSegmentPricing(Request $request, PricingItem $item)
+    {
+        $segmentId = $request->get('segment_id');
+
+        if (!$segmentId) {
+            return response()->json(['segment_price' => $item->unit_price]);
+        }
+
+        $segmentPricing = $item->segmentPricing()
+            ->where('customer_segment_id', $segmentId)
+            ->first();
+
+        $segmentPrice = $segmentPricing ? $segmentPricing->unit_price : $item->unit_price;
+
+        return response()->json([
+            'segment_price' => $segmentPrice,
+            'base_price' => $item->unit_price,
+            'has_segment_pricing' => $segmentPricing !== null,
+        ]);
+    }
+
+    /**
+     * Get item tier pricing (API endpoint).
+     */
+    public function getItemTierPricing(Request $request, PricingItem $item)
+    {
+        $quantity = (float) $request->get('quantity', 1);
+
+        $tierPricing = $item->tierPricing()
+            ->where('min_quantity', '<=', $quantity)
+            ->orderBy('min_quantity', 'desc')
+            ->first();
+
+        if ($tierPricing && $tierPricing->unit_price < $item->unit_price) {
+            $savings = ($item->unit_price - $tierPricing->unit_price) * $quantity;
+            return response()->json([
+                'tier_price' => $tierPricing->unit_price,
+                'base_price' => $item->unit_price,
+                'savings' => $savings,
+                'tier_info' => "Tier pricing: Save RM {$savings}",
+                'min_quantity' => $tierPricing->min_quantity,
+            ]);
+        }
+
+        return response()->json([
+            'tier_price' => null,
+            'base_price' => $item->unit_price,
+            'savings' => 0,
+            'tier_info' => null,
+        ]);
     }
 }

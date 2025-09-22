@@ -114,6 +114,11 @@ Route::middleware('auth')->group(function () {
     
     // Quotation Management
     Route::resource('quotations', QuotationController::class);
+
+    // Enhanced Quotation Builders
+    Route::get('quotations/create/products', [QuotationController::class, 'createProduct'])->name('quotations.create.products');
+    Route::get('quotations/create/services', [QuotationController::class, 'createService'])->name('quotations.create.services');
+
     Route::post('quotations/{quotation}/mark-sent', [QuotationController::class, 'markAsSent'])->name('quotations.mark-sent');
     Route::post('quotations/{quotation}/mark-accepted', [QuotationController::class, 'markAsAccepted'])->name('quotations.mark-accepted');
     Route::post('quotations/{quotation}/mark-rejected', [QuotationController::class, 'markAsRejected'])->name('quotations.mark-rejected');
@@ -126,6 +131,11 @@ Route::middleware('auth')->group(function () {
     
     // Invoice Management
     Route::resource('invoices', InvoiceController::class);
+
+    // Enhanced Invoice Builders
+    Route::get('invoices/create/products', [InvoiceController::class, 'createProduct'])->name('invoices.create.products');
+    Route::get('invoices/create/services', [InvoiceController::class, 'createService'])->name('invoices.create.services');
+
     Route::post('invoices/{invoice}/mark-sent', [InvoiceController::class, 'markAsSent'])->name('invoices.mark-sent');
     Route::get('invoices/{invoice}/payment', [InvoiceController::class, 'showPaymentForm'])->name('invoices.payment-form');
     Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'recordPayment'])->name('invoices.record-payment');
@@ -148,6 +158,11 @@ Route::middleware('auth')->group(function () {
     Route::get('pricing-search', [PricingController::class, 'search'])->name('pricing.search');
     Route::get('pricing-export', [PricingController::class, 'export'])->name('pricing.export');
     Route::get('pricing-popular', [PricingController::class, 'popular'])->name('pricing.popular');
+
+    // Bulk Import/Export Routes
+    Route::get('pricing/import', [PricingController::class, 'import'])->name('pricing.import');
+    Route::post('pricing/process-import', [PricingController::class, 'processImport'])->name('pricing.process-import');
+    Route::get('pricing/download-template', [PricingController::class, 'downloadTemplate'])->name('pricing.download-template');
     
     // Tier Pricing Management
     Route::get('pricing/{pricing}/tiers', [PricingController::class, 'manageTiers'])->name('pricing.manage-tiers');
@@ -289,7 +304,27 @@ Route::middleware('auth')->group(function () {
 // Two-Factor Authentication Routes (outside auth middleware for login flow)
 Route::prefix('two-factor')->name('two-factor.')->group(function () {
     Route::get('verify', [TwoFactorController::class, 'verify'])->name('verify');
-    Route::post('verify', [TwoFactorController::class, 'verifyCode'])->name('verify');
+    Route::post('verify', [TwoFactorController::class, 'verifyCode'])->name('verify.submit');
+});
+
+// API Routes for Enhanced Builders
+Route::prefix('api')->middleware('auth')->group(function () {
+    // Client/Lead Search API
+    Route::get('clients/search', [LeadController::class, 'searchClients'])->name('api.clients.search');
+    Route::get('leads/recent-clients', [LeadController::class, 'getRecentClients'])->name('api.leads.recent-clients');
+
+    // Product Search & Pricing API
+    Route::get('pricing-items/search', [PricingController::class, 'searchApi'])->name('api.pricing-items.search');
+    Route::get('pricing-items/{item}/segment-pricing', [PricingController::class, 'getItemSegmentPricing'])->name('api.pricing-items.segment-pricing');
+    Route::get('pricing-items/{item}/tier-pricing', [PricingController::class, 'getItemTierPricing'])->name('api.pricing-items.tier-pricing');
+
+    // Service Template API
+    Route::get('service-templates/search', [ServiceTemplateController::class, 'searchApi'])->name('api.service-templates.search');
+    Route::get('service-templates/{template}/data', [ServiceTemplateController::class, 'getTemplateData'])->name('api.service-templates.data');
+
+    // Customer Segment Pricing API
+    Route::post('quotations/calculate-segment-pricing', [QuotationController::class, 'calculateSegmentPricing'])->name('api.quotations.calculate-segment-pricing');
+    Route::post('invoices/calculate-segment-pricing', [InvoiceController::class, 'calculateSegmentPricing'])->name('api.invoices.calculate-segment-pricing');
 });
 
 require __DIR__.'/auth.php';

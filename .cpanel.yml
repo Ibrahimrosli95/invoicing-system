@@ -1,0 +1,79 @@
+---
+deployment:
+  tasks:
+    # 1. Set deployment paths for shared hosting
+    - export DEPLOYPATH=/home/binapain/sales-system
+    - export PUBLICPATH=/home/binapain/public_html/sales-system
+
+    # 2. Create necessary directories
+    - /bin/mkdir -p $DEPLOYPATH
+    - /bin/mkdir -p $PUBLICPATH
+    - /bin/mkdir -p $DEPLOYPATH/storage/logs
+    - /bin/mkdir -p $DEPLOYPATH/storage/framework/cache
+    - /bin/mkdir -p $DEPLOYPATH/storage/framework/sessions
+    - /bin/mkdir -p $DEPLOYPATH/storage/framework/views
+    - /bin/mkdir -p $DEPLOYPATH/bootstrap/cache
+
+    # 3. Copy Laravel application files (excluding public)
+    - /bin/cp -R app $DEPLOYPATH/
+    - /bin/cp -R bootstrap $DEPLOYPATH/
+    - /bin/cp -R config $DEPLOYPATH/
+    - /bin/cp -R database $DEPLOYPATH/
+    - /bin/cp -R resources $DEPLOYPATH/
+    - /bin/cp -R routes $DEPLOYPATH/
+    - /bin/cp -R storage $DEPLOYPATH/
+    - /bin/cp artisan $DEPLOYPATH/
+    - /bin/cp composer.json $DEPLOYPATH/
+    - /bin/cp composer.lock $DEPLOYPATH/
+
+    # 4. Copy public folder contents to public_html subdomain/subdirectory
+    - /bin/cp -R public/* $PUBLICPATH/
+    - /bin/cp public/.htaccess $PUBLICPATH/
+
+    # 5. Copy vendor dependencies (if pre-uploaded)
+    - /bin/cp -R vendor $DEPLOYPATH/ || echo "Vendor folder not found - will need manual composer install"
+
+    # 6. Copy environment configuration
+    - /bin/cp .env.example $DEPLOYPATH/.env || echo ".env.example not found"
+
+    # 7. Set proper permissions for shared hosting
+    - /bin/chmod -R 755 $DEPLOYPATH
+    - /bin/chmod -R 777 $DEPLOYPATH/storage
+    - /bin/chmod -R 777 $DEPLOYPATH/bootstrap/cache
+    - /bin/chmod 644 $DEPLOYPATH/.env
+
+    # 8. Update public/index.php to point to correct paths
+    - /bin/sed -i "s|__DIR__.'/../bootstrap/app.php'|'$DEPLOYPATH/bootstrap/app.php'|g" $PUBLICPATH/index.php
+    - /bin/sed -i "s|__DIR__.'/../vendor/autoload.php'|'$DEPLOYPATH/vendor/autoload.php'|g" $PUBLICPATH/index.php
+
+    # 9. Clear Laravel caches (using cPanel's PHP version)
+    - /usr/local/bin/ea-php83 $DEPLOYPATH/artisan config:clear || echo "Config clear failed"
+    - /usr/local/bin/ea-php83 $DEPLOYPATH/artisan route:clear || echo "Route clear failed"
+    - /usr/local/bin/ea-php83 $DEPLOYPATH/artisan view:clear || echo "View clear failed"
+    - /usr/local/bin/ea-php83 $DEPLOYPATH/artisan cache:clear || echo "Cache clear failed"
+
+    # 10. Generate Laravel caches for production
+    - /usr/local/bin/ea-php83 $DEPLOYPATH/artisan config:cache || echo "Config cache failed"
+    - /usr/local/bin/ea-php83 $DEPLOYPATH/artisan route:cache || echo "Route cache failed"
+    - /usr/local/bin/ea-php83 $DEPLOYPATH/artisan view:cache || echo "View cache failed"
+
+    # 11. Generate app key if needed (only if .env exists and APP_KEY is empty)
+    - /usr/local/bin/ea-php83 $DEPLOYPATH/artisan key:generate --force || echo "Key generation skipped"
+
+    # 12. Run database migrations (if database is configured)
+    - /usr/local/bin/ea-php83 $DEPLOYPATH/artisan migrate --force || echo "Migration skipped - check database config"
+
+    # 13. Create symbolic links (if supported by hosting)
+    - /usr/local/bin/ea-php83 $DEPLOYPATH/artisan storage:link || echo "Storage link creation failed"
+
+    # 14. Set final permissions
+    - /bin/chmod -R 644 $PUBLICPATH
+    - /bin/chmod 755 $PUBLICPATH
+    - /bin/find $DEPLOYPATH/storage -type f -exec chmod 666 {} \;
+    - /bin/find $DEPLOYPATH/storage -type d -exec chmod 777 {} \;
+    - /bin/find $DEPLOYPATH/bootstrap/cache -type f -exec chmod 666 {} \;
+    - /bin/find $DEPLOYPATH/bootstrap/cache -type d -exec chmod 777 {} \;
+
+    # 15. Create deployment completion marker
+    - /bin/echo "Deployment completed at $(date)" > $DEPLOYPATH/deployment.log
+    - /bin/echo "Laravel Sales System deployed successfully" > $PUBLICPATH/deployment-status.txt

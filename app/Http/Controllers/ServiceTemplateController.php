@@ -11,10 +11,6 @@ use Illuminate\Validation\Rule;
 
 class ServiceTemplateController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
 
     /**
      * Display a listing of the resource.
@@ -358,5 +354,92 @@ class ServiceTemplateController extends Controller
             return redirect()->back()
                 ->withErrors(['error' => 'Failed to convert template: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * Search service templates for enhanced builders (API endpoint).
+     */
+    public function searchApi(Request $request)
+    {
+        $query = $request->get('query', '');
+        $category = $request->get('category', '');
+        $limit = $request->get('limit', 20);
+
+        $templates = ServiceTemplate::query()
+            ->forCompany()
+            ->active()
+            ->with(['sections.items']);
+
+        if (!empty($query)) {
+            $templates->where(function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('description', 'like', "%{$query}%")
+                  ->orWhere('category', 'like', "%{$query}%");
+            });
+        }
+
+        if (!empty($category)) {
+            $templates->where('category', $category);
+        }
+
+        $templates = $templates->orderBy('name')
+            ->limit($limit)
+            ->get()
+            ->map(function ($template) {
+                return [
+                    'id' => $template->id,
+                    'name' => $template->name,
+                    'description' => $template->description,
+                    'category' => $template->category,
+                    'sections_count' => $template->sections->count(),
+                    'items_count' => $template->sections->sum(function ($section) {
+                        return $section->items->count();
+                    }),
+                    'estimated_total' => $template->sections->sum(function ($section) {
+                        return $section->items->sum(function ($item) {
+                            return $item->unit_price * $item->default_quantity;
+                        });
+                    }),
+                ];
+            });
+
+        return response()->json(['templates' => $templates]);
+    }
+
+    /**
+     * Get service template data for enhanced builders (API endpoint).
+     */
+    public function getTemplateData(ServiceTemplate $template)
+    {
+        $this->authorize('view', $template);
+
+        $template->load(['sections.items']);
+
+        return response()->json([
+            'template' => [
+                'id' => $template->id,
+                'name' => $template->name,
+                'description' => $template->description,
+                'category' => $template->category,
+                'sections' => $template->sections->map(function ($section) {
+                    return [
+                        'id' => $section->id,
+                        'name' => $section->name,
+                        'description' => $section->description,
+                        'sort_order' => $section->sort_order,
+                        'items' => $section->items->map(function ($item) {
+                            return [
+                                'id' => $item->id,
+                                'description' => $item->description,
+                                'unit_price' => $item->unit_price,
+                                'default_quantity' => $item->default_quantity,
+                                'item_code' => $item->item_code,
+                                'sort_order' => $item->sort_order,
+                            ];
+                        }),
+                    ];
+                }),
+            ]
+        ]);
     }
 }

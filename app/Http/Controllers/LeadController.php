@@ -13,16 +13,6 @@ use Illuminate\Http\JsonResponse;
 
 class LeadController extends Controller
 {
-    /**
-     * Create the controller instance.
-     */
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->middleware('can:view,lead')->only(['show']);
-        $this->middleware('can:update,lead')->only(['edit', 'update']);
-        $this->middleware('can:delete,lead')->only(['destroy']);
-    }
 
     /**
      * Display a listing of leads.
@@ -390,5 +380,68 @@ class LeadController extends Controller
             'success' => true,
             'message' => 'Lead status updated successfully.',
         ]);
+    }
+
+    /**
+     * Search clients for enhanced builders (API endpoint).
+     */
+    public function searchClients(Request $request): JsonResponse
+    {
+        $query = $request->get('q', '');
+
+        if (strlen($query) < 2) {
+            return response()->json(['clients' => []]);
+        }
+
+        $clients = Lead::forCompany()
+            ->where(function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('phone', 'like', "%{$query}%")
+                  ->orWhere('email', 'like', "%{$query}%");
+            })
+            ->select('id', 'name', 'phone', 'email', 'address', 'source')
+            ->orderBy('updated_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($lead) {
+                return [
+                    'id' => $lead->id,
+                    'name' => $lead->name,
+                    'phone' => $lead->phone,
+                    'email' => $lead->email,
+                    'address' => $lead->address,
+                    'source' => $lead->source,
+                ];
+            });
+
+        return response()->json(['clients' => $clients]);
+    }
+
+    /**
+     * Get recent clients for enhanced builders (API endpoint).
+     */
+    public function getRecentClients(Request $request): JsonResponse
+    {
+        $limit = $request->get('limit', 20);
+
+        $clients = Lead::forCompany()
+            ->where('status', '!=', 'LOST')
+            ->select('id', 'name', 'phone', 'email', 'address', 'source', 'updated_at')
+            ->orderBy('updated_at', 'desc')
+            ->limit($limit)
+            ->get()
+            ->map(function ($lead) {
+                return [
+                    'id' => $lead->id,
+                    'name' => $lead->name,
+                    'phone' => $lead->phone,
+                    'email' => $lead->email,
+                    'address' => $lead->address,
+                    'source' => $lead->source,
+                    'last_contact' => $lead->updated_at->diffForHumans(),
+                ];
+            });
+
+        return response()->json(['clients' => $clients]);
     }
 }

@@ -19,16 +19,6 @@ use Illuminate\Http\Response;
 
 class QuotationController extends Controller
 {
-    /**
-     * Create the controller instance.
-     */
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->middleware('can:view,quotation')->only(['show']);
-        $this->middleware('can:update,quotation')->only(['edit', 'update']);
-        $this->middleware('can:delete,quotation')->only(['destroy']);
-    }
 
     /**
      * Display a listing of quotations.
@@ -121,11 +111,20 @@ class QuotationController extends Controller
 
     /**
      * Show the form for creating a new quotation.
+     *
+     * Redirects to the appropriate builder based on feature flag.
      */
-    public function create(Request $request): View
+    public function create(Request $request)
     {
         $this->authorize('create', Quotation::class);
 
+        // Check if enhanced builder is enabled
+        if (config('features.quotation_builder_v2', false)) {
+            // Default to product builder
+            return redirect()->route('quotations.create.products', $request->only(['lead_id']));
+        }
+
+        // Fallback to existing create form if feature flag is disabled
         $lead = null;
         if ($request->filled('lead_id')) {
             $lead = Lead::forCompany()->findOrFail($request->lead_id);
@@ -524,5 +523,106 @@ class QuotationController extends Controller
                 'default_discount_percentage' => $segment->default_discount_percentage,
             ]
         ]);
+    }
+
+    /**
+     * Show the product quotation creation form.
+     */
+    public function createProduct(Request $request): View
+    {
+        $this->authorize('create', Quotation::class);
+
+        $lead = null;
+        if ($request->filled('lead_id')) {
+            $lead = Lead::forCompany()->findOrFail($request->lead_id);
+            $this->authorize('view', $lead);
+        }
+
+        $formData = $this->buildQuotationFormPayload($lead);
+
+        return view('quotations.create-product', array_merge($formData, ['lead' => $lead]));
+    }
+
+    /**
+     * Show the service quotation creation form.
+     */
+    public function createService(Request $request): View
+    {
+        $this->authorize('create', Quotation::class);
+
+        $lead = null;
+        if ($request->filled('lead_id')) {
+            $lead = Lead::forCompany()->findOrFail($request->lead_id);
+            $this->authorize('view', $lead);
+        }
+
+        $formData = $this->buildQuotationFormPayload($lead);
+
+        return view('quotations.create-service', array_merge($formData, ['lead' => $lead]));
+    }
+
+    /**
+     * Build common form payload for quotation creation.
+     */
+    private function buildQuotationFormPayload(?Lead $lead = null): array
+    {
+        // Get teams for assignment
+        $teams = Team::forCompany()
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        // Get assignees (sales staff)
+        $assignees = User::forCompany()
+            ->whereHas('roles', function ($query) {
+                $query->whereIn('name', ['sales_executive', 'sales_coordinator']);
+            })
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        // Get customer segments for pricing
+        $customerSegments = CustomerSegment::forCompany()
+            ->active()
+            ->select('id', 'name', 'color', 'default_discount_percentage')
+            ->orderBy('name')
+            ->get();
+
+        // Get next quotation number preview
+        $nextNumber = Quotation::generateNumber();
+
+        // Get document defaults from company settings
+        $company = auth()->user()->company;
+        $documentDefaults = $company->settings['document'] ?? [];
+
+        // Get recent leads for client shortlist (if not converting from lead)
+        $recentClients = collect();
+        if (!$lead) {
+            $recentLeads = Lead::forCompany()
+                ->select('customer_name', 'customer_email', 'customer_phone')
+                ->whereNotNull('customer_name')
+                ->orderBy('created_at', 'desc')
+                ->limit(15)
+                ->get()
+                ->map(function ($lead) {
+                    return [
+                        'name' => $lead->customer_name,
+                        'email' => $lead->customer_email,
+                        'phone' => $lead->customer_phone,
+                        'source' => 'lead'
+                    ];
+                });
+
+            $recentClients = $recentLeads;
+        }
+
+        return [
+            'teams' => $teams,
+            'assignees' => $assignees,
+            'customerSegments' => $customerSegments,
+            'nextNumber' => $nextNumber,
+            'documentDefaults' => $documentDefaults,
+            'recentClients' => $recentClients,
+        ];
     }
 }
