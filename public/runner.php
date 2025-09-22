@@ -1,6 +1,6 @@
 <?php
 // Simple security check
-if (!isset($_GET['key']) || $_GET['key'] !== 'Baemzone32@') {
+if (!isset($_GET['key']) || $_GET['key'] !== 'YOUR_SECURE_KEY_HERE') {
     http_response_code(403);
     die('Forbidden');
 }

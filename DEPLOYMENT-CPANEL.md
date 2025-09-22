@@ -116,11 +116,17 @@ cd /home/binapain/sales-system
 **Option B: Via Web Runner (No SSH Access)**
 🎯 **Use the included web-based Artisan runner**
 
-1. **Access the Artisan Runner:**
-   - URL: `https://yourdomain.com/sales-system/artisan-runner.php?key=Baemzone32@`
-   - Or the simple version: `https://yourdomain.com/sales-system/runner.php?key=Baemzone32@`
+1. **Set Up Secure Key:**
+   - Edit `/public_html/sales-system/runner.php`
+   - Edit `/public_html/sales-system/artisan-runner.php`
+   - Replace `YOUR_SECURE_KEY_HERE` with a strong, unique key (e.g., `MyS3cur3K3y!2024`)
+   - Keep this key private and secure!
 
-2. **Run these commands in order:**
+2. **Access the Artisan Runner:**
+   - URL: `https://yourdomain.com/sales-system/artisan-runner.php?key=YOUR_ACTUAL_KEY`
+   - Or the simple version: `https://yourdomain.com/sales-system/runner.php?key=YOUR_ACTUAL_KEY`
+
+3. **Run these commands in order:**
    - `config:cache` - Cache configuration
    - `route:cache` - Cache routes
    - `view:cache` - Cache views
@@ -128,13 +134,13 @@ cd /home/binapain/sales-system
    - `storage:link` - Link storage directory
    - `about` - Verify Laravel installation
 
-3. **Example URLs:**
+4. **Example URLs:**
    ```
-   https://yourdomain.com/sales-system/artisan-runner.php?key=Baemzone32@&cmd=config:cache
-   https://yourdomain.com/sales-system/artisan-runner.php?key=Baemzone32@&cmd=migrate
+   https://yourdomain.com/sales-system/artisan-runner.php?key=YOUR_ACTUAL_KEY&cmd=config:cache
+   https://yourdomain.com/sales-system/artisan-runner.php?key=YOUR_ACTUAL_KEY&cmd=migrate
    ```
 
-4. **🚨 IMPORTANT: Delete runner files after deployment!**
+5. **🚨 IMPORTANT: Delete runner files after deployment!**
    ```
    Delete: /public_html/sales-system/runner.php
    Delete: /public_html/sales-system/artisan-runner.php

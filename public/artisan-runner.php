@@ -3,11 +3,11 @@
  * Laravel Artisan Web Runner for Shared Hosting
  * 🚨 SECURITY WARNING: Delete this file after deployment setup!
  *
- * Usage: https://yourdomain.com/artisan-runner.php?key=Baemzone32@&cmd=config:cache
+ * Usage: https://yourdomain.com/artisan-runner.php?key=YOUR_SECURE_KEY_HERE&cmd=config:cache
  */
 
 // Security Configuration
-$SECURE_KEY = 'Baemzone32@';
+$SECURE_KEY = 'YOUR_SECURE_KEY_HERE';
 $ALLOWED_COMMANDS = [
     'config:cache', 'config:clear',
     'route:cache', 'route:clear',
