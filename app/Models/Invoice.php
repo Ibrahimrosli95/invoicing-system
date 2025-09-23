@@ -22,7 +22,10 @@ class Invoice extends Model
     const STATUS_PARTIAL = 'PARTIAL';
     const STATUS_PAID = 'PAID';
     const STATUS_OVERDUE = 'OVERDUE';
-    const STATUS_CANCELLED = 'CANCELLED';\r\n\r\n    const TYPE_PRODUCT = 'product';\r\n    const TYPE_SERVICE = 'service';
+    const STATUS_CANCELLED = 'CANCELLED';
+
+    const TYPE_PRODUCT = 'product';
+    const TYPE_SERVICE = 'service';
 
     /**
      * All available statuses
@@ -96,7 +99,8 @@ class Invoice extends Model
         'total' => 'decimal:2',
         'amount_paid' => 'decimal:2',
         'amount_due' => 'decimal:2',
-        'payment_terms' => 'integer',\r\n        'type' => 'string',
+        'payment_terms' => 'integer',
+        'type' => 'string',
         'overdue_days' => 'integer',
     ];
 
@@ -685,7 +689,20 @@ class Invoice extends Model
     /**
      * Get all available statuses
      */
-    public static function getStatuses(): array\r\n    {\r\n        return self::STATUSES;\r\n    }\r\n\r\n    public static function getTypes(): array\r\n    {\r\n        return [\r\n            self::TYPE_PRODUCT => 'Product Invoice',\r\n            self::TYPE_SERVICE => 'Service Invoice',\r\n        ];\r\n    }\r\n\r\n    /**
+    public static function getStatuses(): array
+    {
+        return self::STATUSES;
+    }
+
+    public static function getTypes(): array
+    {
+        return [
+            self::TYPE_PRODUCT => 'Product Invoice',
+            self::TYPE_SERVICE => 'Service Invoice',
+        ];
+    }
+
+    /**
      * Status badge CSS classes
      */
     public function getStatusBadgeColor(): string
