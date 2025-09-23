@@ -10,12 +10,6 @@ use Illuminate\Support\Facades\Storage;
 
 class DocumentSettingsController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-        // Only company managers and superadmins can manage document settings
-        $this->middleware('can:manage,App\Models\Company');
-    }
 
     /**
      * Display the document settings page.

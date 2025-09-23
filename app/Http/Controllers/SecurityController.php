@@ -13,11 +13,6 @@ use Carbon\Carbon;
 
 class SecurityController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->middleware('can:view security monitoring');
-    }
 
     /**
      * Security monitoring dashboard.

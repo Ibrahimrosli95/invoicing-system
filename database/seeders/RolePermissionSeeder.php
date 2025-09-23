@@ -18,21 +18,21 @@ class RolePermissionSeeder extends Seeder
             // Company management
             'manage companies',
             'view companies',
-            
+
             // User management
             'manage users',
             'view users',
             'create users',
             'edit users',
             'delete users',
-            
+
             // Team management
             'manage teams',
             'view teams',
             'create teams',
             'edit teams',
             'delete teams',
-            
+
             // Lead management
             'manage leads',
             'view leads',
@@ -51,7 +51,7 @@ class RolePermissionSeeder extends Seeder
             'assign assessments',
             'upload assessment photos',
             'generate assessment pdfs',
-            
+
             // Quotation management
             'manage quotations',
             'view quotations',
@@ -59,23 +59,23 @@ class RolePermissionSeeder extends Seeder
             'edit quotations',
             'delete quotations',
             'send quotations',
-            
+
             // Invoice management
             'manage invoices',
             'view invoices',
             'create invoices',
             'edit invoices',
             'update invoice status',
-            
+
             // Pricing management
             'manage pricing',
             'view pricing',
             'edit pricing',
-            
+
             // Settings
             'manage settings',
             'view settings',
-            
+
             // Reports
             'view reports',
             'export reports',
@@ -154,6 +154,7 @@ class RolePermissionSeeder extends Seeder
         $salesManager->givePermissionTo([
             'view users',
             'view teams',
+            'manage teams',
             'manage leads',
             'view leads',
             'create leads',

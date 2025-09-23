@@ -11,12 +11,6 @@ use Illuminate\Validation\Rule;
 
 class CompanyController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-        // Only company managers and superadmins can manage company settings
-        $this->middleware('can:manage,App\Models\Company');
-    }
 
     /**
      * Show the company settings page.

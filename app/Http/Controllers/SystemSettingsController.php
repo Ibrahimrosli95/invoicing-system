@@ -9,12 +9,6 @@ use Illuminate\View\View;
 
 class SystemSettingsController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-        // Only company managers and superadmins can manage system settings
-        $this->middleware('can:manage,App\Models\Company');
-    }
 
     /**
      * Display the system settings page.

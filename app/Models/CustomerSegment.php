@@ -75,6 +75,11 @@ class CustomerSegment extends Model
         return $this->hasMany(PricingTier::class);
     }
 
+    public function quotations(): HasMany
+    {
+        return $this->hasMany(Quotation::class);
+    }
+
     /**
      * Scopes for multi-tenancy and filtering
      */

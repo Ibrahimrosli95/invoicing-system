@@ -80,6 +80,9 @@ class Proof extends Model
         'archived' => 'Archived',
     ];
 
+    // Alias for backward compatibility
+    const STATUS_OPTIONS = self::STATUSES;
+
     // Constants for visibility
     const VISIBILITY_LEVELS = [
         'public' => 'Public',

@@ -32,7 +32,6 @@ class AssessmentController extends Controller
      */
     public function __construct(PDFService $pdfService)
     {
-        $this->middleware('auth');
         $this->pdfService = $pdfService;
     }
 

@@ -13,8 +13,13 @@ class LeadPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('leads.view') || 
-               $user->can('leads.manage');
+        // Superadmin has access to everything
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
+        return $user->can('view leads') ||
+               $user->can('manage leads');
     }
 
     /**
@@ -58,7 +63,7 @@ class LeadPolicy
     public function create(User $user): bool
     {
         return $user->hasAnyRole(['superadmin', 'company_manager', 'sales_manager', 'sales_coordinator', 'sales_executive']) ||
-               $user->can('leads.create');
+               $user->can('create leads');
     }
 
     /**
@@ -93,7 +98,7 @@ class LeadPolicy
             return $lead->assigned_to === $user->id;
         }
 
-        return $user->can('leads.update');
+        return $user->can('edit leads');
     }
 
     /**
@@ -117,7 +122,7 @@ class LeadPolicy
             return $managedTeamIds->contains($lead->team_id);
         }
 
-        return $user->can('leads.delete');
+        return $user->can('delete leads');
     }
 
     /**
@@ -157,7 +162,7 @@ class LeadPolicy
             return $coordinatedTeamIds->contains($lead->team_id);
         }
 
-        return $user->can('leads.assign');
+        return $user->can('assign leads');
     }
 
     /**

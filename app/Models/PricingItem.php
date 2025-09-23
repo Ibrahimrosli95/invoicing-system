@@ -23,6 +23,10 @@ class PricingItem extends Model
         'unit_price',
         'cost_price',
         'minimum_price',
+        'segment_selling_prices',
+        'segment_target_margins',
+        'segment_prices_updated_at',
+        'use_segment_pricing',
         'specifications',
         'tags',
         'image_path',
@@ -42,6 +46,10 @@ class PricingItem extends Model
         'unit_price' => 'decimal:2',
         'cost_price' => 'decimal:2',
         'minimum_price' => 'decimal:2',
+        'segment_selling_prices' => 'array',
+        'segment_target_margins' => 'array',
+        'segment_prices_updated_at' => 'datetime',
+        'use_segment_pricing' => 'boolean',
         'tags' => 'array',
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
@@ -682,28 +690,312 @@ class PricingItem extends Model
     }
 
     /**
-     * Export items to array format
+     * New Segment Pricing Methods (Simplified System)
+     */
+
+    /**
+     * Check if this item uses segment-specific pricing
+     */
+    public function hasSegmentPricing(): bool
+    {
+        return $this->use_segment_pricing && !empty($this->segment_selling_prices);
+    }
+
+    /**
+     * Get selling price for a specific customer segment
+     */
+    public function getSellingPriceForSegment($segmentId): float
+    {
+        if (!$this->hasSegmentPricing()) {
+            // Fallback to segment discount on base price
+            $segment = CustomerSegment::find($segmentId);
+            if ($segment) {
+                return $segment->calculateDiscountedPrice($this->unit_price);
+            }
+            return $this->unit_price;
+        }
+
+        // Get segment-specific price from JSON
+        $segmentPrices = $this->segment_selling_prices ?? [];
+        return isset($segmentPrices[$segmentId])
+            ? (float) $segmentPrices[$segmentId]
+            : $this->unit_price;
+    }
+
+    /**
+     * Set selling price for a specific customer segment
+     */
+    public function setSellingPriceForSegment($segmentId, float $price): self
+    {
+        $segmentPrices = $this->segment_selling_prices ?? [];
+        $segmentPrices[$segmentId] = number_format($price, 2, '.', '');
+
+        $this->segment_selling_prices = $segmentPrices;
+        $this->use_segment_pricing = true;
+        $this->segment_prices_updated_at = now();
+
+        return $this;
+    }
+
+    /**
+     * Get margin percentage for a specific customer segment
+     */
+    public function getMarginForSegment($segmentId): array
+    {
+        $sellingPrice = $this->getSellingPriceForSegment($segmentId);
+        $costPrice = $this->cost_price ?? 0;
+
+        if ($sellingPrice <= 0) {
+            return [
+                'margin_percentage' => 0,
+                'margin_amount' => 0,
+                'status' => 'invalid',
+                'color' => 'text-red-600',
+                'bg_color' => 'bg-red-50',
+            ];
+        }
+
+        if ($costPrice <= 0) {
+            return [
+                'margin_percentage' => null,
+                'margin_amount' => null,
+                'status' => 'no_cost',
+                'color' => 'text-gray-600',
+                'bg_color' => 'bg-gray-50',
+            ];
+        }
+
+        $marginAmount = $sellingPrice - $costPrice;
+        $marginPercentage = ($marginAmount / $sellingPrice) * 100;
+
+        // Determine status and colors based on margin
+        if ($marginPercentage < 0) {
+            $status = 'loss';
+            $color = 'text-red-600';
+            $bgColor = 'bg-red-50';
+        } elseif ($marginPercentage < 10) {
+            $status = 'low';
+            $color = 'text-orange-600';
+            $bgColor = 'bg-orange-50';
+        } elseif ($marginPercentage < 20) {
+            $status = 'medium';
+            $color = 'text-yellow-600';
+            $bgColor = 'bg-yellow-50';
+        } else {
+            $status = 'good';
+            $color = 'text-green-600';
+            $bgColor = 'bg-green-50';
+        }
+
+        return [
+            'margin_percentage' => round($marginPercentage, 2),
+            'margin_amount' => round($marginAmount, 2),
+            'status' => $status,
+            'color' => $color,
+            'bg_color' => $bgColor,
+        ];
+    }
+
+    /**
+     * Get all segment prices for this item
+     */
+    public function getAllSegmentPrices(): array
+    {
+        $segments = CustomerSegment::forCompany()->active()->ordered()->get();
+        $prices = [];
+
+        foreach ($segments as $segment) {
+            $sellingPrice = $this->getSellingPriceForSegment($segment->id);
+            $margin = $this->getMarginForSegment($segment->id);
+
+            $prices[] = [
+                'segment_id' => $segment->id,
+                'segment_name' => $segment->name,
+                'segment_color' => $segment->color,
+                'selling_price' => $sellingPrice,
+                'margin' => $margin,
+                'is_custom_price' => isset($this->segment_selling_prices[$segment->id]),
+            ];
+        }
+
+        return $prices;
+    }
+
+    /**
+     * Set multiple segment prices at once
+     */
+    public function setSegmentPrices(array $prices): self
+    {
+        $segmentPrices = [];
+        foreach ($prices as $segmentId => $price) {
+            if ($price !== null && $price > 0) {
+                $segmentPrices[$segmentId] = number_format($price, 2, '.', '');
+            }
+        }
+
+        $this->segment_selling_prices = $segmentPrices;
+        $this->use_segment_pricing = !empty($segmentPrices);
+        $this->segment_prices_updated_at = now();
+
+        return $this;
+    }
+
+    /**
+     * Copy segment prices from another item
+     */
+    public function copySegmentPricesFrom(PricingItem $sourceItem): self
+    {
+        if ($sourceItem->hasSegmentPricing()) {
+            $this->segment_selling_prices = $sourceItem->segment_selling_prices;
+            $this->segment_target_margins = $sourceItem->segment_target_margins;
+            $this->use_segment_pricing = true;
+            $this->segment_prices_updated_at = now();
+        }
+
+        return $this;
+    }
+
+    /**
+     * Generate suggested segment prices based on cost and target margins
+     */
+    public function generateSuggestedSegmentPrices(array $targetMargins = null): array
+    {
+        $segments = CustomerSegment::forCompany()->active()->ordered()->get();
+        $suggestions = [];
+
+        // Default target margins per segment if not provided
+        $defaultMargins = [
+            'End User' => 25,
+            'Contractor' => 20,
+            'Dealer' => 15,
+        ];
+
+        foreach ($segments as $segment) {
+            $targetMargin = $targetMargins[$segment->id]
+                ?? $this->segment_target_margins[$segment->id]
+                ?? $defaultMargins[$segment->name]
+                ?? 20;
+
+            $costPrice = $this->cost_price ?? 0;
+
+            if ($costPrice > 0 && $targetMargin > 0) {
+                // Calculate price for target margin: selling_price = cost_price / (1 - margin/100)
+                $suggestedPrice = $costPrice / (1 - $targetMargin / 100);
+
+                $suggestions[] = [
+                    'segment_id' => $segment->id,
+                    'segment_name' => $segment->name,
+                    'current_price' => $this->getSellingPriceForSegment($segment->id),
+                    'suggested_price' => round($suggestedPrice, 2),
+                    'target_margin' => $targetMargin,
+                    'cost_price' => $costPrice,
+                ];
+            }
+        }
+
+        return $suggestions;
+    }
+
+    /**
+     * Validate segment pricing setup
+     */
+    public function validateSegmentPricing(): array
+    {
+        $issues = [];
+        $warnings = [];
+
+        if ($this->hasSegmentPricing()) {
+            $costPrice = $this->cost_price ?? 0;
+
+            foreach ($this->segment_selling_prices as $segmentId => $price) {
+                $segment = CustomerSegment::find($segmentId);
+                $segmentName = $segment ? $segment->name : "Segment #{$segmentId}";
+
+                // Check if price is below cost
+                if ($costPrice > 0 && $price < $costPrice) {
+                    $issues[] = "{$segmentName}: Selling price (RM {$price}) is below cost price (RM {$costPrice})";
+                }
+
+                // Check if price is below minimum
+                if ($this->minimum_price > 0 && $price < $this->minimum_price) {
+                    $issues[] = "{$segmentName}: Selling price (RM {$price}) is below minimum price (RM {$this->minimum_price})";
+                }
+
+                // Check margin warnings
+                $margin = $this->getMarginForSegment($segmentId);
+                if ($margin['status'] === 'low') {
+                    $warnings[] = "{$segmentName}: Low margin ({$margin['margin_percentage']}%)";
+                }
+            }
+        }
+
+        return [
+            'valid' => empty($issues),
+            'issues' => $issues,
+            'warnings' => $warnings,
+            'has_segment_pricing' => $this->hasSegmentPricing(),
+        ];
+    }
+
+    /**
+     * Export items to array format with segment pricing
      */
     public function toExportArray(): array
     {
-        return [
+        $baseData = [
             'item_code' => $this->item_code,
             'name' => $this->name,
             'description' => $this->description,
             'category' => $this->category->name ?? '',
             'unit' => $this->unit,
-            'unit_price' => $this->unit_price,
             'cost_price' => $this->cost_price,
+            'unit_price' => $this->unit_price,
             'minimum_price' => $this->minimum_price,
-            'markup_percentage' => $this->markup_percentage,
             'specifications' => $this->specifications,
             'is_active' => $this->is_active ? 'Yes' : 'No',
             'is_featured' => $this->is_featured ? 'Yes' : 'No',
-            'stock_quantity' => $this->track_stock ? $this->stock_quantity : 'N/A',
-            'tier_pricing' => $this->hasTierPricing() ? 'Yes' : 'No',
-            'segments_with_tiers' => $this->getSegmentsWithTiers()->pluck('name')->join(', '),
+            'use_segment_pricing' => $this->use_segment_pricing ? 'Yes' : 'No',
             'created_at' => $this->created_at->format('Y-m-d'),
-            'last_price_update' => $this->last_price_update?->format('Y-m-d'),
         ];
+
+        // Add segment prices if enabled
+        if ($this->hasSegmentPricing()) {
+            $segments = CustomerSegment::forCompany()->active()->ordered()->get();
+            foreach ($segments as $segment) {
+                $price = $this->getSellingPriceForSegment($segment->id);
+                $margin = $this->getMarginForSegment($segment->id);
+
+                $baseData[$segment->name . '_Price'] = $price;
+                $baseData[$segment->name . '_Margin'] = $margin['margin_percentage']
+                    ? $margin['margin_percentage'] . '%'
+                    : 'N/A';
+            }
+        }
+
+        return $baseData;
+    }
+
+    /**
+     * Convert to import array format for CSV templates
+     */
+    public function toImportArray(): array
+    {
+        $segments = CustomerSegment::forCompany()->active()->ordered()->get();
+        $data = [
+            'item_code' => $this->item_code,
+            'name' => $this->name,
+            'description' => $this->description,
+            'category' => $this->category->name ?? '',
+            'unit' => $this->unit,
+            'cost_price' => $this->cost_price,
+        ];
+
+        // Add segment price columns
+        foreach ($segments as $segment) {
+            $data[strtolower(str_replace(' ', '_', $segment->name)) . '_price'] =
+                $this->getSellingPriceForSegment($segment->id);
+        }
+
+        return $data;
     }
 }

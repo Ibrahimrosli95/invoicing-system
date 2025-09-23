@@ -73,6 +73,38 @@ class Team extends Model
     }
 
     /**
+     * Get the quotations for the team (through assigned users).
+     */
+    public function quotations(): HasMany
+    {
+        return $this->hasMany(Quotation::class);
+    }
+
+    /**
+     * Get the invoices for the team (through assigned users).
+     */
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    /**
+     * Get the assessments for the team (through assigned users).
+     */
+    public function assessments(): HasMany
+    {
+        return $this->hasMany(Assessment::class);
+    }
+
+    /**
+     * Get the service templates assigned to this team.
+     */
+    public function serviceTemplates(): BelongsToMany
+    {
+        return $this->belongsToMany(ServiceTemplate::class);
+    }
+
+    /**
      * Scope to get teams for a specific company.
      */
     public function scopeForCompany($query, $companyId = null)

@@ -10,16 +10,6 @@ use Illuminate\Http\RedirectResponse;
 
 class TeamController extends Controller
 {
-    /**
-     * Create the controller instance.
-     */
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->middleware('can:view,team')->only(['show']);
-        $this->middleware('can:update,team')->only(['edit', 'update']);
-        $this->middleware('can:delete,team')->only(['destroy']);
-    }
 
     /**
      * Display a listing of the teams.
@@ -44,23 +34,25 @@ class TeamController extends Controller
     {
         $this->authorize('create', Team::class);
 
-        $managers = User::forCompany()
-            ->whereHas('roles', function ($query) {
-                $query->whereIn('name', ['sales_manager', 'company_manager']);
-            })
+        $users = User::forCompany()
+            ->with('roles:id,name')
             ->select('id', 'name')
             ->orderBy('name')
             ->get();
 
-        $coordinators = User::forCompany()
-            ->whereHas('roles', function ($query) {
-                $query->whereIn('name', ['sales_coordinator', 'sales_manager']);
-            })
-            ->select('id', 'name')
-            ->orderBy('name')
-            ->get();
+        $recommendedManagers = $users->filter(function (User $user) {
+            return $user->hasAnyRole(['sales_manager', 'company_manager']);
+        });
 
-        return view('teams.create', compact('managers', 'coordinators'));
+        $recommendedCoordinators = $users->filter(function (User $user) {
+            return $user->hasAnyRole(['sales_coordinator', 'sales_manager']);
+        });
+
+        return view('teams.create', [
+            'users' => $users,
+            'recommendedManagers' => $recommendedManagers,
+            'recommendedCoordinators' => $recommendedCoordinators,
+        ]);
     }
 
     /**
@@ -82,6 +74,8 @@ class TeamController extends Controller
         // Add company_id from authenticated user
         $validated['company_id'] = auth()->user()->company_id;
         $validated['is_active'] = true;
+
+        $validated = $this->applyTeamLeadershipAssignments($validated);
 
         $team = Team::create($validated);
 
@@ -115,23 +109,26 @@ class TeamController extends Controller
     {
         $this->authorize('update', $team);
 
-        $managers = User::forCompany()
-            ->whereHas('roles', function ($query) {
-                $query->whereIn('name', ['sales_manager', 'company_manager']);
-            })
+        $users = User::forCompany()
+            ->with('roles:id,name')
             ->select('id', 'name')
             ->orderBy('name')
             ->get();
 
-        $coordinators = User::forCompany()
-            ->whereHas('roles', function ($query) {
-                $query->whereIn('name', ['sales_coordinator', 'sales_manager']);
-            })
-            ->select('id', 'name')
-            ->orderBy('name')
-            ->get();
+        $recommendedManagers = $users->filter(function (User $user) {
+            return $user->hasAnyRole(['sales_manager', 'company_manager']);
+        });
 
-        return view('teams.edit', compact('team', 'managers', 'coordinators'));
+        $recommendedCoordinators = $users->filter(function (User $user) {
+            return $user->hasAnyRole(['sales_coordinator', 'sales_manager']);
+        });
+
+        return view('teams.edit', [
+            'team' => $team,
+            'users' => $users,
+            'recommendedManagers' => $recommendedManagers,
+            'recommendedCoordinators' => $recommendedCoordinators,
+        ]);
     }
 
     /**
@@ -150,6 +147,8 @@ class TeamController extends Controller
             'target_revenue' => 'nullable|numeric|min:0',
             'is_active' => 'boolean',
         ]);
+
+        $validated = $this->applyTeamLeadershipAssignments($validated, $team);
 
         $team->update($validated);
 
@@ -295,5 +294,31 @@ class TeamController extends Controller
 
         return redirect()->route('teams.settings', $team)
             ->with('success', 'Team settings updated successfully.');
+    }
+
+    /**
+     * Ensure manager/coordinator belong to company and have required roles.
+     */
+    protected function applyTeamLeadershipAssignments(array $data, ?Team $team = null): array
+    {
+        $companyId = auth()->user()->company_id;
+
+        if (!empty($data['manager_id'])) {
+            $manager = User::forCompany($companyId)->findOrFail($data['manager_id']);
+            if (!$manager->hasAnyRole(['sales_manager', 'company_manager'])) {
+                $manager->assignRole('sales_manager');
+            }
+            $data['manager_id'] = $manager->id;
+        }
+
+        if (!empty($data['coordinator_id'])) {
+            $coordinator = User::forCompany($companyId)->findOrFail($data['coordinator_id']);
+            if (!$coordinator->hasAnyRole(['sales_coordinator', 'sales_manager'])) {
+                $coordinator->assignRole('sales_coordinator');
+            }
+            $data['coordinator_id'] = $coordinator->id;
+        }
+
+        return $data;
     }
 }

@@ -10,13 +10,6 @@ use Illuminate\View\View;
 
 class OrganizationController extends Controller
 {
-    /**
-     * Create the controller instance.
-     */
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
 
     /**
      * Display the organization hierarchy.

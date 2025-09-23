@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -248,7 +248,7 @@
                                         <div class="col-span-4">
                                             <x-input-label :value="__('Description')" />
                                             <textarea x-model="item.description" 
-                                                      :name="`items[${index}][description]`"
+                                                      :name="nameFor(index, 'description')"
                                                       rows="2"
                                                       class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-sm"
                                                       required></textarea>
@@ -256,7 +256,7 @@
                                         <div class="col-span-2">
                                             <x-input-label :value="__('Unit')" />
                                             <x-text-input x-model="item.unit" 
-                                                          :name="`items[${index}][unit]`"
+                                                          :name="nameFor(index, 'unit')"
                                                           type="text" 
                                                           class="mt-1 block w-full text-sm" 
                                                           required />
@@ -264,7 +264,7 @@
                                         <div class="col-span-2">
                                             <x-input-label :value="__('Quantity')" />
                                             <x-text-input x-model="item.quantity" 
-                                                          :name="`items[${index}][quantity]`"
+                                                          :name="nameFor(index, 'quantity')"
                                                           type="number" 
                                                           step="0.01"
                                                           min="0.01"
@@ -274,7 +274,7 @@
                                         <div class="col-span-2">
                                             <x-input-label :value="__('Unit Price')" />
                                             <x-text-input x-model="item.unit_price" 
-                                                          :name="`items[${index}][unit_price]`"
+                                                          :name="nameFor(index, 'unit_price')"
                                                           type="number" 
                                                           step="0.01"
                                                           min="0"
@@ -293,7 +293,7 @@
                                                     @click="removeItem(index)"
                                                     class="mt-1 bg-red-500 hover:bg-red-700 text-white p-2 rounded text-sm"
                                                     x-show="items.length > 1">
-                                                ×
+                                                Ã—
                                             </button>
                                         </div>
                                     </div>
@@ -354,7 +354,11 @@
                     }
                 ],
                 @endif
-                
+
+                nameFor(index, field) {
+                    return 'items[' + index + '][' + field + ']';
+                },
+
                 addItem() {
                     this.items.push({
                         description: '',
@@ -376,3 +380,4 @@
         }
     </script>
 </x-app-layout>
+

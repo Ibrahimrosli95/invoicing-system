@@ -12,8 +12,13 @@ class TeamPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('teams.view') || 
-               $user->can('teams.manage');
+        // Superadmin has access to everything
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
+        return $user->can('view teams') ||
+               $user->can('manage teams');
     }
 
     /**

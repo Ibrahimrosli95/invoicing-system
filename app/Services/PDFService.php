@@ -188,65 +188,85 @@ class PDFService
     }
 
     /**
-     * Generic method to download PDF for quotation or invoice
+     * Generic method to download PDF for quotation, invoice, or assessment
      */
     public function downloadPDF($model, string $type = null): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
-        if ($model instanceof Quotation || $type === 'quotation') {
+        if ($model instanceof Assessment || $type === 'assessment') {
+            // Generate PDF if it doesn't exist
+            if (!$this->assessmentPdfExists($model)) {
+                $this->generateAssessmentPDF($model);
+            }
+
+            $filename = "{$model->assessment_code}.pdf";
+            return response()->download(Storage::path($model->pdf_path), $filename);
+
+        } elseif ($model instanceof Quotation || $type === 'quotation') {
             // Generate PDF if it doesn't exist
             if (!$this->pdfExists($model)) {
                 $this->generateQuotationPDF($model);
             }
-            
+
             $filename = "{$model->number}.pdf";
             return response()->download(Storage::path($model->pdf_path), $filename);
-            
+
         } elseif ($model instanceof Invoice || $type === 'invoice') {
             // Generate PDF if it doesn't exist
             if (!$this->invoicePdfExists($model)) {
                 $this->generateInvoicePDF($model);
             }
-            
+
             $filename = "{$model->number}.pdf";
             return response()->download(Storage::path($model->pdf_path), $filename);
         }
-        
+
         throw new \InvalidArgumentException('Invalid model type for PDF generation');
     }
     
     /**
-     * Generic method to stream PDF for preview
+     * Generic method to stream PDF for preview (quotation, invoice, or assessment)
      */
     public function streamPDF($model, string $type = null): \Symfony\Component\HttpFoundation\Response
     {
-        if ($model instanceof Quotation || $type === 'quotation') {
+        if ($model instanceof Assessment || $type === 'assessment') {
+            // Generate PDF if it doesn't exist
+            if (!$this->assessmentPdfExists($model)) {
+                $this->generateAssessmentPDF($model);
+            }
+
+            return response()->file(Storage::path($model->pdf_path), [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . $model->assessment_code . '.pdf"'
+            ]);
+
+        } elseif ($model instanceof Quotation || $type === 'quotation') {
             // Generate PDF if it doesn't exist
             if (!$this->pdfExists($model)) {
                 $this->generateQuotationPDF($model);
             }
-            
+
             return response()->file(Storage::path($model->pdf_path), [
                 'Content-Type' => 'application/pdf',
                 'Content-Disposition' => 'inline; filename="' . $model->number . '.pdf"'
             ]);
-            
+
         } elseif ($model instanceof Invoice || $type === 'invoice') {
             // Generate PDF if it doesn't exist
             if (!$this->invoicePdfExists($model)) {
                 $this->generateInvoicePDF($model);
             }
-            
+
             return response()->file(Storage::path($model->pdf_path), [
                 'Content-Type' => 'application/pdf',
                 'Content-Disposition' => 'inline; filename="' . $model->number . '.pdf"'
             ]);
         }
-        
+
         throw new \InvalidArgumentException('Invalid model type for PDF generation');
     }
 
     /**
-     * Get proofs for PDF display based on model and settings
+     * Get proofs for PDF display based on model and settings (quotation, invoice, or assessment)
      */
     public function getProofsForPDF($model, string $type = 'quotation'): \Illuminate\Database\Eloquent\Collection
     {
@@ -266,6 +286,10 @@ class PDFService
             $query->where('show_in_quotation', true);
         } elseif ($type === 'invoice') {
             $query->where('show_in_invoice', true);
+        } elseif ($type === 'assessment') {
+            // For assessments, show credibility and expertise proofs
+            $query->where('show_in_pdf', true)
+                  ->whereIn('type', ['testimonials', 'case_studies', 'certifications', 'awards']);
         }
 
         $query->where('show_in_pdf', true);
@@ -281,7 +305,7 @@ class PDFService
 
         return $query->orderBy('is_featured', 'desc')
                     ->orderBy('sort_order')
-                    ->limit(8) // Limit proofs for PDF space
+                    ->limit($type === 'assessment' ? 6 : 8) // Fewer proofs for assessments
                     ->get();
     }
 
@@ -747,127 +771,5 @@ class PDFService
             $averageQuality >= 1.5 => 'poor',
             default => 'critical'
         };
-    }
-
-    /**
-     * Extended generic method to handle assessments
-     */
-    public function downloadPDF($model, string $type = null): \Symfony\Component\HttpFoundation\BinaryFileResponse
-    {
-        if ($model instanceof Assessment || $type === 'assessment') {
-            // Generate PDF if it doesn't exist
-            if (!$this->assessmentPdfExists($model)) {
-                $this->generateAssessmentPDF($model);
-            }
-            
-            $filename = "{$model->assessment_code}.pdf";
-            return response()->download(Storage::path($model->pdf_path), $filename);
-            
-        } elseif ($model instanceof Quotation || $type === 'quotation') {
-            // Generate PDF if it doesn't exist
-            if (!$this->pdfExists($model)) {
-                $this->generateQuotationPDF($model);
-            }
-            
-            $filename = "{$model->number}.pdf";
-            return response()->download(Storage::path($model->pdf_path), $filename);
-            
-        } elseif ($model instanceof Invoice || $type === 'invoice') {
-            // Generate PDF if it doesn't exist
-            if (!$this->invoicePdfExists($model)) {
-                $this->generateInvoicePDF($model);
-            }
-            
-            $filename = "{$model->number}.pdf";
-            return response()->download(Storage::path($model->pdf_path), $filename);
-        }
-        
-        throw new \InvalidArgumentException('Invalid model type for PDF generation');
-    }
-
-    /**
-     * Extended generic method to stream PDF for preview
-     */
-    public function streamPDF($model, string $type = null): \Symfony\Component\HttpFoundation\Response
-    {
-        if ($model instanceof Assessment || $type === 'assessment') {
-            // Generate PDF if it doesn't exist
-            if (!$this->assessmentPdfExists($model)) {
-                $this->generateAssessmentPDF($model);
-            }
-            
-            return response()->file(Storage::path($model->pdf_path), [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . $model->assessment_code . '.pdf"'
-            ]);
-            
-        } elseif ($model instanceof Quotation || $type === 'quotation') {
-            // Generate PDF if it doesn't exist
-            if (!$this->pdfExists($model)) {
-                $this->generateQuotationPDF($model);
-            }
-            
-            return response()->file(Storage::path($model->pdf_path), [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . $model->number . '.pdf"'
-            ]);
-            
-        } elseif ($model instanceof Invoice || $type === 'invoice') {
-            // Generate PDF if it doesn't exist
-            if (!$this->invoicePdfExists($model)) {
-                $this->generateInvoicePDF($model);
-            }
-            
-            return response()->file(Storage::path($model->pdf_path), [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'inline; filename="' . $model->number . '.pdf"'
-            ]);
-        }
-        
-        throw new \InvalidArgumentException('Invalid model type for PDF generation');
-    }
-
-    /**
-     * Extended proofs method to support assessments
-     */
-    public function getProofsForPDF($model, string $type = 'quotation'): \Illuminate\Database\Eloquent\Collection
-    {
-        $query = Proof::query()
-            ->with(['assets' => function ($query) {
-                $query->where('processing_status', 'completed')
-                      ->where('show_in_gallery', true)
-                      ->orderBy('is_primary', 'desc')
-                      ->orderBy('sort_order');
-            }])
-            ->where('status', 'active')
-            ->where('company_id', $model->company_id)
-            ->whereDate('expires_at', '>=', now())
-            ->orWhereNull('expires_at');
-
-        if ($type === 'quotation') {
-            $query->where('show_in_quotation', true);
-        } elseif ($type === 'invoice') {
-            $query->where('show_in_invoice', true);
-        } elseif ($type === 'assessment') {
-            // For assessments, show credibility and expertise proofs
-            $query->where('show_in_pdf', true)
-                  ->whereIn('type', ['testimonials', 'case_studies', 'certifications', 'awards']);
-        }
-
-        $query->where('show_in_pdf', true);
-
-        // Filter by scope if proof is linked to specific content
-        $query->where(function ($q) use ($model) {
-            $q->whereNull('scope_type')
-              ->orWhere(function ($sq) use ($model) {
-                  $sq->where('scope_type', get_class($model))
-                     ->where('scope_id', $model->id);
-              });
-        });
-
-        return $query->orderBy('is_featured', 'desc')
-                    ->orderBy('sort_order')
-                    ->limit($type === 'assessment' ? 6 : 8) // Fewer proofs for assessments
-                    ->get();
     }
 }

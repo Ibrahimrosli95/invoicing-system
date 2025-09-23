@@ -303,15 +303,20 @@ class DashboardController extends Controller
     private function getSegmentRevenueBreakdown()
     {
         return CustomerSegment::forCompany()
-            ->withSum(['quotations.invoice' => function($query) {
-                $query->where('status', 'PAID')
-                      ->where('created_at', '>=', Carbon::now()->startOfYear());
-            }], 'total')
             ->get()
             ->map(function($segment) {
+                // Calculate revenue from paid invoices for this segment
+                $revenue = Invoice::forCompany()
+                    ->whereHas('quotation', function($query) use ($segment) {
+                        $query->where('customer_segment_id', $segment->id);
+                    })
+                    ->where('status', 'PAID')
+                    ->where('created_at', '>=', Carbon::now()->startOfYear())
+                    ->sum('total');
+
                 return [
                     'name' => $segment->name,
-                    'revenue' => (float) ($segment->quotations_invoice_sum_total ?: 0),
+                    'revenue' => (float) ($revenue ?: 0),
                     'color' => $segment->color ?: '#6B7280'
                 ];
             });

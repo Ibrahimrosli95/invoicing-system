@@ -15,10 +15,6 @@ use Illuminate\Database\Eloquent\Builder;
 
 class AuditController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
 
     /**
      * Display audit logs index with filtering and search.

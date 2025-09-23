@@ -88,6 +88,18 @@
                                     </p>
                                 </div>
                                 @endif
+                                @if($quotation->customerSegment)
+                                <div>
+                                    <label class="text-sm font-medium text-gray-500">Customer Segment</label>
+                                    <p class="mt-1">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium"
+                                              style="background-color: {{ $quotation->customerSegment->color }}20; color: {{ $quotation->customerSegment->color }};">
+                                            <div class="w-2 h-2 rounded-full mr-2" style="background-color: {{ $quotation->customerSegment->color }};"></div>
+                                            {{ $quotation->customerSegment->name }}
+                                        </span>
+                                    </p>
+                                </div>
+                                @endif
                                 @if($quotation->getFormattedCustomerAddress())
                                 <div class="md:col-span-2">
                                     <label class="text-sm font-medium text-gray-500">Address</label>

@@ -10,12 +10,6 @@ use Illuminate\Http\JsonResponse;
 
 class NumberSequenceController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-        // Only company managers and superadmins can manage numbering
-        $this->middleware('can:manage,App\Models\Company');
-    }
 
     /**
      * Display the numbering settings page.

@@ -100,6 +100,86 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the leads assigned to this user.
+     */
+    public function assignedLeads(): HasMany
+    {
+        return $this->hasMany(Lead::class, 'assigned_to');
+    }
+
+    /**
+     * Get the quotations assigned to this user.
+     */
+    public function assignedQuotations(): HasMany
+    {
+        return $this->hasMany(Quotation::class, 'assigned_to');
+    }
+
+    /**
+     * Get the quotations created by this user.
+     */
+    public function createdQuotations(): HasMany
+    {
+        return $this->hasMany(Quotation::class, 'created_by');
+    }
+
+    /**
+     * Get the invoices assigned to this user.
+     */
+    public function assignedInvoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class, 'assigned_to');
+    }
+
+    /**
+     * Get the invoices created by this user.
+     */
+    public function createdInvoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class, 'created_by');
+    }
+
+    /**
+     * Get the assessments assigned to this user.
+     */
+    public function assignedAssessments(): HasMany
+    {
+        return $this->hasMany(Assessment::class, 'assigned_to');
+    }
+
+    /**
+     * Get the assessments created by this user.
+     */
+    public function createdAssessments(): HasMany
+    {
+        return $this->hasMany(Assessment::class, 'created_by');
+    }
+
+    /**
+     * Get the payment records recorded by this user.
+     */
+    public function recordedPayments(): HasMany
+    {
+        return $this->hasMany(PaymentRecord::class, 'recorded_by');
+    }
+
+    /**
+     * Get the lead activities created by this user.
+     */
+    public function leadActivities(): HasMany
+    {
+        return $this->hasMany(LeadActivity::class);
+    }
+
+    /**
+     * Get the audit logs for this user.
+     */
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(AuditLog::class);
+    }
+
+    /**
      * Get the notification preferences for this user.
      */
     public function notificationPreferences(): HasMany

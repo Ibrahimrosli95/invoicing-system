@@ -1,66 +1,83 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('My Dashboard') }}
-            </h2>
-            <div class="text-sm text-gray-500">
-                Welcome back, {{ auth()->user()->name }}
+        <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
+                    <div>
+                        <h1 class="text-3xl font-bold">My Dashboard</h1>
+                        <p class="text-indigo-100 mt-2">Welcome back, {{ auth()->user()->name }}! Let's achieve your goals today.</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+                        <button class="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-6 py-2 rounded-xl text-sm font-medium shadow-lg transition-all duration-200 border border-white/20">
+                            My Performance Report
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-purple-50 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Personal Performance Summary -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
                 <!-- My Revenue -->
-                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
-                    <div class="p-6">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                                    </svg>
+                <div class="group bg-white/70 backdrop-blur-sm overflow-hidden shadow-xl rounded-2xl border border-white/50 hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                    <div class="p-6 relative">
+                        <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-green-400/20 to-green-600/20 rounded-bl-3xl"></div>
+                        <div class="relative">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <div class="text-sm font-medium text-gray-600">My Revenue</div>
+                                    <div class="text-2xl lg:text-3xl font-bold text-gray-900 mt-1">RM {{ number_format($metrics['my_revenue'], 0) }}</div>
                                 </div>
                             </div>
-                            <div class="ml-4 flex-1">
-                                <div class="text-sm font-medium text-gray-500">My Revenue</div>
-                                <div class="text-2xl font-bold text-gray-900">RM {{ number_format($metrics['my_revenue'], 2) }}</div>
-                                <div class="text-xs text-gray-400 mt-1">
-                                    Goal: RM {{ number_format($metrics['revenue_target'], 0) }}
-                                    <span class="ml-1 text-{{ $metrics['revenue_progress'] >= 100 ? 'green' : ($metrics['revenue_progress'] >= 80 ? 'yellow' : 'red') }}-600">
-                                        ({{ number_format($metrics['revenue_progress'], 1) }}%)
+                            <div class="mt-4">
+                                <div class="flex justify-between items-center text-xs mb-2">
+                                    <span class="text-gray-500">Goal: RM {{ number_format($metrics['revenue_target'], 0) }}</span>
+                                    <span class="font-semibold @if($metrics['revenue_progress'] >= 100) text-green-600 @elseif($metrics['revenue_progress'] >= 80) text-yellow-600 @else text-red-600 @endif">
+                                        {{ number_format($metrics['revenue_progress'], 1) }}%
                                     </span>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div class="bg-green-600 h-2 rounded-full transition-all duration-300" 
-                                     style="width: {{ min($metrics['revenue_progress'], 100) }}%"></div>
+                                <div class="w-full bg-gray-200 rounded-full h-3 shadow-inner">
+                                    <div class="@if($metrics['revenue_progress'] >= 100) bg-gradient-to-r from-green-400 to-green-600 @elseif($metrics['revenue_progress'] >= 80) bg-gradient-to-r from-yellow-400 to-yellow-600 @else bg-gradient-to-r from-red-400 to-red-600 @endif h-3 rounded-full shadow-sm transition-all duration-500 ease-out"
+                                         style="width: {{ min($metrics['revenue_progress'], 100) }}%"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- My Active Leads -->
-                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
-                    <div class="p-6">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                    </svg>
+                <div class="group bg-white/70 backdrop-blur-sm overflow-hidden shadow-xl rounded-2xl border border-white/50 hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                    <div class="p-6 relative">
+                        <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-400/20 to-blue-600/20 rounded-bl-3xl"></div>
+                        <div class="relative">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <div class="text-sm font-medium text-gray-600">Active Leads</div>
+                                    <div class="text-2xl lg:text-3xl font-bold text-gray-900 mt-1">{{ $metrics['active_leads'] }}</div>
                                 </div>
                             </div>
-                            <div class="ml-4 flex-1">
-                                <div class="text-sm font-medium text-gray-500">Active Leads</div>
-                                <div class="text-2xl font-bold text-gray-900">{{ $metrics['active_leads'] }}</div>
-                                <div class="text-xs text-gray-400 mt-1">
-                                    {{ $metrics['new_leads_this_week'] }} new this week
+                            <div class="mt-4">
+                                <div class="text-sm text-gray-600">
+                                    <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                                        {{ $metrics['new_leads_this_week'] }} new this week
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -68,21 +85,28 @@
                 </div>
 
                 <!-- My Conversion Rate -->
-                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
-                    <div class="p-6">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                    </svg>
+                <div class="group bg-white/70 backdrop-blur-sm overflow-hidden shadow-xl rounded-2xl border border-white/50 hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                    <div class="p-6 relative">
+                        <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-400/20 to-purple-600/20 rounded-bl-3xl"></div>
+                        <div class="relative">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <div class="text-sm font-medium text-gray-600">Conversion Rate</div>
+                                    <div class="text-2xl lg:text-3xl font-bold text-gray-900 mt-1">{{ number_format($metrics['conversion_rate'], 1) }}%</div>
                                 </div>
                             </div>
-                            <div class="ml-4 flex-1">
-                                <div class="text-sm font-medium text-gray-500">Conversion Rate</div>
-                                <div class="text-2xl font-bold text-gray-900">{{ number_format($metrics['conversion_rate'], 1) }}%</div>
-                                <div class="text-xs text-gray-400 mt-1">
-                                    {{ $metrics['won_leads'] }}/{{ $metrics['total_opportunities'] }} opportunities
+                            <div class="mt-4">
+                                <div class="text-sm text-gray-600">
+                                    <span class="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
+                                        {{ $metrics['won_leads'] }}/{{ $metrics['total_opportunities'] }} opportunities
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -90,21 +114,34 @@
                 </div>
 
                 <!-- Pending Tasks -->
-                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
-                    <div class="p-6">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-                                    </svg>
+                <div class="group bg-white/70 backdrop-blur-sm overflow-hidden shadow-xl rounded-2xl border border-white/50 hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                    <div class="p-6 relative">
+                        <div class="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-orange-400/20 to-orange-600/20 rounded-bl-3xl"></div>
+                        <div class="relative">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <div class="text-sm font-medium text-gray-600">Pending Tasks</div>
+                                    <div class="text-2xl lg:text-3xl font-bold text-gray-900 mt-1">{{ $metrics['pending_tasks'] }}</div>
                                 </div>
                             </div>
-                            <div class="ml-4 flex-1">
-                                <div class="text-sm font-medium text-gray-500">Pending Tasks</div>
-                                <div class="text-2xl font-bold text-gray-900">{{ $metrics['pending_tasks'] }}</div>
-                                <div class="text-xs text-gray-400 mt-1">
-                                    {{ $metrics['overdue_tasks'] }} overdue
+                            <div class="mt-4">
+                                <div class="text-sm text-gray-600">
+                                    @if($metrics['overdue_tasks'] > 0)
+                                        <span class="inline-flex items-center px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+                                            {{ $metrics['overdue_tasks'] }} overdue
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                                            All up to date
+                                        </span>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -112,31 +149,44 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
                 <!-- My Pipeline -->
-                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+                <div class="bg-white/70 backdrop-blur-sm overflow-hidden shadow-xl rounded-2xl border border-white/50">
+                    <div class="px-6 py-5 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-white/50">
+                        <h3 class="text-xl font-bold text-gray-900">My Sales Pipeline</h3>
+                        <p class="text-sm text-gray-600 mt-1">Personal lead distribution and progress</p>
+                    </div>
                     <div class="p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">My Sales Pipeline</h3>
-                        <canvas id="pipelineChart" height="300"></canvas>
+                        <div class="h-72 flex items-center justify-center">
+                            <canvas id="pipelineChart" class="w-full h-full"></canvas>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Monthly Performance -->
-                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
+                <div class="bg-white/70 backdrop-blur-sm overflow-hidden shadow-xl rounded-2xl border border-white/50">
+                    <div class="px-6 py-5 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-white/50">
+                        <h3 class="text-xl font-bold text-gray-900">My Monthly Performance</h3>
+                        <p class="text-sm text-gray-600 mt-1">Track your personal achievement trends</p>
+                    </div>
                     <div class="p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">My Monthly Performance</h3>
-                        <canvas id="performanceChart" height="300"></canvas>
+                        <div class="h-72 flex items-center justify-center">
+                            <canvas id="performanceChart" class="w-full h-full"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- My Action Items -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
                 <!-- Today's Tasks -->
-                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
-                    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                        <h3 class="text-lg font-semibold text-gray-900">Today's Tasks</h3>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <div class="bg-white/70 backdrop-blur-sm overflow-hidden shadow-xl rounded-2xl border border-white/50">
+                    <div class="px-6 py-5 bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-white/50 flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">Today's Tasks</h3>
+                            <p class="text-sm text-gray-600 mt-1">Your agenda for today</p>
+                        </div>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                             {{ count($todays_tasks) }} tasks
                         </span>
                     </div>
@@ -187,10 +237,13 @@
                 </div>
 
                 <!-- My Hot Leads -->
-                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
-                    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                        <h3 class="text-lg font-semibold text-gray-900">My Hot Leads</h3>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                <div class="bg-white/70 backdrop-blur-sm overflow-hidden shadow-xl rounded-2xl border border-white/50">
+                    <div class="px-6 py-5 bg-gradient-to-r from-red-50 to-pink-50 border-b border-white/50 flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">My Hot Leads</h3>
+                            <p class="text-sm text-gray-600 mt-1">Leads requiring immediate attention</p>
+                        </div>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
                             {{ count($hot_leads) }} leads
                         </span>
                     </div>
@@ -247,11 +300,12 @@
             </div>
 
             <!-- Recent Activity & Quick Actions -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- My Recent Activities -->
-                <div class="lg:col-span-2 bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
-                    <div class="px-6 py-4 border-b border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-900">My Recent Activities</h3>
+                <div class="lg:col-span-2 bg-white/70 backdrop-blur-sm overflow-hidden shadow-xl rounded-2xl border border-white/50">
+                    <div class="px-6 py-5 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-white/50">
+                        <h3 class="text-xl font-bold text-gray-900">My Recent Activities</h3>
+                        <p class="text-sm text-gray-600 mt-1">Track your latest achievements and milestones</p>
                     </div>
                     <div class="p-6">
                         <div class="flow-root">
@@ -260,15 +314,15 @@
                                 <li>
                                     <div class="relative pb-8">
                                         @if($index < count($recent_activities) - 1)
-                                        <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                                        <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gradient-to-b from-indigo-200 to-purple-200" aria-hidden="true"></span>
                                         @endif
-                                        <div class="relative flex space-x-3">
+                                        <div class="relative flex space-x-4">
                                             <div>
-                                                <span class="h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white
-                                                    @if($activity['type'] == 'lead_created') bg-blue-500
-                                                    @elseif($activity['type'] == 'quotation_sent') bg-green-500
-                                                    @elseif($activity['type'] == 'deal_won') bg-yellow-500
-                                                    @else bg-gray-500
+                                                <span class="h-10 w-10 rounded-2xl flex items-center justify-center ring-4 ring-white shadow-lg
+                                                    @if($activity['type'] == 'lead_created') bg-gradient-to-br from-blue-400 to-blue-600
+                                                    @elseif($activity['type'] == 'quotation_sent') bg-gradient-to-br from-green-400 to-green-600
+                                                    @elseif($activity['type'] == 'deal_won') bg-gradient-to-br from-yellow-400 to-yellow-600
+                                                    @else bg-gradient-to-br from-gray-400 to-gray-600
                                                     @endif">
                                                     @if($activity['type'] == 'lead_created')
                                                         <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -291,13 +345,13 @@
                                             </div>
                                             <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
                                                 <div>
-                                                    <p class="text-sm text-gray-900">{{ $activity['description'] }}</p>
+                                                    <p class="text-sm font-medium text-gray-900">{{ $activity['description'] }}</p>
                                                     @if(isset($activity['details']))
-                                                        <p class="text-sm text-gray-500">{{ $activity['details'] }}</p>
+                                                        <p class="text-sm text-gray-600 mt-1">{{ $activity['details'] }}</p>
                                                     @endif
                                                 </div>
-                                                <div class="text-right text-sm whitespace-nowrap text-gray-500">
-                                                    <time>{{ $activity['time_ago'] }}</time>
+                                                <div class="text-right text-sm whitespace-nowrap">
+                                                    <time class="text-gray-500 font-medium">{{ $activity['time_ago'] }}</time>
                                                 </div>
                                             </div>
                                         </div>
@@ -310,70 +364,83 @@
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="bg-white overflow-hidden shadow-sm rounded-lg border border-gray-200">
-                    <div class="px-6 py-4 border-b border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-900">Quick Actions</h3>
+                <div class="bg-white/70 backdrop-blur-sm overflow-hidden shadow-xl rounded-2xl border border-white/50">
+                    <div class="px-6 py-5 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-white/50">
+                        <h3 class="text-xl font-bold text-gray-900">Quick Actions</h3>
+                        <p class="text-sm text-gray-600 mt-1">Fast access to common tasks</p>
                     </div>
                     <div class="p-6">
                         <div class="space-y-4">
-                            <a href="/leads/create" class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-3 px-4 rounded-lg text-center transition duration-150">
-                                <div class="flex items-center justify-center space-x-2">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                    </svg>
+                            <a href="/leads/create" class="group block w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-sm font-medium py-4 px-6 rounded-xl text-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                <div class="flex items-center justify-center space-x-3">
+                                    <div class="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                        </svg>
+                                    </div>
                                     <span>Add New Lead</span>
                                 </div>
                             </a>
-                            
-                            <a href="/quotations/create" class="block w-full bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-3 px-4 rounded-lg text-center transition duration-150">
-                                <div class="flex items-center justify-center space-x-2">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                    </svg>
+
+                            <a href="/quotations/create" class="group block w-full bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white text-sm font-medium py-4 px-6 rounded-xl text-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                <div class="flex items-center justify-center space-x-3">
+                                    <div class="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </div>
                                     <span>Create Quotation</span>
                                 </div>
                             </a>
-                            
-                            <a href="/leads/kanban" class="block w-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-3 px-4 rounded-lg text-center transition duration-150">
-                                <div class="flex items-center justify-center space-x-2">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
-                                    </svg>
+
+                            <a href="/leads/kanban" class="group block w-full bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white text-sm font-medium py-4 px-6 rounded-xl text-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                <div class="flex items-center justify-center space-x-3">
+                                    <div class="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
+                                        </svg>
+                                    </div>
                                     <span>View Pipeline</span>
                                 </div>
                             </a>
-                            
-                            <a href="/service-templates" class="block w-full bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-3 px-4 rounded-lg text-center transition duration-150">
-                                <div class="flex items-center justify-center space-x-2">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
-                                    </svg>
+
+                            <a href="/service-templates" class="group block w-full bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white text-sm font-medium py-4 px-6 rounded-xl text-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                <div class="flex items-center justify-center space-x-3">
+                                    <div class="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                                        </svg>
+                                    </div>
                                     <span>Service Templates</span>
                                 </div>
                             </a>
                         </div>
-                        
-                        <div class="mt-6 pt-6 border-t border-gray-200">
-                            <h4 class="text-sm font-medium text-gray-900 mb-3">Performance Goals</h4>
-                            <div class="space-y-3">
+
+                        <div class="mt-8 pt-6 border-t border-gradient-to-r from-gray-200 to-purple-200">
+                            <h4 class="text-sm font-bold text-gray-900 mb-4">Performance Goals</h4>
+                            <div class="space-y-4">
                                 <div>
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-gray-600">Monthly Revenue</span>
-                                        <span class="font-medium">{{ number_format($metrics['revenue_progress'], 1) }}%</span>
+                                    <div class="flex justify-between text-sm mb-2">
+                                        <span class="text-gray-600 font-medium">Monthly Revenue</span>
+                                        <span class="font-bold @if($metrics['revenue_progress'] >= 100) text-green-600 @elseif($metrics['revenue_progress'] >= 80) text-yellow-600 @else text-red-600 @endif">
+                                            {{ number_format($metrics['revenue_progress'], 1) }}%
+                                        </span>
                                     </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                                        <div class="bg-green-600 h-2 rounded-full transition-all duration-300" 
+                                    <div class="w-full bg-gray-200 rounded-full h-3 shadow-inner">
+                                        <div class="@if($metrics['revenue_progress'] >= 100) bg-gradient-to-r from-green-400 to-green-600 @elseif($metrics['revenue_progress'] >= 80) bg-gradient-to-r from-yellow-400 to-yellow-600 @else bg-gradient-to-r from-red-400 to-red-600 @endif h-3 rounded-full shadow-sm transition-all duration-500 ease-out"
                                              style="width: {{ min($metrics['revenue_progress'], 100) }}%"></div>
                                     </div>
                                 </div>
-                                
+
                                 <div>
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-gray-600">Leads Target</span>
-                                        <span class="font-medium">{{ number_format($metrics['leads_progress'], 1) }}%</span>
+                                    <div class="flex justify-between text-sm mb-2">
+                                        <span class="text-gray-600 font-medium">Leads Target</span>
+                                        <span class="font-bold @if($metrics['leads_progress'] >= 100) text-green-600 @elseif($metrics['leads_progress'] >= 80) text-yellow-600 @else text-blue-600 @endif">
+                                            {{ number_format($metrics['leads_progress'], 1) }}%
+                                        </span>
                                     </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
-                                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                                    <div class="w-full bg-gray-200 rounded-full h-3 shadow-inner">
+                                        <div class="@if($metrics['leads_progress'] >= 100) bg-gradient-to-r from-green-400 to-green-600 @elseif($metrics['leads_progress'] >= 80) bg-gradient-to-r from-yellow-400 to-yellow-600 @else bg-gradient-to-r from-blue-400 to-blue-600 @endif h-3 rounded-full shadow-sm transition-all duration-500 ease-out"
                                              style="width: {{ min($metrics['leads_progress'], 100) }}%"></div>
                                     </div>
                                 </div>

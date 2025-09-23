@@ -14,10 +14,6 @@ use Illuminate\Validation\Rule;
 
 class ProofController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
 
     /**
      * Display a listing of proofs with filtering and search

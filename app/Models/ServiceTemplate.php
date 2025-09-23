@@ -11,7 +11,9 @@ use Illuminate\Support\Str;
 
 class ServiceTemplate extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+    // Note: SoftDeletes temporarily disabled until migration is run
+    // use HasFactory, SoftDeletes;
 
     /**
      * Template categories

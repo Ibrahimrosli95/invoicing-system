@@ -24,7 +24,6 @@ class TwoFactorController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth');
         $this->google2fa = new Google2FA();
     }
 

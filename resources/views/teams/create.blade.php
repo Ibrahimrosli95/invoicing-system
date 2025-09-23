@@ -49,12 +49,32 @@
                                     name="manager_id"
                                     class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block mt-1 w-full">
                                 <option value="">Select a manager</option>
-                                @foreach($managers as $manager)
-                                    <option value="{{ $manager->id }}" {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
-                                        {{ $manager->name }}
-                                    </option>
-                                @endforeach
+                                @if($recommendedManagers->isNotEmpty())
+                                    <optgroup label="Recommended">
+                                        @foreach($recommendedManagers as $manager)
+                                            <option value="{{ $manager->id }}" {{ old('manager_id') == $manager->id ? 'selected' : '' }}>
+                                                {{ $manager->name }}
+                                            </option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
+                                @php
+                                    $otherManagers = $users->whereNotIn('id', $recommendedManagers->pluck('id'));
+                                @endphp
+                                @if($otherManagers->isNotEmpty())
+                                    <optgroup label="Other team members">
+                                        @foreach($otherManagers as $user)
+                                            <option value="{{ $user->id }}" {{ old('manager_id') == $user->id ? 'selected' : '' }}>
+                                                {{ $user->name }}
+                                                @if($user->roles->isNotEmpty())
+                                                    ({{ $user->roles->pluck('name')->implode(', ') }})
+                                                @endif
+                                            </option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
                             </select>
+                            <p class="mt-1 text-xs text-gray-500">If the selected user is not yet a sales manager, the role will be assigned automatically.</p>
                             <x-input-error :messages="$errors->get('manager_id')" class="mt-2" />
                         </div>
 
@@ -65,12 +85,32 @@
                                     name="coordinator_id"
                                     class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block mt-1 w-full">
                                 <option value="">Select a coordinator</option>
-                                @foreach($coordinators as $coordinator)
-                                    <option value="{{ $coordinator->id }}" {{ old('coordinator_id') == $coordinator->id ? 'selected' : '' }}>
-                                        {{ $coordinator->name }}
-                                    </option>
-                                @endforeach
+                                @if($recommendedCoordinators->isNotEmpty())
+                                    <optgroup label="Recommended">
+                                        @foreach($recommendedCoordinators as $coordinator)
+                                            <option value="{{ $coordinator->id }}" {{ old('coordinator_id') == $coordinator->id ? 'selected' : '' }}>
+                                                {{ $coordinator->name }}
+                                            </option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
+                                @php
+                                    $otherCoordinators = $users->whereNotIn('id', $recommendedCoordinators->pluck('id'));
+                                @endphp
+                                @if($otherCoordinators->isNotEmpty())
+                                    <optgroup label="Other team members">
+                                        @foreach($otherCoordinators as $user)
+                                            <option value="{{ $user->id }}" {{ old('coordinator_id') == $user->id ? 'selected' : '' }}>
+                                                {{ $user->name }}
+                                                @if($user->roles->isNotEmpty())
+                                                    ({{ $user->roles->pluck('name')->implode(', ') }})
+                                                @endif
+                                            </option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
                             </select>
+                            <p class="mt-1 text-xs text-gray-500">If needed, the sales coordinator role will be assigned automatically.</p>
                             <x-input-error :messages="$errors->get('coordinator_id')" class="mt-2" />
                         </div>
 

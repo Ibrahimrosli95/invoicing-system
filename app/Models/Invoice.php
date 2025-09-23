@@ -22,7 +22,7 @@ class Invoice extends Model
     const STATUS_PARTIAL = 'PARTIAL';
     const STATUS_PAID = 'PAID';
     const STATUS_OVERDUE = 'OVERDUE';
-    const STATUS_CANCELLED = 'CANCELLED';
+    const STATUS_CANCELLED = 'CANCELLED';\r\n\r\n    const TYPE_PRODUCT = 'product';\r\n    const TYPE_SERVICE = 'service';
 
     /**
      * All available statuses
@@ -43,6 +43,7 @@ class Invoice extends Model
         'created_by',
         'quotation_id',
         'lead_id',
+        'customer_segment_id',
         'number',
         'status',
         'issued_date',
@@ -95,7 +96,7 @@ class Invoice extends Model
         'total' => 'decimal:2',
         'amount_paid' => 'decimal:2',
         'amount_due' => 'decimal:2',
-        'payment_terms' => 'integer',
+        'payment_terms' => 'integer',\r\n        'type' => 'string',
         'overdue_days' => 'integer',
     ];
 
@@ -202,6 +203,11 @@ class Invoice extends Model
     public function lead(): BelongsTo
     {
         return $this->belongsTo(Lead::class);
+    }
+
+    public function customerSegment(): BelongsTo
+    {
+        return $this->belongsTo(CustomerSegment::class);
     }
 
     public function items(): HasMany
@@ -634,6 +640,8 @@ class Invoice extends Model
             'assigned_to' => $quotation->assigned_to,
             'created_by' => auth()->id(),
             'quotation_id' => $quotation->id,
+            'customer_segment_id' => $quotation->customer_segment_id,
+            'title' => $quotation->title,
             'customer_name' => $quotation->customer_name,
             'customer_phone' => $quotation->customer_phone,
             'customer_email' => $quotation->customer_email,
@@ -644,14 +652,14 @@ class Invoice extends Model
             'description' => $quotation->description,
             'terms_conditions' => $quotation->terms_conditions,
             'notes' => $quotation->notes,
-            'subtotal_amount' => $quotation->subtotal_amount,
+            'subtotal' => $quotation->subtotal_amount,
             'discount_percentage' => $quotation->discount_percentage,
             'discount_amount' => $quotation->discount_amount,
             'tax_percentage' => $quotation->tax_percentage,
             'tax_amount' => $quotation->tax_amount,
-            'total_amount' => $quotation->total_amount,
+            'total' => $quotation->total_amount,
             'due_date' => now()->addDays(30),
-            'payment_terms_days' => 30,
+            'payment_terms' => 30,
         ]);
 
         // Copy quotation items
@@ -677,12 +685,7 @@ class Invoice extends Model
     /**
      * Get all available statuses
      */
-    public static function getStatuses(): array
-    {
-        return self::STATUSES;
-    }
-
-    /**
+    public static function getStatuses(): array\r\n    {\r\n        return self::STATUSES;\r\n    }\r\n\r\n    public static function getTypes(): array\r\n    {\r\n        return [\r\n            self::TYPE_PRODUCT => 'Product Invoice',\r\n            self::TYPE_SERVICE => 'Service Invoice',\r\n        ];\r\n    }\r\n\r\n    /**
      * Status badge CSS classes
      */
     public function getStatusBadgeColor(): string
@@ -698,3 +701,6 @@ class Invoice extends Model
         };
     }
 }
+
+
+

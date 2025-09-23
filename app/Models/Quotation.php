@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
 use App\Services\WebhookEventService;
@@ -142,6 +143,11 @@ class Quotation extends Model
     public function sections(): HasMany
     {
         return $this->hasMany(QuotationSection::class)->orderBy('sort_order');
+    }
+
+    public function invoice(): HasOne
+    {
+        return $this->hasOne(Invoice::class);
     }
 
     public function proofs()

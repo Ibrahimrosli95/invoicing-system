@@ -144,6 +144,18 @@
                                     <dd class="mt-1 text-sm text-gray-900">{{ $invoice->customer_email }}</dd>
                                 </div>
                                 @endif
+                                @if($invoice->customerSegment)
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Customer Segment</dt>
+                                    <dd class="mt-1">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium"
+                                              style="background-color: {{ $invoice->customerSegment->color }}20; color: {{ $invoice->customerSegment->color }};">
+                                            <div class="w-2 h-2 rounded-full mr-2" style="background-color: {{ $invoice->customerSegment->color }};"></div>
+                                            {{ $invoice->customerSegment->name }}
+                                        </span>
+                                    </dd>
+                                </div>
+                                @endif
                                 @if($invoice->customer_address)
                                 <div class="md:col-span-2">
                                     <dt class="text-sm font-medium text-gray-500">Address</dt>

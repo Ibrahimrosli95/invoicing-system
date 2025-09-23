@@ -1,10 +1,10 @@
-<?php
+﻿<?php
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\\Database\\Eloquent\\Relations\\BelongsTo;\r\nuse Illuminate\\Database\\Eloquent\\Relations\\MorphTo;
 
 class InvoiceItem extends Model
 {
@@ -27,7 +27,7 @@ class InvoiceItem extends Model
         'quantity' => 'decimal:2',
         'unit_price' => 'decimal:2',
         'total_price' => 'decimal:2',
-        'sort_order' => 'integer',
+        'sort_order' => 'integer',\r\n        'source_id' => 'integer',
         'is_locked' => 'boolean',
     ];
 
@@ -89,3 +89,10 @@ class InvoiceItem extends Model
         $this->update(['is_locked' => false]);
     }
 }
+
+
+
+
+
+
+

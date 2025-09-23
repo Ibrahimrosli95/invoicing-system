@@ -14,7 +14,6 @@ class SearchController extends Controller
 
     public function __construct(SearchService $searchService)
     {
-        $this->middleware('auth');
         $this->searchService = $searchService;
     }
 

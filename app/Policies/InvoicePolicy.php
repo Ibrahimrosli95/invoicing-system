@@ -14,9 +14,14 @@ class InvoicePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('invoices.view') || 
-               $user->can('invoices.manage') ||
-               $user->hasAnyRole(['superadmin', 'company_manager', 'finance_manager', 'sales_manager', 'sales_coordinator', 'sales_executive']);
+        // Superadmin has access to everything
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
+        return $user->can('view invoices') ||
+               $user->can('manage invoices') ||
+               $user->hasAnyRole(['company_manager', 'finance_manager', 'sales_manager', 'sales_coordinator', 'sales_executive']);
     }
 
     /**
@@ -56,7 +61,7 @@ class InvoicePolicy
             return $invoice->assigned_to === $user->id || $invoice->created_by === $user->id;
         }
 
-        return $user->can('invoices.view');
+        return $user->can('view invoices');
     }
 
     /**
@@ -228,7 +233,7 @@ class InvoicePolicy
             return true;
         }
 
-        return $user->can('payments.manage');
+        return $user->can('manage invoices');
     }
 
     /**
