@@ -580,15 +580,30 @@
 
     <div class="flex min-h-screen flex-1 flex-col transition-[padding] duration-200" :class="desktopCollapsed ? 'md:pl-20' : 'md:pl-64'">
         <div class="flex flex-1 flex-col">
-            @hasSection('header')
+            @php
+                $hasComponentHeader = isset($header) && $header instanceof \Illuminate\View\ComponentSlot && ! $header->isEmpty();
+                $sectionHeader = trim($__env->yieldContent('header'));
+                $shouldRenderHeader = $hasComponentHeader || $sectionHeader !== '';
+            @endphp
+
+            @if ($shouldRenderHeader)
                 <div class="border-b border-slate-200 bg-white/80 backdrop-blur">
-                    @yield('header')
+                    @if ($hasComponentHeader)
+                        {{ $header }}
+                    @else
+                        {!! $sectionHeader !!}
+                    @endif
                 </div>
             @endif
 
             <main class="flex-1">
-                @yield('content')
+                @if (isset($slot) && trim((string) $slot) !== '')
+                    {{ $slot }}
+                @else
+                    @yield('content')
+                @endif
             </main>
         </div>
     </div>
 </div>
+

@@ -1,19 +1,26 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Invoices') }}
-            </h2>
-            <div class="flex space-x-2">
-                @can('create', App\Models\Invoice::class)
-                    <a href="{{ route('invoices.create') }}" 
-                       class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                        Create Invoice
-                    </a>
-                @endcan
-            </div>
+@extends('layouts.app')
+
+@section('title', 'Invoices')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex items-center justify-between">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Invoices') }}
+        </h2>
+        <div class="flex space-x-2">
+            @can('create', App\Models\Invoice::class)
+                <a href="{{ route('invoices.create') }}"
+                   class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Create Invoice
+                </a>
+            @endcan
         </div>
-    </x-slot>
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-6">
         <div class="max-w-full mx-auto sm:px-6 lg:px-8">
@@ -413,4 +420,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+@endsection

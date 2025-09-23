@@ -15,6 +15,6 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
-        @include('layouts.sidebar-navigation-component', ['header' => $header ?? null, 'slot' => $slot])
+        @include('layouts.sidebar-navigation', ['header' => $header ?? null, 'slot' => $slot])
     </body>
 </html>
