@@ -250,61 +250,63 @@
                         <div class="mt-8 border-t border-gray-200 pt-6">
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Invoice Items</h3>
                             <div class="space-y-4">
-                                <template x-for="(item, index) in items" :key="index">
-                                    <div class="grid grid-cols-12 gap-4 items-start bg-gray-50 p-4 rounded-lg">
-                                        <div class="col-span-4">
-                                            <x-input-label :value="__('Description')" />
-                                            <textarea x-model="item.description"
-                                                      :name="'items[' + index + '][description]'"
-                                                      rows="2"
-                                                      class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-sm"
-                                                      required></textarea>
-                                        </div>
-                                        <div class="col-span-2">
-                                            <x-input-label :value="__('Unit')" />
-                                            <x-text-input x-model="item.unit"
-                                                          :name="'items[' + index + '][unit]'"
-                                                          type="text"
-                                                          class="mt-1 block w-full text-sm"
-                                                          required />
-                                        </div>
-                                        <div class="col-span-2">
-                                            <x-input-label :value="__('Quantity')" />
-                                            <x-text-input x-model="item.quantity"
-                                                          :name="'items[' + index + '][quantity]'"
-                                                          type="number"
-                                                          step="0.01"
-                                                          min="0.01"
-                                                          class="mt-1 block w-full text-sm"
-                                                          required />
-                                        </div>
-                                        <div class="col-span-2">
-                                            <x-input-label :value="__('Unit Price')" />
-                                            <x-text-input x-model="item.unit_price"
-                                                          :name="'items[' + index + '][unit_price]'"
-                                                          type="number"
-                                                          step="0.01"
-                                                          min="0"
-                                                          class="mt-1 block w-full text-sm"
-                                                          required />
-                                        </div>
-                                        <div class="col-span-1 text-center">
-                                            <x-input-label :value="__('Total')" />
-                                            <div class="mt-1 py-2 text-sm font-medium" 
-                                                 x-text="`RM ${((parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)).toFixed(2)}`">
+                                <div x-data="{ getFieldName: (index, field) => `items[${index}][${field}]` }">
+                                    <template x-for="(item, index) in items" :key="index">
+                                        <div class="grid grid-cols-12 gap-4 items-start bg-gray-50 p-4 rounded-lg">
+                                            <div class="col-span-4">
+                                                <x-input-label :value="__('Description')" />
+                                                <textarea x-model="item.description"
+                                                          :name="getFieldName(index, 'description')"
+                                                          rows="2"
+                                                          class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-sm"
+                                                          required></textarea>
+                                            </div>
+                                            <div class="col-span-2">
+                                                <x-input-label :value="__('Unit')" />
+                                                <x-text-input x-model="item.unit"
+                                                              :name="getFieldName(index, 'unit')"
+                                                              type="text"
+                                                              class="mt-1 block w-full text-sm"
+                                                              required />
+                                            </div>
+                                            <div class="col-span-2">
+                                                <x-input-label :value="__('Quantity')" />
+                                                <x-text-input x-model="item.quantity"
+                                                              :name="getFieldName(index, 'quantity')"
+                                                              type="number"
+                                                              step="0.01"
+                                                              min="0.01"
+                                                              class="mt-1 block w-full text-sm"
+                                                              required />
+                                            </div>
+                                            <div class="col-span-2">
+                                                <x-input-label :value="__('Unit Price')" />
+                                                <x-text-input x-model="item.unit_price"
+                                                              :name="getFieldName(index, 'unit_price')"
+                                                              type="number"
+                                                              step="0.01"
+                                                              min="0"
+                                                              class="mt-1 block w-full text-sm"
+                                                              required />
+                                            </div>
+                                            <div class="col-span-1 text-center">
+                                                <x-input-label :value="__('Total')" />
+                                                <div class="mt-1 py-2 text-sm font-medium"
+                                                     x-text="'RM ' + ((parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)).toFixed(2)">
+                                                </div>
+                                            </div>
+                                            <div class="col-span-1">
+                                                <x-input-label :value="__('')" />
+                                                <button type="button"
+                                                        @click="removeItem(index)"
+                                                        class="mt-1 bg-red-500 hover:bg-red-700 text-white p-2 rounded text-sm"
+                                                        x-show="items.length > 1">
+                                                    Ã—
+                                                </button>
                                             </div>
                                         </div>
-                                        <div class="col-span-1">
-                                            <x-input-label :value="__('')" />
-                                            <button type="button" 
-                                                    @click="removeItem(index)"
-                                                    class="mt-1 bg-red-500 hover:bg-red-700 text-white p-2 rounded text-sm"
-                                                    x-show="items.length > 1">
-                                                Ã—
-                                            </button>
-                                        </div>
-                                    </div>
-                                </template>
+                                    </template>
+                                </div>
 
                                 <button type="button" 
                                         @click="addItem()"
