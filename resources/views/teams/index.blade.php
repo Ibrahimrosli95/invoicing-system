@@ -1,17 +1,24 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Teams') }}
-            </h2>
-            @can('create', App\Models\Team::class)
-                <a href="{{ route('teams.create') }}" 
-                   class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Create Team
-                </a>
-            @endcan
-        </div>
-    </x-slot>
+@extends('layouts.app')
+
+@section('title', 'Teams')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex items-center justify-between">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Teams') }}
+        </h2>
+        @can('create', App\Models\Team::class)
+            <a href="{{ route('teams.create') }}"
+               class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Create Team
+            </a>
+        @endcan
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -142,4 +149,5 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+
+@endsection

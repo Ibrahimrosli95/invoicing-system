@@ -1,31 +1,38 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <div>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    Edit Proof: {{ $proof->title }}
-                </h2>
-                <div class="flex items-center space-x-3 mt-1">
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {{ $proof->type_label }}
-                    </span>
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $proof->getStatusColor() }}">
-                        {{ $proof->status_label }}
-                    </span>
-                </div>
-            </div>
-            <div class="flex items-center space-x-3">
-                <a href="{{ route('proofs.show', $proof->uuid) }}" 
-                   class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-                    View Proof
-                </a>
-                <a href="{{ route('proofs.index') }}" 
-                   class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-                    Back to Proofs
-                </a>
+@extends('layouts.app')
+
+@section('title', 'Edit Proof: ' . $proof->title)
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                Edit Proof: {{ $proof->title }}
+            </h2>
+            <div class="flex items-center space-x-3 mt-1">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {{ $proof->type_label }}
+                </span>
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $proof->getStatusColor() }}">
+                    {{ $proof->status_label }}
+                </span>
             </div>
         </div>
-    </x-slot>
+        <div class="flex items-center space-x-3">
+            <a href="{{ route('proofs.show', $proof->uuid) }}"
+               class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                View Proof
+            </a>
+            <a href="{{ route('proofs.index') }}"
+               class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                Back to Proofs
+            </a>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -487,123 +494,124 @@
         </div>
     </div>
 
-    @push('scripts')
-    <script>
-        function proofEditForm() {
-            return {
-                formData: {
-                    type: '{{ old('type', $proof->type) }}',
-                    visibility: '{{ old('visibility', $proof->visibility) }}',
-                    scope_type: '{{ old('scope_type', $proof->scope_type) }}'
-                }
+@endsection
+
+@push('scripts')
+<script>
+    function proofEditForm() {
+        return {
+            formData: {
+                type: '{{ old('type', $proof->type) }}',
+                visibility: '{{ old('visibility', $proof->visibility) }}',
+                scope_type: '{{ old('scope_type', $proof->scope_type) }}'
             }
         }
+    }
 
-        function assetManager() {
-            return {
-                // Asset management functionality can be added here
-            }
+    function assetManager() {
+        return {
+            // Asset management functionality can be added here
         }
+    }
 
-        function fileUpload() {
-            return {
-                dragActive: false,
-                selectedFiles: [],
+    function fileUpload() {
+        return {
+            dragActive: false,
+            selectedFiles: [],
 
-                initDropzone() {
-                    // Additional dropzone initialization if needed
-                },
+            initDropzone() {
+                // Additional dropzone initialization if needed
+            },
 
-                handleDrop(e) {
-                    this.dragActive = false;
-                    const files = Array.from(e.dataTransfer.files);
-                    this.addFiles(files);
-                },
+            handleDrop(e) {
+                this.dragActive = false;
+                const files = Array.from(e.dataTransfer.files);
+                this.addFiles(files);
+            },
 
-                handleFileSelect(e) {
-                    const files = Array.from(e.target.files);
-                    this.addFiles(files);
-                },
+            handleFileSelect(e) {
+                const files = Array.from(e.target.files);
+                this.addFiles(files);
+            },
 
-                addFiles(files) {
-                    files.forEach(file => {
-                        if (this.isValidFile(file)) {
-                            this.selectedFiles.push(file);
-                        }
-                    });
-                    this.updateFileInput();
-                },
-
-                removeFile(index) {
-                    this.selectedFiles.splice(index, 1);
-                    this.updateFileInput();
-                },
-
-                isValidFile(file) {
-                    const maxSize = 10 * 1024 * 1024; // 10MB
-                    const allowedTypes = [
-                        'image/', 'video/', 'application/pdf', 
-                        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                        'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                        'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                        'text/plain'
-                    ];
-
-                    if (file.size > maxSize) {
-                        alert(`File "${file.name}" is too large. Maximum size is 10MB.`);
-                        return false;
+            addFiles(files) {
+                files.forEach(file => {
+                    if (this.isValidFile(file)) {
+                        this.selectedFiles.push(file);
                     }
+                });
+                this.updateFileInput();
+            },
 
-                    const isValidType = allowedTypes.some(type => file.type.startsWith(type) || file.type === type);
-                    if (!isValidType) {
-                        alert(`File "${file.name}" is not a supported file type.`);
-                        return false;
-                    }
+            removeFile(index) {
+                this.selectedFiles.splice(index, 1);
+                this.updateFileInput();
+            },
 
-                    return true;
-                },
+            isValidFile(file) {
+                const maxSize = 10 * 1024 * 1024; // 10MB
+                const allowedTypes = [
+                    'image/', 'video/', 'application/pdf',
+                    'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                    'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'text/plain'
+                ];
 
-                updateFileInput() {
-                    const fileInput = document.getElementById('file-input');
-                    const dt = new DataTransfer();
-                    this.selectedFiles.forEach(file => dt.items.add(file));
-                    fileInput.files = dt.files;
-                },
-
-                formatFileSize(bytes) {
-                    if (bytes === 0) return '0 Bytes';
-                    const k = 1024;
-                    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-                    const i = Math.floor(Math.log(bytes) / Math.log(k));
-                    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+                if (file.size > maxSize) {
+                    alert(`File "${file.name}" is too large. Maximum size is 10MB.`);
+                    return false;
                 }
+
+                const isValidType = allowedTypes.some(type => file.type.startsWith(type) || file.type === type);
+                if (!isValidType) {
+                    alert(`File "${file.name}" is not a supported file type.`);
+                    return false;
+                }
+
+                return true;
+            },
+
+            updateFileInput() {
+                const fileInput = document.getElementById('file-input');
+                const dt = new DataTransfer();
+                this.selectedFiles.forEach(file => dt.items.add(file));
+                fileInput.files = dt.files;
+            },
+
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
             }
         }
+    }
 
-        function deleteAsset(assetId) {
-            if (confirm('Are you sure you want to delete this asset? This action cannot be undone.')) {
-                // Create a form to delete the asset
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `/proofs/assets/${assetId}`;
-                form.style.display = 'none';
+    function deleteAsset(assetId) {
+        if (confirm('Are you sure you want to delete this asset? This action cannot be undone.')) {
+            // Create a form to delete the asset
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/proofs/assets/${assetId}`;
+            form.style.display = 'none';
 
-                const csrfToken = document.createElement('input');
-                csrfToken.type = 'hidden';
-                csrfToken.name = '_token';
-                csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-                const methodField = document.createElement('input');
-                methodField.type = 'hidden';
-                methodField.name = '_method';
-                methodField.value = 'DELETE';
+            const methodField = document.createElement('input');
+            methodField.type = 'hidden';
+            methodField.name = '_method';
+            methodField.value = 'DELETE';
 
-                form.appendChild(csrfToken);
-                form.appendChild(methodField);
-                document.body.appendChild(form);
-                form.submit();
-            }
+            form.appendChild(csrfToken);
+            form.appendChild(methodField);
+            document.body.appendChild(form);
+            form.submit();
         }
-    </script>
-    @endpush
-</x-app-layout>
+    }
+</script>
+@endpush

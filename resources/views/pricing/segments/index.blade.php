@@ -1,15 +1,22 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Customer Segments
-            </h2>
-            <button onclick="showAddSegmentModal()" 
-                   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
-                Add Segment
-            </button>
-        </div>
-    </x-slot>
+@extends('layouts.app')
+
+@section('title', 'Customer Segments')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex justify-between items-center">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            Customer Segments
+        </h2>
+        <button onclick="showAddSegmentModal()"
+               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+            Add Segment
+        </button>
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -213,4 +220,4 @@
             }
         }
     </script>
-</x-app-layout>
+@endsection

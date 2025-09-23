@@ -1,25 +1,32 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <div>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    Tier Pricing - {{ $item->name }}
-                </h2>
-                <p class="text-sm text-gray-600 mt-1">
-                    Base Price: <span class="font-medium">RM {{ number_format($item->unit_price, 2) }}</span>
-                    @if($item->item_code)
-                        • Code: {{ $item->item_code }}
-                    @endif
-                </p>
-            </div>
-            <div class="flex space-x-3">
-                <a href="{{ route('pricing.index') }}" 
-                   class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium">
-                    ← Back to Pricing
-                </a>
-            </div>
+@extends('layouts.app')
+
+@section('title', 'Tier Pricing')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                Tier Pricing - {{ $item->name }}
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">
+                Base Price: <span class="font-medium">RM {{ number_format($item->unit_price, 2) }}</span>
+                @if($item->item_code)
+                    • Code: {{ $item->item_code }}
+                @endif
+            </p>
         </div>
-    </x-slot>
+        <div class="flex space-x-3">
+            <a href="{{ route('pricing.index') }}"
+               class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium">
+                ← Back to Pricing
+            </a>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -354,4 +361,4 @@
             }
         }
     </script>
-</x-app-layout>
+@endsection

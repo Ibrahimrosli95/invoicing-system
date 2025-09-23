@@ -1,21 +1,28 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
-                    <div>
-                        <h1 class="text-3xl font-bold">My Dashboard</h1>
-                        <p class="text-indigo-100 mt-2">Welcome back, {{ auth()->user()->name }}! Let's achieve your goals today.</p>
-                    </div>
-                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-                        <button class="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-6 py-2 rounded-xl text-sm font-medium shadow-lg transition-all duration-200 border border-white/20">
-                            My Performance Report
-                        </button>
-                    </div>
+@extends('layouts.app')
+
+@section('title', 'My Dashboard')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white rounded-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-4 sm:space-y-0">
+                <div>
+                    <h1 class="text-3xl font-bold">My Dashboard</h1>
+                    <p class="text-indigo-100 mt-2">Welcome back, {{ auth()->user()->name }}! Let's achieve your goals today.</p>
+                </div>
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+                    <button class="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-6 py-2 rounded-xl text-sm font-medium shadow-lg transition-all duration-200 border border-white/20">
+                        My Performance Report
+                    </button>
                 </div>
             </div>
         </div>
-    </x-slot>
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-purple-50 py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -530,4 +537,4 @@
             }
         });
     </script>
-</x-app-layout>
+@endsection

@@ -1,23 +1,30 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Organization Structure') }}
-            </h2>
-            <div class="flex space-x-2">
-                <a href="{{ route('organization.chart') }}" 
-                   class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    View Org Chart
+@extends('layouts.app')
+
+@section('title', 'Organization Structure')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex items-center justify-between">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Organization Structure') }}
+        </h2>
+        <div class="flex space-x-2">
+            <a href="{{ route('organization.chart') }}"
+               class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                View Org Chart
+            </a>
+            @can('viewAny', App\Models\Team::class)
+                <a href="{{ route('teams.index') }}"
+                   class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                    Manage Teams
                 </a>
-                @can('viewAny', App\Models\Team::class)
-                    <a href="{{ route('teams.index') }}" 
-                       class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                        Manage Teams
-                    </a>
-                @endcan
-            </div>
+            @endcan
         </div>
-    </x-slot>
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
@@ -244,4 +251,4 @@
             @endif
         </div>
     </div>
-</x-app-layout>
+@endsection

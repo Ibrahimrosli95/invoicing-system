@@ -1,17 +1,24 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Organization Chart') }}
-            </h2>
-            <div class="flex space-x-2">
-                <a href="{{ route('organization.index') }}" 
-                   class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                    List View
-                </a>
-            </div>
+@extends('layouts.app')
+
+@section('title', 'Organization Chart')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex items-center justify-between">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Organization Chart') }}
+        </h2>
+        <div class="flex space-x-2">
+            <a href="{{ route('organization.index') }}"
+               class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                List View
+            </a>
         </div>
-    </x-slot>
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-12">
         <div class="max-w-full mx-auto sm:px-6 lg:px-8">
@@ -226,4 +233,4 @@
             .min-w-32 { min-width: 6rem; }
         }
     </style>
-</x-app-layout>
+@endsection

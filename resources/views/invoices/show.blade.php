@@ -1,55 +1,62 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Invoice {{ $invoice->number }}
-            </h2>
-            <div class="flex space-x-2">
-                @can('view', $invoice)
-                    <a href="{{ route('invoices.preview', $invoice) }}" 
-                       target="_blank"
-                       class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
-                        Preview PDF
-                    </a>
-                    <a href="{{ route('invoices.pdf', $invoice) }}" 
-                       class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                        Download PDF
+@extends('layouts.app')
+
+@section('title', 'Invoice Details')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex items-center justify-between">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            Invoice {{ $invoice->number }}
+        </h2>
+        <div class="flex space-x-2">
+            @can('view', $invoice)
+                <a href="{{ route('invoices.preview', $invoice) }}"
+                   target="_blank"
+                   class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+                    Preview PDF
+                </a>
+                <a href="{{ route('invoices.pdf', $invoice) }}"
+                   class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Download PDF
+                </a>
+            @endcan
+
+            @if($invoice->status !== 'PAID' && $invoice->status !== 'CANCELLED')
+                @can('recordPayment', $invoice)
+                    <a href="{{ route('invoices.payment-form', $invoice) }}"
+                       class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                        Record Payment
                     </a>
                 @endcan
-                
-                @if($invoice->status !== 'PAID' && $invoice->status !== 'CANCELLED')
-                    @can('recordPayment', $invoice)
-                        <a href="{{ route('invoices.payment-form', $invoice) }}" 
-                           class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                            Record Payment
-                        </a>
-                    @endcan
+            @endif
+
+            @can('update', $invoice)
+                @if($invoice->canBeEdited())
+                    <a href="{{ route('invoices.edit', $invoice) }}"
+                       class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">
+                        Edit Invoice
+                    </a>
                 @endif
+            @endcan
 
-                @can('update', $invoice)
-                    @if($invoice->canBeEdited())
-                        <a href="{{ route('invoices.edit', $invoice) }}" 
-                           class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">
-                            Edit Invoice
-                        </a>
-                    @endif
-                @endcan
-
-                @can('update', $invoice)
-                    @if($invoice->canBeSent())
-                        <form method="POST" action="{{ route('invoices.mark-sent', $invoice) }}" class="inline">
-                            @csrf
-                            <button type="submit" 
-                                    class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded"
-                                    onclick="return confirm('Mark this invoice as sent?')">
-                                Mark as Sent
-                            </button>
-                        </form>
-                    @endif
-                @endcan
-            </div>
+            @can('update', $invoice)
+                @if($invoice->canBeSent())
+                    <form method="POST" action="{{ route('invoices.mark-sent', $invoice) }}" class="inline">
+                        @csrf
+                        <button type="submit"
+                                class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded"
+                                onclick="return confirm('Mark this invoice as sent?')">
+                            Mark as Sent
+                        </button>
+                    </form>
+                @endif
+            @endcan
         </div>
-    </x-slot>
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -325,4 +332,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+@endsection

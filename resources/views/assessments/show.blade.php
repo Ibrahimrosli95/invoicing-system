@@ -1,5 +1,9 @@
-<x-app-layout>
-    <x-slot name="header">
+@extends('layouts.app')
+
+@section('title', 'Assessment Details')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <div>
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -52,7 +56,10 @@
                 @endcan
             </div>
         </div>
-    </x-slot>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -465,4 +472,4 @@
             alert('Photo upload functionality would be implemented here');
         }
     </script>
-</x-app-layout>
+@endsection

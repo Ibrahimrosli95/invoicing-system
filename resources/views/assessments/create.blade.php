@@ -1,18 +1,26 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Create Assessment') }}
-            </h2>
-            <div class="mt-2 sm:mt-0">
-                <a href="{{ route('assessments.index') }}" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                    </svg>
-                    Back to List
-                </a>
-            </div>
+@extends('layouts.app')
+
+@section('title', 'Create Assessment')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Create Assessment') }}
+        </h2>
+        <div class="mt-2 sm:mt-0">
+            <a href="{{ route('assessments.index') }}" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to List
+            </a>
         </div>
+    </div>
+</div>
+@endsection
+
+@section('content')
     </x-slot>
 
     <div class="py-6">
@@ -332,4 +340,4 @@
             }
         }
     </script>
-</x-app-layout>
+@endsection

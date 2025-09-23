@@ -1,23 +1,30 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <div>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    {{ __('Report Builder') }}
-                </h2>
-                <p class="text-sm text-gray-600 mt-1">
-                    Create custom {{ ucfirst($reportType) }} reports with advanced filtering and visualization
-                </p>
-            </div>
-            <a href="{{ route('reports.index') }}" 
-               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                </svg>
-                Back to Reports
-            </a>
+@extends('layouts.app')
+
+@section('title', 'Report Builder')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Report Builder') }}
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">
+                Create custom {{ ucfirst($reportType) }} reports with advanced filtering and visualization
+            </p>
         </div>
-    </x-slot>
+        <a href="{{ route('reports.index') }}"
+           class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Back to Reports
+        </a>
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -352,4 +359,5 @@
             }
         });
     </script>
-</x-app-layout>
+
+@endsection

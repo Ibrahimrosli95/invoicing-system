@@ -1,14 +1,21 @@
-﻿<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Create New Invoice
-                @if($quotation)
-                    <span class="text-sm font-normal text-gray-600">from Quotation {{ $quotation->number }}</span>
-                @endif
-            </h2>
-        </div>
-    </x-slot>
+﻿@extends('layouts.app')
+
+@section('title', 'Create New Invoice')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex items-center justify-between">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            Create New Invoice
+            @if($quotation)
+                <span class="text-sm font-normal text-gray-600">from Quotation {{ $quotation->number }}</span>
+            @endif
+        </h2>
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-6">
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
@@ -379,5 +386,5 @@
             }
         }
     </script>
-</x-app-layout>
+@endsection
 

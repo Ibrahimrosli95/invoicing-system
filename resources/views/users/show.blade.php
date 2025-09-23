@@ -1,23 +1,30 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('User Details') }}
-            </h2>
-            <div class="flex space-x-2">
-                <a href="{{ route('users.index') }}" 
-                   class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition duration-150 ease-in-out">
-                    {{ __('Back to Users') }}
+@extends('layouts.app')
+
+@section('title', 'User Details')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex justify-between items-center">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('User Details') }}
+        </h2>
+        <div class="flex space-x-2">
+            <a href="{{ route('users.index') }}"
+               class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition duration-150 ease-in-out">
+                {{ __('Back to Users') }}
+            </a>
+            @can('update', $user)
+                <a href="{{ route('users.edit', $user) }}"
+                   class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-150 ease-in-out">
+                    {{ __('Edit User') }}
                 </a>
-                @can('update', $user)
-                    <a href="{{ route('users.edit', $user) }}" 
-                       class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-150 ease-in-out">
-                        {{ __('Edit User') }}
-                    </a>
-                @endcan
-            </div>
+            @endcan
         </div>
-    </x-slot>
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
@@ -246,4 +253,4 @@
             @endcanany
         </div>
     </div>
-</x-app-layout>
+@endsection

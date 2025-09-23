@@ -1,27 +1,34 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ $team->name }}
-            </h2>
-            <div class="flex space-x-2">
-                @can('update', $team)
-                    <a href="{{ route('teams.settings', $team) }}" 
-                       class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                        Settings
-                    </a>
-                    <a href="{{ route('teams.edit', $team) }}" 
-                       class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                        Edit Team
-                    </a>
-                @endcan
-                <a href="{{ route('teams.index') }}" 
-                   class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                    Back to Teams
+@extends('layouts.app')
+
+@section('title', $team->name)
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex items-center justify-between">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ $team->name }}
+        </h2>
+        <div class="flex space-x-2">
+            @can('update', $team)
+                <a href="{{ route('teams.settings', $team) }}"
+                   class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                    Settings
                 </a>
-            </div>
+                <a href="{{ route('teams.edit', $team) }}"
+                   class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Edit Team
+                </a>
+            @endcan
+            <a href="{{ route('teams.index') }}"
+               class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                Back to Teams
+            </a>
         </div>
-    </x-slot>
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
@@ -197,4 +204,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+@endsection

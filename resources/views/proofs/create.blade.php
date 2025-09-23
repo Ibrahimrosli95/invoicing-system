@@ -1,18 +1,25 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <div>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    {{ __('Create Proof') }}
-                </h2>
-                <p class="text-sm text-gray-600 mt-1">Build credibility with powerful social proof</p>
-            </div>
-            <a href="{{ route('proofs.index') }}" 
-               class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
-                Back to Proofs
-            </a>
+@extends('layouts.app')
+
+@section('title', 'Create Proof')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Create Proof') }}
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">Build credibility with powerful social proof</p>
         </div>
-    </x-slot>
+        <a href="{{ route('proofs.index') }}"
+           class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+            Back to Proofs
+        </a>
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
@@ -295,133 +302,134 @@
         </div>
     </div>
 
-    @push('scripts')
-    <script>
-        function proofForm() {
-            return {
-                form: {
-                    type: '',
-                    title: '',
-                    description: '',
-                    visibility: 'public',
-                    expires_at: '',
-                    show_in_pdf: true,
-                    show_in_quotation: true,
-                    show_in_invoice: false,
-                    is_featured: false,
-                    sort_order: 0,
-                    conversion_impact: 0
-                },
-                selectedFiles: [],
-                isDragOver: false,
+@endsection
 
-                handleFileDrop(e) {
-                    this.isDragOver = false;
-                    const files = Array.from(e.dataTransfer.files);
-                    this.addFiles(files);
-                },
+@push('scripts')
+<script>
+    function proofForm() {
+        return {
+            form: {
+                type: '',
+                title: '',
+                description: '',
+                visibility: 'public',
+                expires_at: '',
+                show_in_pdf: true,
+                show_in_quotation: true,
+                show_in_invoice: false,
+                is_featured: false,
+                sort_order: 0,
+                conversion_impact: 0
+            },
+            selectedFiles: [],
+            isDragOver: false,
 
-                handleFileSelect(e) {
-                    const files = Array.from(e.target.files);
-                    this.addFiles(files);
-                },
+            handleFileDrop(e) {
+                this.isDragOver = false;
+                const files = Array.from(e.dataTransfer.files);
+                this.addFiles(files);
+            },
 
-                addFiles(files) {
-                    files.forEach((file, index) => {
-                        // Validate file
-                        if (this.validateFile(file)) {
-                            const fileObj = {
-                                file: file,
-                                name: file.name,
-                                size: file.size,
-                                type: file.type,
-                                title: '',
-                                description: '',
-                                altText: '',
-                                preview: null
+            handleFileSelect(e) {
+                const files = Array.from(e.target.files);
+                this.addFiles(files);
+            },
+
+            addFiles(files) {
+                files.forEach((file, index) => {
+                    // Validate file
+                    if (this.validateFile(file)) {
+                        const fileObj = {
+                            file: file,
+                            name: file.name,
+                            size: file.size,
+                            type: file.type,
+                            title: '',
+                            description: '',
+                            altText: '',
+                            preview: null
+                        };
+
+                        // Generate preview for images
+                        if (file.type.startsWith('image/')) {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                fileObj.preview = e.target.result;
+                                this.$nextTick();
                             };
-
-                            // Generate preview for images
-                            if (file.type.startsWith('image/')) {
-                                const reader = new FileReader();
-                                reader.onload = (e) => {
-                                    fileObj.preview = e.target.result;
-                                    this.$nextTick();
-                                };
-                                reader.readAsDataURL(file);
-                            }
-
-                            this.selectedFiles.push(fileObj);
+                            reader.readAsDataURL(file);
                         }
-                    });
 
-                    // Update the file input
-                    this.updateFileInput();
-                },
-
-                removeFile(index) {
-                    this.selectedFiles.splice(index, 1);
-                    this.updateFileInput();
-                },
-
-                validateFile(file) {
-                    const maxSize = 10 * 1024 * 1024; // 10MB
-                    const allowedTypes = [
-                        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-                        'video/mp4', 'video/webm', 'video/quicktime',
-                        'application/pdf', 'application/msword', 
-                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-                    ];
-
-                    if (file.size > maxSize) {
-                        alert(`File "${file.name}" is too large. Maximum size is 10MB.`);
-                        return false;
+                        this.selectedFiles.push(fileObj);
                     }
+                });
 
-                    if (!allowedTypes.includes(file.type)) {
-                        alert(`File type "${file.type}" is not allowed.`);
-                        return false;
-                    }
+                // Update the file input
+                this.updateFileInput();
+            },
 
-                    return true;
-                },
+            removeFile(index) {
+                this.selectedFiles.splice(index, 1);
+                this.updateFileInput();
+            },
 
-                updateFileInput() {
-                    const input = document.getElementById('assets');
-                    const dt = new DataTransfer();
-                    
-                    this.selectedFiles.forEach(fileObj => {
-                        dt.items.add(fileObj.file);
-                    });
-                    
-                    input.files = dt.files;
-                },
+            validateFile(file) {
+                const maxSize = 10 * 1024 * 1024; // 10MB
+                const allowedTypes = [
+                    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+                    'video/mp4', 'video/webm', 'video/quicktime',
+                    'application/pdf', 'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                ];
 
-                formatFileSize(bytes) {
-                    if (bytes === 0) return '0 Bytes';
-                    const k = 1024;
-                    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-                    const i = Math.floor(Math.log(bytes) / Math.log(k));
-                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-                },
-
-                getFileTypeLabel(type) {
-                    if (type.startsWith('image/')) return 'Image';
-                    if (type.startsWith('video/')) return 'Video';
-                    if (type.includes('pdf')) return 'PDF';
-                    if (type.includes('word')) return 'Document';
-                    return 'File';
-                },
-
-                getFileTypeColor(type) {
-                    if (type.startsWith('image/')) return 'bg-green-100 text-green-800';
-                    if (type.startsWith('video/')) return 'bg-purple-100 text-purple-800';
-                    if (type.includes('pdf')) return 'bg-red-100 text-red-800';
-                    if (type.includes('word')) return 'bg-blue-100 text-blue-800';
-                    return 'bg-gray-100 text-gray-800';
+                if (file.size > maxSize) {
+                    alert(`File "${file.name}" is too large. Maximum size is 10MB.`);
+                    return false;
                 }
+
+                if (!allowedTypes.includes(file.type)) {
+                    alert(`File type "${file.type}" is not allowed.`);
+                    return false;
+                }
+
+                return true;
+            },
+
+            updateFileInput() {
+                const input = document.getElementById('assets');
+                const dt = new DataTransfer();
+
+                this.selectedFiles.forEach(fileObj => {
+                    dt.items.add(fileObj.file);
+                });
+
+                input.files = dt.files;
+            },
+
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            },
+
+            getFileTypeLabel(type) {
+                if (type.startsWith('image/')) return 'Image';
+                if (type.startsWith('video/')) return 'Video';
+                if (type.includes('pdf')) return 'PDF';
+                if (type.includes('word')) return 'Document';
+                return 'File';
+            },
+
+            getFileTypeColor(type) {
+                if (type.startsWith('image/')) return 'bg-green-100 text-green-800';
+                if (type.startsWith('video/')) return 'bg-purple-100 text-purple-800';
+                if (type.includes('pdf')) return 'bg-red-100 text-red-800';
+                if (type.includes('word')) return 'bg-blue-100 text-blue-800';
+                return 'bg-gray-100 text-gray-800';
             }
         }
-    </script>
-    @endpush
-</x-app-layout>
+    }
+</script>
+@endpush

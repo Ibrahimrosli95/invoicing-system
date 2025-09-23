@@ -1,23 +1,27 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <div>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    {{ ucfirst($validated['report_type']) }} Report Results
-                </h2>
-                <p class="text-sm text-gray-600 mt-1">
-                    {{ count($reportData) }} records found • Generated {{ now()->format('M d, Y H:i') }}
-                </p>
-            </div>
-            <div class="flex space-x-3">
-                <!-- Export Buttons -->
-                <div class="relative inline-block text-left">
-                    <button type="button" id="exportDropdown" 
-                            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            onclick="toggleExportMenu()">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
+@extends('layouts.app')
+
+@section('title', ucfirst($validated['report_type']) . ' Report Results')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ ucfirst($validated['report_type']) }} Report Results
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">
+                {{ count($reportData) }} records found • Generated {{ now()->format('M d, Y H:i') }}
+            </p>
+        </div>
+        <div class="flex space-x-3">
+            <!-- Export Buttons -->
+            <div class="relative inline-block text-left">
+                <button type="button" id="exportDropdown"
+                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        onclick="toggleExportMenu()">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
                         Export
                         <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -60,7 +64,10 @@
                 </a>
             </div>
         </div>
-    </x-slot>
+    </div>
+@endsection
+
+@section('content')
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -338,4 +345,5 @@
         // Initialize table
         renderTable();
     </script>
-</x-app-layout>
+
+@endsection

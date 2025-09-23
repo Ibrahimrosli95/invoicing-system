@@ -1,30 +1,37 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <div>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    {{ __('Proof Engine') }}
-                </h2>
-                <p class="text-sm text-gray-600 mt-1">Manage your social proof and credibility assets</p>
-            </div>
-            <div class="flex space-x-3">
-                <a href="{{ route('proofs.proof-pack.form') }}" 
-                   class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
-                    <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    Generate PDF Pack
-                </a>
-                <a href="{{ route('proofs.create') }}" 
-                   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
-                    <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Create Proof
-                </a>
-            </div>
+@extends('layouts.app')
+
+@section('title', 'Proof Engine')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Proof Engine') }}
+            </h2>
+            <p class="text-sm text-gray-600 mt-1">Manage your social proof and credibility assets</p>
         </div>
-    </x-slot>
+        <div class="flex space-x-3">
+            <a href="{{ route('proofs.proof-pack.form') }}"
+               class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Generate PDF Pack
+            </a>
+            <a href="{{ route('proofs.create') }}"
+               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-150 ease-in-out">
+                <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Create Proof
+            </a>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -390,48 +397,49 @@
         </div>
     </div>
 
-    @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const gridViewBtn = document.getElementById('grid-view');
-            const listViewBtn = document.getElementById('list-view');
-            const gridContainer = document.getElementById('grid-container');
-            const listContainer = document.getElementById('list-container');
-            
-            gridViewBtn.addEventListener('click', function() {
-                gridContainer.classList.remove('hidden');
-                listContainer.classList.add('hidden');
-                gridViewBtn.classList.add('active');
-                listViewBtn.classList.remove('active');
-            });
-            
-            listViewBtn.addEventListener('click', function() {
-                listContainer.classList.remove('hidden');
-                gridContainer.classList.add('hidden');
-                listViewBtn.classList.add('active');
-                gridViewBtn.classList.remove('active');
-            });
-        });
-    </script>
-    @endpush
+@endsection
 
-    @push('styles')
-    <style>
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .line-clamp-3 {
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .view-toggle.active {
-            @apply bg-blue-100 text-blue-600;
-        }
-    </style>
-    @endpush
-</x-app-layout>
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const gridViewBtn = document.getElementById('grid-view');
+        const listViewBtn = document.getElementById('list-view');
+        const gridContainer = document.getElementById('grid-container');
+        const listContainer = document.getElementById('list-container');
+
+        gridViewBtn.addEventListener('click', function() {
+            gridContainer.classList.remove('hidden');
+            listContainer.classList.add('hidden');
+            gridViewBtn.classList.add('active');
+            listViewBtn.classList.remove('active');
+        });
+
+        listViewBtn.addEventListener('click', function() {
+            listContainer.classList.remove('hidden');
+            gridContainer.classList.add('hidden');
+            listViewBtn.classList.add('active');
+            gridViewBtn.classList.remove('active');
+        });
+    });
+</script>
+@endpush
+
+@push('styles')
+<style>
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .view-toggle.active {
+        @apply bg-blue-100 text-blue-600;
+    }
+</style>
+@endpush

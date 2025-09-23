@@ -1,91 +1,98 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <div class="flex items-center space-x-4">
-                <div>
-                    <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                        {{ $proof->title }}
-                    </h2>
-                    <div class="flex items-center space-x-3 mt-1">
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {{ $proof->type_label }}
+@extends('layouts.app')
+
+@section('title', $proof->title)
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex justify-between items-center">
+        <div class="flex items-center space-x-4">
+            <div>
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                    {{ $proof->title }}
+                </h2>
+                <div class="flex items-center space-x-3 mt-1">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {{ $proof->type_label }}
+                    </span>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $proof->getStatusColor() }}">
+                        {{ $proof->status_label }}
+                    </span>
+                    @if($proof->is_featured)
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            Featured
                         </span>
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $proof->getStatusColor() }}">
-                            {{ $proof->status_label }}
-                        </span>
-                        @if($proof->is_featured)
-                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                </svg>
-                                Featured
-                            </span>
-                        @endif
-                    </div>
+                    @endif
                 </div>
-            </div>
-            
-            <div class="flex items-center space-x-3">
-                <!-- Quick Actions -->
-                <div class="flex items-center space-x-2" x-data="{ showActions: false }">
-                    <button @click="showActions = !showActions" 
-                            class="relative bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-md text-sm font-medium">
-                        Actions
-                        <svg class="w-4 h-4 ml-1 inline" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                        </svg>
-                    </button>
-                    
-                    <!-- Dropdown Menu -->
-                    <div x-show="showActions" 
-                         x-transition:enter="transition ease-out duration-100"
-                         x-transition:enter-start="transform opacity-0 scale-95"
-                         x-transition:enter-end="transform opacity-100 scale-100"
-                         x-transition:leave="transition ease-in duration-75"
-                         x-transition:leave-start="transform opacity-100 scale-100"
-                         x-transition:leave-end="transform opacity-0 scale-95"
-                         @click.outside="showActions = false"
-                         class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
-                        <div class="py-1">
-                            <a href="{{ route('proofs.duplicate', $proof->uuid) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                                </svg>
-                                Duplicate
-                            </a>
-                            <form method="POST" action="{{ route('proofs.toggle-featured', $proof->uuid) }}" class="inline">
-                                @csrf
-                                <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    <svg class="w-4 h-4 mr-2 inline" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                    </svg>
-                                    {{ $proof->is_featured ? 'Remove from Featured' : 'Mark as Featured' }}
-                                </button>
-                            </form>
-                            <form method="POST" action="{{ route('proofs.toggle-status', $proof->uuid) }}" class="inline">
-                                @csrf
-                                <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
-                                    </svg>
-                                    {{ $proof->status === 'active' ? 'Archive' : 'Activate' }}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                
-                <a href="{{ route('proofs.edit', $proof->uuid) }}" 
-                   class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-                    Edit
-                </a>
-                <a href="{{ route('proofs.index') }}" 
-                   class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-                    Back to Proofs
-                </a>
             </div>
         </div>
-    </x-slot>
+
+        <div class="flex items-center space-x-3">
+            <!-- Quick Actions -->
+            <div class="flex items-center space-x-2" x-data="{ showActions: false }">
+                <button @click="showActions = !showActions"
+                        class="relative bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-md text-sm font-medium">
+                    Actions
+                    <svg class="w-4 h-4 ml-1 inline" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                    </svg>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div x-show="showActions"
+                     x-transition:enter="transition ease-out duration-100"
+                     x-transition:enter-start="transform opacity-0 scale-95"
+                     x-transition:enter-end="transform opacity-100 scale-100"
+                     x-transition:leave="transition ease-in duration-75"
+                     x-transition:leave-start="transform opacity-100 scale-100"
+                     x-transition:leave-end="transform opacity-0 scale-95"
+                     @click.outside="showActions = false"
+                     class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                    <div class="py-1">
+                        <a href="{{ route('proofs.duplicate', $proof->uuid) }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                            Duplicate
+                        </a>
+                        <form method="POST" action="{{ route('proofs.toggle-featured', $proof->uuid) }}" class="inline">
+                            @csrf
+                            <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <svg class="w-4 h-4 mr-2 inline" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                                {{ $proof->is_featured ? 'Remove from Featured' : 'Mark as Featured' }}
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('proofs.toggle-status', $proof->uuid) }}" class="inline">
+                            @csrf
+                            <button type="submit" class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
+                                </svg>
+                                {{ $proof->status === 'active' ? 'Archive' : 'Activate' }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <a href="{{ route('proofs.edit', $proof->uuid) }}"
+               class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                Edit
+            </a>
+            <a href="{{ route('proofs.index') }}"
+               class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                Back to Proofs
+            </a>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -481,30 +488,31 @@
         </div>
     </div>
 
-    @push('scripts')
-    <script>
-        function assetGallery() {
-            return {
-                showModal: false,
-                modalSrc: '',
-                modalTitle: '',
-                modalType: '',
+@endsection
 
-                openModal(src, title, type) {
-                    this.modalSrc = src;
-                    this.modalTitle = title || 'Asset Preview';
-                    this.modalType = type || 'image';
-                    this.showModal = true;
-                },
+@push('scripts')
+<script>
+    function assetGallery() {
+        return {
+            showModal: false,
+            modalSrc: '',
+            modalTitle: '',
+            modalType: '',
 
-                closeModal() {
-                    this.showModal = false;
-                    this.modalSrc = '';
-                    this.modalTitle = '';
-                    this.modalType = '';
-                }
+            openModal(src, title, type) {
+                this.modalSrc = src;
+                this.modalTitle = title || 'Asset Preview';
+                this.modalType = type || 'image';
+                this.showModal = true;
+            },
+
+            closeModal() {
+                this.showModal = false;
+                this.modalSrc = '';
+                this.modalTitle = '';
+                this.modalType = '';
             }
         }
-    </script>
-    @endpush
-</x-app-layout>
+    }
+</script>
+@endpush

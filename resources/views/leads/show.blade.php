@@ -1,44 +1,51 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    {{ __('Lead Details') }}: {{ $lead->name }}
-                </h2>
-                <p class="text-gray-600 mt-1">
-                    Created {{ $lead->created_at->format('M j, Y') }} • 
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                        {{ $lead->status === 'NEW' ? 'bg-blue-100 text-blue-800' : '' }}
-                        {{ $lead->status === 'CONTACTED' ? 'bg-yellow-100 text-yellow-800' : '' }}
-                        {{ $lead->status === 'QUOTED' ? 'bg-purple-100 text-purple-800' : '' }}
-                        {{ $lead->status === 'WON' ? 'bg-green-100 text-green-800' : '' }}
-                        {{ $lead->status === 'LOST' ? 'bg-red-100 text-red-800' : '' }}">
-                        {{ ucfirst($lead->status) }}
-                    </span>
-                </p>
-            </div>
-            <div class="flex space-x-2">
-                <a href="{{ route('leads.index') }}" 
-                   class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                    Back to Leads
-                </a>
-                @can('create', App\Models\Quotation::class)
-                    @if(in_array($lead->status, ['CONTACTED', 'NEW']))
-                        <a href="{{ route('leads.convert', $lead) }}" 
-                           class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                            Convert to Quotation
-                        </a>
-                    @endif
-                @endcan
-                @can('update', $lead)
-                    <a href="{{ route('leads.edit', $lead) }}" 
-                       class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                        Edit Lead
-                    </a>
-                @endcan
-            </div>
+@extends('layouts.app')
+
+@section('title', 'Lead Details')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Lead Details') }}: {{ $lead->name }}
+            </h2>
+            <p class="text-gray-600 mt-1">
+                Created {{ $lead->created_at->format('M j, Y') }} •
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                    {{ $lead->status === 'NEW' ? 'bg-blue-100 text-blue-800' : '' }}
+                    {{ $lead->status === 'CONTACTED' ? 'bg-yellow-100 text-yellow-800' : '' }}
+                    {{ $lead->status === 'QUOTED' ? 'bg-purple-100 text-purple-800' : '' }}
+                    {{ $lead->status === 'WON' ? 'bg-green-100 text-green-800' : '' }}
+                    {{ $lead->status === 'LOST' ? 'bg-red-100 text-red-800' : '' }}">
+                    {{ ucfirst($lead->status) }}
+                </span>
+            </p>
         </div>
-    </x-slot>
+        <div class="flex space-x-2">
+            <a href="{{ route('leads.index') }}"
+               class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                Back to Leads
+            </a>
+            @can('create', App\Models\Quotation::class)
+                @if(in_array($lead->status, ['CONTACTED', 'NEW']))
+                    <a href="{{ route('leads.convert', $lead) }}"
+                       class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                        Convert to Quotation
+                    </a>
+                @endif
+            @endcan
+            @can('update', $lead)
+                <a href="{{ route('leads.edit', $lead) }}"
+                   class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Edit Lead
+                </a>
+            @endcan
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -373,4 +380,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+@endsection

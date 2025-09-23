@@ -1,20 +1,27 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <div>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    Generate Proof Pack PDF
-                </h2>
-                <p class="mt-1 text-sm text-gray-600">
-                    Create a comprehensive PDF portfolio showcasing your social proof and credentials
-                </p>
-            </div>
-            <a href="{{ route('proofs.index') }}" 
-               class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-                Back to Proofs
-            </a>
+@extends('layouts.app')
+
+@section('title', 'Generate Proof Pack PDF')
+
+@section('header')
+<div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                Generate Proof Pack PDF
+            </h2>
+            <p class="mt-1 text-sm text-gray-600">
+                Create a comprehensive PDF portfolio showcasing your social proof and credentials
+            </p>
         </div>
-    </x-slot>
+        <a href="{{ route('proofs.index') }}"
+           class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+            Back to Proofs
+        </a>
+    </div>
+</div>
+@endsection
+
+@section('content')
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -265,136 +272,137 @@
         </div>
     </div>
 
-    @push('scripts')
-    <script>
-        function proofPackGenerator() {
-            return {
-                selectedProofs: [],
-                config: {
-                    title: 'Social Proof Portfolio',
-                    orientation: 'portrait',
-                    show_analytics: false,
-                    watermark: ''
-                },
+@endsection
 
-                get selectedCount() {
-                    return this.selectedProofs.length;
-                },
+@push('scripts')
+<script>
+    function proofPackGenerator() {
+        return {
+            selectedProofs: [],
+            config: {
+                title: 'Social Proof Portfolio',
+                orientation: 'portrait',
+                show_analytics: false,
+                watermark: ''
+            },
 
-                toggleProof(uuid) {
-                    const index = this.selectedProofs.indexOf(uuid);
-                    if (index > -1) {
-                        this.selectedProofs.splice(index, 1);
-                    } else {
+            get selectedCount() {
+                return this.selectedProofs.length;
+            },
+
+            toggleProof(uuid) {
+                const index = this.selectedProofs.indexOf(uuid);
+                if (index > -1) {
+                    this.selectedProofs.splice(index, 1);
+                } else {
+                    this.selectedProofs.push(uuid);
+                }
+            },
+
+            selectAll() {
+                // Get all proof UUIDs from the page
+                const checkboxes = document.querySelectorAll('input[type="checkbox"]:not([name="show_analytics"])');
+                this.selectedProofs = [];
+                checkboxes.forEach(checkbox => {
+                    const onChange = checkbox.getAttribute('@change');
+                    if (onChange && onChange.includes('toggleProof')) {
+                        const uuid = onChange.match(/'([^']+)'/)[1];
                         this.selectedProofs.push(uuid);
                     }
-                },
+                });
+            },
 
-                selectAll() {
-                    // Get all proof UUIDs from the page
-                    const checkboxes = document.querySelectorAll('input[type="checkbox"]:not([name="show_analytics"])');
-                    this.selectedProofs = [];
-                    checkboxes.forEach(checkbox => {
-                        const onChange = checkbox.getAttribute('@change');
-                        if (onChange && onChange.includes('toggleProof')) {
-                            const uuid = onChange.match(/'([^']+)'/)[1];
+            deselectAll() {
+                this.selectedProofs = [];
+            },
+
+            toggleCategory(categoryName) {
+                // Find all checkboxes in this category and toggle them
+                const categorySection = event.target.closest('.mb-8');
+                const checkboxes = categorySection.querySelectorAll('input[type="checkbox"]');
+
+                let categoryProofs = [];
+                checkboxes.forEach(checkbox => {
+                    const onChange = checkbox.getAttribute('@change');
+                    if (onChange && onChange.includes('toggleProof')) {
+                        const uuid = onChange.match(/'([^']+)'/)[1];
+                        categoryProofs.push(uuid);
+                    }
+                });
+
+                // Check if all are selected
+                const allSelected = categoryProofs.every(uuid => this.selectedProofs.includes(uuid));
+
+                if (allSelected) {
+                    // Deselect all in category
+                    categoryProofs.forEach(uuid => {
+                        const index = this.selectedProofs.indexOf(uuid);
+                        if (index > -1) {
+                            this.selectedProofs.splice(index, 1);
+                        }
+                    });
+                } else {
+                    // Select all in category
+                    categoryProofs.forEach(uuid => {
+                        if (!this.selectedProofs.includes(uuid)) {
                             this.selectedProofs.push(uuid);
                         }
                     });
-                },
-
-                deselectAll() {
-                    this.selectedProofs = [];
-                },
-
-                toggleCategory(categoryName) {
-                    // Find all checkboxes in this category and toggle them
-                    const categorySection = event.target.closest('.mb-8');
-                    const checkboxes = categorySection.querySelectorAll('input[type="checkbox"]');
-                    
-                    let categoryProofs = [];
-                    checkboxes.forEach(checkbox => {
-                        const onChange = checkbox.getAttribute('@change');
-                        if (onChange && onChange.includes('toggleProof')) {
-                            const uuid = onChange.match(/'([^']+)'/)[1];
-                            categoryProofs.push(uuid);
-                        }
-                    });
-
-                    // Check if all are selected
-                    const allSelected = categoryProofs.every(uuid => this.selectedProofs.includes(uuid));
-                    
-                    if (allSelected) {
-                        // Deselect all in category
-                        categoryProofs.forEach(uuid => {
-                            const index = this.selectedProofs.indexOf(uuid);
-                            if (index > -1) {
-                                this.selectedProofs.splice(index, 1);
-                            }
-                        });
-                    } else {
-                        // Select all in category
-                        categoryProofs.forEach(uuid => {
-                            if (!this.selectedProofs.includes(uuid)) {
-                                this.selectedProofs.push(uuid);
-                            }
-                        });
-                    }
-                },
-
-                previewPDF() {
-                    this.submitForm('{{ route('proofs.proof-pack.preview') }}', '_blank');
-                },
-
-                downloadPDF() {
-                    this.submitForm('{{ route('proofs.proof-pack.generate') }}');
-                },
-
-                submitForm(action, target = null) {
-                    if (this.selectedCount === 0) {
-                        alert('Please select at least one proof to include in the PDF.');
-                        return;
-                    }
-
-                    const form = this.$refs.form;
-                    const formData = new FormData(form);
-                    
-                    // Add selected proof IDs
-                    this.selectedProofs.forEach(uuid => {
-                        formData.append('proof_ids[]', uuid);
-                    });
-                    
-                    // Add config
-                    formData.append('title', this.config.title);
-                    formData.append('orientation', this.config.orientation);
-                    formData.append('show_analytics', this.config.show_analytics ? '1' : '0');
-                    if (this.config.watermark) {
-                        formData.append('watermark', this.config.watermark);
-                    }
-
-                    // Create and submit form
-                    const tempForm = document.createElement('form');
-                    tempForm.method = 'POST';
-                    tempForm.action = action;
-                    if (target) {
-                        tempForm.target = target;
-                    }
-
-                    // Convert FormData to hidden inputs
-                    for (let [key, value] of formData.entries()) {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = key;
-                        input.value = value;
-                        tempForm.appendChild(input);
-                    }
-
-                    document.body.appendChild(tempForm);
-                    tempForm.submit();
-                    document.body.removeChild(tempForm);
                 }
-            };
-        }
-    </script>
-    @endpush
-</x-app-layout>
+            },
+
+            previewPDF() {
+                this.submitForm('{{ route('proofs.proof-pack.preview') }}', '_blank');
+            },
+
+            downloadPDF() {
+                this.submitForm('{{ route('proofs.proof-pack.generate') }}');
+            },
+
+            submitForm(action, target = null) {
+                if (this.selectedCount === 0) {
+                    alert('Please select at least one proof to include in the PDF.');
+                    return;
+                }
+
+                const form = this.$refs.form;
+                const formData = new FormData(form);
+
+                // Add selected proof IDs
+                this.selectedProofs.forEach(uuid => {
+                    formData.append('proof_ids[]', uuid);
+                });
+
+                // Add config
+                formData.append('title', this.config.title);
+                formData.append('orientation', this.config.orientation);
+                formData.append('show_analytics', this.config.show_analytics ? '1' : '0');
+                if (this.config.watermark) {
+                    formData.append('watermark', this.config.watermark);
+                }
+
+                // Create and submit form
+                const tempForm = document.createElement('form');
+                tempForm.method = 'POST';
+                tempForm.action = action;
+                if (target) {
+                    tempForm.target = target;
+                }
+
+                // Convert FormData to hidden inputs
+                for (let [key, value] of formData.entries()) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = value;
+                    tempForm.appendChild(input);
+                }
+
+                document.body.appendChild(tempForm);
+                tempForm.submit();
+                document.body.removeChild(tempForm);
+            }
+        };
+    }
+</script>
+@endpush
