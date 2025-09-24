@@ -117,7 +117,7 @@ class PricingController extends Controller
             ->ordered()
             ->get();
 
-        return view('pricing.create-simplified', compact('categories', 'segments'));
+        return view('pricing.create', compact('categories', 'segments'));
     }
 
     /**
