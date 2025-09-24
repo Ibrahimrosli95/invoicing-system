@@ -121,16 +121,7 @@
                                        placeholder="Segment name"
                                        @keydown.enter="addSegment"
                                        @keydown.escape="cancelAddSegment"
-                                       class="w-32 text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <input type="number"
-                                       x-model="newSegmentDiscount"
-                                       placeholder="Discount %"
-                                       step="0.01"
-                                       min="0"
-                                       max="100"
-                                       @keydown.enter="addSegment"
-                                       @keydown.escape="cancelAddSegment"
-                                       class="w-24 text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                       class="w-40 text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 <button type="button"
                                         @click="addSegment"
                                         class="text-green-600 hover:text-green-700">
@@ -320,7 +311,6 @@ function pricingForm() {
         // Dynamic segment management
         showAddSegment: false,
         newSegmentName: '',
-        newSegmentDiscount: '',
         activeSegments: [
             @foreach($segments as $segment)
                 {
@@ -345,11 +335,6 @@ function pricingForm() {
                 return;
             }
 
-            if (!this.newSegmentDiscount || this.newSegmentDiscount < 0) {
-                alert('Please enter a valid discount percentage.');
-                return;
-            }
-
             // Generate temporary ID for new segment
             const tempId = 'new_' + this.newSegmentCounter++;
 
@@ -357,7 +342,7 @@ function pricingForm() {
             this.activeSegments.push({
                 id: tempId,
                 name: this.newSegmentName.trim(),
-                discount: parseFloat(this.newSegmentDiscount),
+                discount: 0, // Default discount
                 color: this.getRandomColor(),
                 isNew: true
             });
@@ -369,7 +354,6 @@ function pricingForm() {
 
             // Reset form
             this.newSegmentName = '';
-            this.newSegmentDiscount = '';
             this.showAddSegment = false;
 
             // Recalculate margins
@@ -390,7 +374,6 @@ function pricingForm() {
 
         cancelAddSegment() {
             this.newSegmentName = '';
-            this.newSegmentDiscount = '';
             this.showAddSegment = false;
         },
 
