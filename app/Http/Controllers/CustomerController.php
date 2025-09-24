@@ -161,6 +161,7 @@ class CustomerController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:100',
+            'company_name' => 'nullable|string|max:150',
             'phone' => 'required|string|max:20',
             'email' => 'nullable|email|max:100',
             'address' => 'nullable|string',
