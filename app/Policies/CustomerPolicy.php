@@ -76,11 +76,9 @@ class CustomerPolicy
             return true;
         }
 
-        // Sales executives can update customers they created or are associated with their invoices/quotations
+        // Sales executives can update customers they created
         if ($user->hasRole('sales_executive')) {
-            return $customer->created_by === $user->id ||
-                   $customer->invoices()->where('assigned_to', $user->id)->exists() ||
-                   $customer->quotations()->where('assigned_to', $user->id)->exists();
+            return $customer->created_by === $user->id;
         }
 
         return false;

@@ -212,10 +212,22 @@ class Customer extends Model
 
     /**
      * Check if customer has any transactions
+     * Note: Since invoices and quotations don't have customer_id foreign keys,
+     * we check by matching customer phone number which is the current identifier used
      */
     public function hasTransactions(): bool
     {
-        return $this->invoices()->exists() || $this->quotations()->exists();
+        // Check if any invoices exist with this customer's phone
+        $hasInvoices = \App\Models\Invoice::forCompany()
+            ->where('customer_phone', $this->phone)
+            ->exists();
+
+        // Check if any quotations exist with this customer's phone
+        $hasQuotations = \App\Models\Quotation::forCompany()
+            ->where('customer_phone', $this->phone)
+            ->exists();
+
+        return $hasInvoices || $hasQuotations;
     }
 
     /**
@@ -250,7 +262,12 @@ class Customer extends Model
             ];
         }
 
-        $overdueCount = $this->getOverdueInvoiceCountAttribute();
+        // Check for overdue invoices by phone number
+        $overdueCount = \App\Models\Invoice::forCompany()
+            ->where('customer_phone', $this->phone)
+            ->where('status', 'OVERDUE')
+            ->count();
+
         if ($overdueCount > 0) {
             return [
                 'text' => 'Has Overdue',

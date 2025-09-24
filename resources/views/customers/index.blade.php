@@ -144,6 +144,17 @@
                                        class="text-gray-600 hover:text-gray-900">
                                         Edit
                                     </a>
+                                    @can('delete', $customer)
+                                        <form method="POST" action="{{ route('customers.destroy', $customer) }}"
+                                              class="inline-block"
+                                              onsubmit="return confirm('Are you sure you want to delete this customer? This action cannot be undone.')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:text-red-900">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>
