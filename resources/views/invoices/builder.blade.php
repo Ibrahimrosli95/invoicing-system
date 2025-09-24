@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-<script src="{{ asset('js/dateHelper.js') }}"></script>
 <div class="min-h-screen bg-gray-50" x-data="invoiceBuilder()">
     <!-- Header Bar -->
     <div class="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40">
@@ -16,11 +15,6 @@
                 <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">DRAFT</span>
             </div>
             <div class="flex items-center space-x-3">
-                <button type="button" @click="toggleSidebar" class="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
                 <button type="button" @click="previewPDF" class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
                     Preview PDF
                 </button>
@@ -32,76 +26,9 @@
     </div>
 
     <!-- Main Content Area -->
-    <div class="flex">
-        <!-- Floating Sidebar -->
-        <div x-show="sidebarOpen"
-             x-transition:enter="transition ease-out duration-300 transform"
-             x-transition:enter-start="translate-x-full"
-             x-transition:enter-end="translate-x-0"
-             x-transition:leave="transition ease-in duration-200 transform"
-             x-transition:leave-start="translate-x-0"
-             x-transition:leave-end="translate-x-full"
-             class="fixed right-0 top-16 bottom-0 w-80 bg-white border-l border-gray-200 shadow-lg z-30">
-
-            <div class="p-4 border-b border-gray-200">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-sm font-semibold text-gray-900">Tools & Options</h2>
-                    <button @click="sidebarOpen = false" class="text-gray-400 hover:text-gray-600">
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <div class="overflow-y-auto p-4 space-y-6">
-
-                <!-- Optional Sections -->
-                <div>
-                    <h3 class="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-3">Optional Sections</h3>
-                    <div class="space-y-2">
-                        <label class="flex items-center">
-                            <input type="checkbox" x-model="optionalSections.show_shipping" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
-                            <span class="ml-2 text-sm text-gray-700">Shipping Information</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" x-model="optionalSections.show_payment_instructions" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
-                            <span class="ml-2 text-sm text-gray-700">Payment Instructions</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" x-model="optionalSections.show_signatures" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
-                            <span class="ml-2 text-sm text-gray-700">Signature Blocks</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" x-model="optionalSections.show_company_logo" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
-                            <span class="ml-2 text-sm text-gray-700">Company Logo</span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div>
-                    <h3 class="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-3">Quick Actions</h3>
-                    <div class="space-y-2">
-                        <button @click="addLineItem" type="button"
-                                class="w-full px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-                            + Add Line Item
-                        </button>
-                        <button @click="applyTemplate" type="button"
-                                class="w-full px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-                            Apply Template
-                        </button>
-                        <button @click="duplicateLastItem" type="button"
-                                class="w-full px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-                            Duplicate Last Item
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+    <div>
         <!-- Document Preview Area -->
-        <div class="flex-1 min-h-screen" :class="sidebarOpen ? 'mr-80' : 'mr-0'">
+        <div class="flex-1 min-h-screen">
             <div class="max-w-4xl mx-auto p-8">
                 <!-- Invoice Document -->
                 <div class="bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200">
@@ -137,15 +64,13 @@
                                     </div>
                                     <div class="flex justify-end">
                                         <span class="w-24 text-gray-600">Date:</span>
-                                        <input type="text" x-model="invoiceDateFormatted" @blur="formatInvoiceDate"
-                                               placeholder="DD/MM/YYYY"
-                                               class="font-mono border-0 bg-transparent text-right p-0 focus:ring-0 w-28">
+                                        <input type="date" x-model="invoiceDate"
+                                               class="font-mono border-0 bg-transparent text-right p-0 focus:ring-0 w-32">
                                     </div>
                                     <div class="flex justify-end">
                                         <span class="w-24 text-gray-600">Due Date:</span>
-                                        <input type="text" x-model="dueDateFormatted" @blur="formatDueDate"
-                                               placeholder="DD/MM/YYYY"
-                                               class="font-mono border-0 bg-transparent text-right p-0 focus:ring-0 w-28">
+                                        <input type="date" x-model="dueDate"
+                                               class="font-mono border-0 bg-transparent text-right p-0 focus:ring-0 w-32">
                                     </div>
                                 </div>
                             </div>
@@ -497,7 +422,6 @@
 function invoiceBuilder() {
     return {
         // UI State
-        sidebarOpen: true,
         showCustomerDropdown: false,
         showNewCustomerModal: false,
 
@@ -522,9 +446,7 @@ function invoiceBuilder() {
         // Invoice Data
         invoiceNumber: 'INV-2025-000001',
         invoiceDate: new Date().toISOString().split('T')[0],
-        invoiceDateFormatted: '',
         dueDate: '',
-        dueDateFormatted: '',
 
         // Optional Sections
         optionalSections: {
@@ -575,12 +497,10 @@ function invoiceBuilder() {
         representativeTitle: 'Sales Representative',
 
         init() {
-            // Set default dates with DD/MM/YYYY format
-            this.invoiceDateFormatted = DateHelper.today();
+            // Set default due date (30 days from now)
             const dueDate = new Date();
             dueDate.setDate(dueDate.getDate() + 30);
-            this.dueDate = DateHelper.toHtml5Input(dueDate);
-            this.dueDateFormatted = DateHelper.format(dueDate);
+            this.dueDate = dueDate.toISOString().split('T')[0];
 
             // Calculate initial totals
             this.calculateTotals();
@@ -592,31 +512,7 @@ function invoiceBuilder() {
             this.loadSavedTemplates();
         },
 
-        // Sidebar Toggle
-        toggleSidebar() {
-            this.sidebarOpen = !this.sidebarOpen;
-        },
 
-        // Date Formatting Methods
-        formatInvoiceDate() {
-            if (this.invoiceDateFormatted) {
-                const parsed = DateHelper.parse(this.invoiceDateFormatted);
-                if (parsed) {
-                    this.invoiceDate = DateHelper.toHtml5Input(parsed);
-                    this.invoiceDateFormatted = DateHelper.format(parsed);
-                }
-            }
-        },
-
-        formatDueDate() {
-            if (this.dueDateFormatted) {
-                const parsed = DateHelper.parse(this.dueDateFormatted);
-                if (parsed) {
-                    this.dueDate = DateHelper.toHtml5Input(parsed);
-                    this.dueDateFormatted = DateHelper.format(parsed);
-                }
-            }
-        },
 
         // Customer Search
         searchCustomers() {
@@ -847,11 +743,16 @@ function invoiceBuilder() {
 
         // Actions
         previewPDF() {
-            // Generate preview URL
-            const invoiceData = this.getInvoiceData();
-            window.open('/invoices/preview?' + new URLSearchParams({
-                data: JSON.stringify(invoiceData)
-            }), '_blank');
+            if (!this.selectedCustomer.id) {
+                this.$dispatch('notify', { type: 'error', message: 'Please select a customer first' });
+                return;
+            }
+
+            // For now, show a notification that preview will be available after saving
+            this.$dispatch('notify', {
+                type: 'info',
+                message: 'PDF preview will be available after saving the invoice. Click "Save Invoice" first.'
+            });
         },
 
         saveInvoice() {
@@ -868,11 +769,11 @@ function invoiceBuilder() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    this.$dispatch('notify', { type: 'success', message: 'Invoice saved successfully!' });
-                    // Redirect to invoice view
+                    this.$dispatch('notify', { type: 'success', message: 'Invoice saved successfully! Redirecting...' });
+                    // Redirect to invoice view where PDF preview is available
                     setTimeout(() => {
                         window.location.href = `/invoices/${data.invoice.id}`;
-                    }, 1000);
+                    }, 1500);
                 } else {
                     this.$dispatch('notify', { type: 'error', message: data.message || 'Failed to save invoice' });
                 }
