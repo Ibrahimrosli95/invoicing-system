@@ -759,7 +759,7 @@ class PricingController extends Controller
      */
     public function import()
     {
-        $this->authorize('import', PricingItem::class);
+        $this->authorize('export', PricingItem::class);
 
         return view('pricing.import');
     }
@@ -769,7 +769,7 @@ class PricingController extends Controller
      */
     public function downloadTemplate()
     {
-        $this->authorize('import', PricingItem::class);
+        $this->authorize('export', PricingItem::class);
 
         $segments = CustomerSegment::forCompany()->active()->ordered()->get();
         $categories = PricingCategory::forCompany()->active()->ordered()->get();
@@ -841,7 +841,7 @@ class PricingController extends Controller
      */
     public function processImport(Request $request)
     {
-        $this->authorize('import', PricingItem::class);
+        $this->authorize('create', PricingItem::class);
 
         $request->validate([
             'csv_file' => 'required|file|mimes:csv,txt|max:10240', // 10MB max

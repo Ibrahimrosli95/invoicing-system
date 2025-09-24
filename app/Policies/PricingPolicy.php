@@ -163,12 +163,11 @@ class PricingPolicy
      */
     public function export(User $user): bool
     {
-        // Only managers and above can export data
+        // Only senior management can export data (excludes sales_manager)
         return $user->hasAnyRole([
             'superadmin',
             'company_manager',
-            'finance_manager',
-            'sales_manager'
+            'finance_manager'
         ]);
     }
 
