@@ -97,11 +97,11 @@ Route::middleware('auth')->group(function () {
     Route::get('organization/chart', [OrganizationController::class, 'chart'])->name('organization.chart');
 
     // Customer Management
-    Route::resource('customers', \App\Http\Controllers\CustomerController::class);
     Route::get('customers/search', [\App\Http\Controllers\CustomerController::class, 'search'])->name('customers.search');
     Route::post('customers/convert-lead', [\App\Http\Controllers\CustomerController::class, 'convertLead'])->name('customers.convert-lead');
-    Route::get('customers/{customer}/for-invoice', [\App\Http\Controllers\CustomerController::class, 'getForInvoice'])->name('customers.for-invoice');
     Route::post('customers/check-duplicate', [\App\Http\Controllers\CustomerController::class, 'checkDuplicate'])->name('customers.check-duplicate');
+    Route::resource('customers', \App\Http\Controllers\CustomerController::class);
+    Route::get('customers/{customer}/for-invoice', [\App\Http\Controllers\CustomerController::class, 'getForInvoice'])->name('customers.for-invoice');
     
     // Lead Management (CRM-Lite)
     Route::resource('leads', LeadController::class);
