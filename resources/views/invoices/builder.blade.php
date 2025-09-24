@@ -134,11 +134,11 @@
                                             Change Customer
                                         </button>
                                     </div>
-                                    <div x-show="selectedCustomer.company" x-text="selectedCustomer.company" class="text-gray-600"></div>
+                                    <div x-show="selectedCustomer.company_name" x-text="selectedCustomer.company_name" class="text-gray-600"></div>
                                     <div x-show="selectedCustomer.address" x-text="selectedCustomer.address" class="text-gray-600"></div>
                                     <div x-show="selectedCustomer.city" class="text-gray-600">
                                         <span x-text="selectedCustomer.city"></span><span x-show="selectedCustomer.state">, <span x-text="selectedCustomer.state"></span></span>
-                                        <span x-show="selectedCustomer.postal_code" x-text="selectedCustomer.postal_code"></span>
+                                        <span x-show="selectedCustomer.postal_code"> <span x-text="selectedCustomer.postal_code"></span></span>
                                     </div>
                                     <div x-show="selectedCustomer.phone || selectedCustomer.email" class="text-gray-600">
                                         <span x-show="selectedCustomer.phone" x-text="selectedCustomer.phone"></span>
@@ -150,8 +150,15 @@
 
                             <!-- Ship To (if enabled) -->
                             <div x-show="optionalSections.show_shipping">
-                                <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">Ship To</h3>
-                                <div class="space-y-2">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Ship To</h3>
+                                    <label class="flex items-center text-xs text-gray-600">
+                                        <input type="checkbox" x-model="shippingSameAsBilling" @change="toggleShippingSameAsBilling"
+                                               class="mr-1 h-3 w-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                        Same as billing
+                                    </label>
+                                </div>
+                                <div x-show="!shippingSameAsBilling" class="space-y-2">
                                     <input type="text" x-model="shippingInfo.name" placeholder="Name"
                                            class="w-full text-sm border-0 border-b border-gray-300 bg-transparent p-0 focus:ring-0 focus:border-blue-500">
                                     <input type="text" x-model="shippingInfo.address" placeholder="Address"
@@ -163,6 +170,15 @@
                                                class="text-sm border-0 border-b border-gray-300 bg-transparent p-0 focus:ring-0 focus:border-blue-500">
                                         <input type="text" x-model="shippingInfo.postal_code" placeholder="Postal Code"
                                                class="text-sm border-0 border-b border-gray-300 bg-transparent p-0 focus:ring-0 focus:border-blue-500">
+                                    </div>
+                                </div>
+                                <div x-show="shippingSameAsBilling" class="space-y-1 text-sm text-gray-600">
+                                    <div x-text="selectedCustomer.name"></div>
+                                    <div x-show="selectedCustomer.company_name" x-text="selectedCustomer.company_name"></div>
+                                    <div x-show="selectedCustomer.address" x-text="selectedCustomer.address"></div>
+                                    <div x-show="selectedCustomer.city">
+                                        <span x-text="selectedCustomer.city"></span><span x-show="selectedCustomer.state">, <span x-text="selectedCustomer.state"></span></span>
+                                        <span x-show="selectedCustomer.postal_code"> <span x-text="selectedCustomer.postal_code"></span></span>
                                     </div>
                                 </div>
                             </div>
@@ -473,6 +489,7 @@ function invoiceBuilder() {
             state: '',
             postal_code: ''
         },
+        shippingSameAsBilling: true,
 
         // Line Items
         lineItems: [
@@ -605,14 +622,31 @@ function invoiceBuilder() {
             this.customerSearch = customer.name;
             this.showCustomerDropdown = false;
 
-            // Pre-fill shipping if same as billing
-            this.shippingInfo = {
-                name: customer.name,
-                address: customer.address || '',
-                city: customer.city || '',
-                state: customer.state || '',
-                postal_code: customer.postal_code || ''
-            };
+            // Set shipping same as billing by default
+            this.shippingSameAsBilling = true;
+
+            // Pre-fill shipping address from customer data
+            this.updateShippingAddress();
+        },
+
+        // Toggle shipping same as billing
+        toggleShippingSameAsBilling() {
+            if (this.shippingSameAsBilling) {
+                this.updateShippingAddress();
+            }
+        },
+
+        // Update shipping address from selected customer
+        updateShippingAddress() {
+            if (this.shippingSameAsBilling && this.selectedCustomer.name) {
+                this.shippingInfo = {
+                    name: this.selectedCustomer.name,
+                    address: this.selectedCustomer.address || '',
+                    city: this.selectedCustomer.city || '',
+                    state: this.selectedCustomer.state || '',
+                    postal_code: this.selectedCustomer.postal_code || ''
+                };
+            }
         },
 
         // Phone Number Formatting
@@ -941,6 +975,7 @@ function invoiceBuilder() {
             return {
                 // Customer information from selected customer
                 customer_name: this.selectedCustomer.name || '',
+                customer_company: this.selectedCustomer.company_name || '',
                 customer_phone: this.selectedCustomer.phone || '',
                 customer_email: this.selectedCustomer.email || '',
                 customer_address: this.selectedCustomer.address || this.selectedCustomer.full_address || '',
@@ -960,6 +995,23 @@ function invoiceBuilder() {
                 total: this.total,
                 notes: this.notes,
                 terms_conditions: this.terms,
+
+                // Shipping information
+                shipping_info: this.shippingSameAsBilling ? {
+                    same_as_billing: true,
+                    name: this.selectedCustomer.name || '',
+                    address: this.selectedCustomer.address || '',
+                    city: this.selectedCustomer.city || '',
+                    state: this.selectedCustomer.state || '',
+                    postal_code: this.selectedCustomer.postal_code || ''
+                } : {
+                    same_as_billing: false,
+                    name: this.shippingInfo.name,
+                    address: this.shippingInfo.address,
+                    city: this.shippingInfo.city,
+                    state: this.shippingInfo.state,
+                    postal_code: this.shippingInfo.postal_code
+                },
 
                 // Line items
                 items: this.lineItems.filter(item => item.description.trim() !== '').map(item => ({
