@@ -622,16 +622,16 @@ class InvoiceController extends Controller
 
         // Add recent leads
         $recentLeads = Lead::forCompany()
-            ->select('customer_name', 'customer_email', 'customer_phone')
-            ->whereNotNull('customer_name')
+            ->select('name', 'email', 'phone')
+            ->whereNotNull('name')
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get()
             ->map(function ($lead) {
                 return [
-                    'name' => $lead->customer_name,
-                    'email' => $lead->customer_email,
-                    'phone' => $lead->customer_phone,
+                    'name' => $lead->name,
+                    'email' => $lead->email,
+                    'phone' => $lead->phone,
                     'source' => 'lead'
                 ];
             });
