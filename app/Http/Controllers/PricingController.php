@@ -770,7 +770,7 @@ class PricingController extends Controller
         $segments = CustomerSegment::forCompany()->active()->ordered()->get();
         $categories = PricingCategory::forCompany()->active()->ordered()->get();
 
-        // Create CSV header
+        // Create CSV header - matching all fields from create form
         $headers = [
             'name',
             'item_code',
@@ -778,19 +778,17 @@ class PricingController extends Controller
             'category',
             'unit',
             'cost_price',
+            'specifications',
+            'tags',
+            'stock_quantity',
+            'is_active',
+            'is_featured',
         ];
 
-        // Add segment price columns
+        // Add segment price columns dynamically
         foreach ($segments as $segment) {
             $headers[] = strtolower(str_replace(' ', '_', $segment->name)) . '_price';
         }
-
-        $headers = array_merge($headers, [
-            'minimum_price',
-            'specifications',
-            'is_active',
-            'is_featured'
-        ]);
 
         // Sample data row
         $sampleData = [
@@ -800,6 +798,11 @@ class PricingController extends Controller
             $categories->first()->name ?? 'Construction Materials',
             'pcs',
             '100.00',
+            'High quality construction material with 5-year warranty',
+            'construction,materials,tools',
+            '50',
+            'TRUE',
+            'FALSE',
         ];
 
         // Add sample segment prices
@@ -807,13 +810,6 @@ class PricingController extends Controller
             $sampleData[] = $segment->name === 'End User' ? '150.00' :
                            ($segment->name === 'Contractor' ? '140.00' : '125.00');
         }
-
-        $sampleData = array_merge($sampleData, [
-            '120.00', // minimum_price
-            'High quality construction material',
-            'TRUE',
-            'FALSE'
-        ]);
 
         // Create CSV content
         $content = implode(',', $headers) . "\n";
@@ -923,11 +919,18 @@ class PricingController extends Controller
                         'unit' => $data['unit'],
                         'cost_price' => !empty($data['cost_price']) ? (float) $data['cost_price'] : 0,
                         'unit_price' => !empty($data['unit_price']) ? (float) $data['unit_price'] : 0,
-                        'minimum_price' => !empty($data['minimum_price']) ? (float) $data['minimum_price'] : null,
                         'specifications' => $data['specifications'] ?? null,
-                        'is_active' => !empty($data['is_active']) && strtolower($data['is_active']) === 'true',
-                        'is_featured' => !empty($data['is_featured']) && strtolower($data['is_featured']) === 'true',
+                        'stock_quantity' => !empty($data['stock_quantity']) ? (int) $data['stock_quantity'] : null,
+                        'is_active' => !empty($data['is_active']) ? (strtolower($data['is_active']) === 'true' || $data['is_active'] === '1') : true,
+                        'is_featured' => !empty($data['is_featured']) ? (strtolower($data['is_featured']) === 'true' || $data['is_featured'] === '1') : false,
                     ];
+
+                    // Process tags - convert comma-separated string to array
+                    if (!empty($data['tags'])) {
+                        $tags = array_map('trim', explode(',', $data['tags']));
+                        $tags = array_filter($tags); // Remove empty tags
+                        $itemData['tags'] = $tags;
+                    }
 
                     // Handle segment pricing
                     $segmentPrices = [];
