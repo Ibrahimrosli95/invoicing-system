@@ -30,12 +30,12 @@
                                 <div class="font-medium">Basic Invoice</div>
                                 <div class="text-xs text-gray-500">Simple form-based invoice creation</div>
                             </a>
-                            <a href="{{ route('invoices.create-product') }}"
+                            <a href="{{ route('invoices.create.products') }}"
                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 <div class="font-medium">Product Invoice</div>
                                 <div class="text-xs text-gray-500">Advanced builder with product catalog</div>
                             </a>
-                            <a href="{{ route('invoices.create-service') }}"
+                            <a href="{{ route('invoices.create.services') }}"
                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 <div class="font-medium">Service Invoice</div>
                                 <div class="text-xs text-gray-500">Section-based service invoice builder</div>
