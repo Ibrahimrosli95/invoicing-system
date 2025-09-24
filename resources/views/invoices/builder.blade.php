@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+<script src="{{ asset('js/dateHelper.js') }}"></script>
 <div class="min-h-screen bg-gray-50" x-data="invoiceBuilder()">
     <!-- Header Bar -->
     <div class="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40">
@@ -35,12 +36,12 @@
         <!-- Floating Sidebar -->
         <div x-show="sidebarOpen"
              x-transition:enter="transition ease-out duration-300 transform"
-             x-transition:enter-start="-translate-x-full"
+             x-transition:enter-start="translate-x-full"
              x-transition:enter-end="translate-x-0"
              x-transition:leave="transition ease-in duration-200 transform"
              x-transition:leave-start="translate-x-0"
-             x-transition:leave-end="-translate-x-full"
-             class="fixed left-0 top-16 bottom-0 w-80 bg-white border-r border-gray-200 shadow-lg z-30">
+             x-transition:leave-end="translate-x-full"
+             class="fixed right-0 top-16 bottom-0 w-80 bg-white border-l border-gray-200 shadow-lg z-30">
 
             <div class="p-4 border-b border-gray-200">
                 <div class="flex items-center justify-between">
@@ -54,44 +55,6 @@
             </div>
 
             <div class="overflow-y-auto p-4 space-y-6">
-                <!-- Customer Selection -->
-                <div>
-                    <h3 class="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-3">Customer</h3>
-                    <div class="relative">
-                        <input type="text"
-                               x-model="customerSearch"
-                               @input="searchCustomers"
-                               @focus="showCustomerDropdown = true"
-                               placeholder="Search customers or leads..."
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-
-                        <!-- Customer Dropdown -->
-                        <div x-show="showCustomerDropdown && customerResults.length > 0"
-                             x-transition:enter="transition ease-out duration-100"
-                             x-transition:enter-start="transform opacity-0 scale-95"
-                             x-transition:enter-end="transform opacity-100 scale-100"
-                             class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                            <template x-for="customer in customerResults" :key="customer.id">
-                                <div @click="selectCustomer(customer)"
-                                     class="px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0">
-                                    <div class="text-sm font-medium text-gray-900" x-text="customer.name"></div>
-                                    <div class="text-xs text-gray-500" x-text="customer.email || customer.phone"></div>
-                                    <div class="flex items-center mt-1">
-                                        <span x-text="customer.type" class="inline-flex px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded"></span>
-                                        <span x-show="customer.is_lead" class="ml-2 inline-flex px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded">From Lead</span>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-
-                    <div class="mt-2">
-                        <button @click="showNewCustomerModal = true" type="button"
-                                class="w-full px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100">
-                            + Create New Customer
-                        </button>
-                    </div>
-                </div>
 
                 <!-- Optional Sections -->
                 <div>
@@ -138,17 +101,23 @@
         </div>
 
         <!-- Document Preview Area -->
-        <div class="flex-1 min-h-screen" :class="sidebarOpen ? 'ml-80' : 'ml-0'">
+        <div class="flex-1 min-h-screen" :class="sidebarOpen ? 'mr-80' : 'mr-0'">
             <div class="max-w-4xl mx-auto p-8">
                 <!-- Invoice Document -->
-                <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <div class="bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200">
                     <!-- Document Header -->
-                    <div class="px-8 py-6 border-b border-gray-200">
+                    <div class="px-12 py-8 border-b border-gray-200">
                         <div class="flex justify-between items-start">
                             <!-- Company Info -->
                             <div class="flex-1">
-                                <div x-show="optionalSections.show_company_logo" class="mb-4">
-                                    <img src="{{ auth()->user()->company->logo ?? '/images/logo-placeholder.png' }}" alt="Company Logo" class="h-12">
+                                <div x-show="optionalSections.show_company_logo" class="mb-4 relative group">
+                                    <img :src="companyLogo" alt="Company Logo" class="h-12 cursor-pointer" @click="$refs.logoUpload.click()">
+                                    <input type="file" x-ref="logoUpload" @change="handleLogoUpload" accept="image/*" class="hidden">
+                                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded" @click="$refs.logoUpload.click()">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                        </svg>
+                                    </div>
                                 </div>
                                 <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ auth()->user()->company->name }}</h1>
                                 <div class="text-sm text-gray-600 space-y-1">
@@ -168,13 +137,15 @@
                                     </div>
                                     <div class="flex justify-end">
                                         <span class="w-24 text-gray-600">Date:</span>
-                                        <input type="date" x-model="invoiceDate"
-                                               class="font-mono border-0 bg-transparent text-right p-0 focus:ring-0">
+                                        <input type="text" x-model="invoiceDateFormatted" @blur="formatInvoiceDate"
+                                               placeholder="DD/MM/YYYY"
+                                               class="font-mono border-0 bg-transparent text-right p-0 focus:ring-0 w-28">
                                     </div>
                                     <div class="flex justify-end">
                                         <span class="w-24 text-gray-600">Due Date:</span>
-                                        <input type="date" x-model="dueDate"
-                                               class="font-mono border-0 bg-transparent text-right p-0 focus:ring-0">
+                                        <input type="text" x-model="dueDateFormatted" @blur="formatDueDate"
+                                               placeholder="DD/MM/YYYY"
+                                               class="font-mono border-0 bg-transparent text-right p-0 focus:ring-0 w-28">
                                     </div>
                                 </div>
                             </div>
@@ -182,13 +153,59 @@
                     </div>
 
                     <!-- Customer Information -->
-                    <div class="px-8 py-6 bg-gray-50 border-b border-gray-200">
+                    <div class="px-12 py-8 bg-gray-50 border-b border-gray-200">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <!-- Bill To -->
                             <div>
                                 <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">Bill To</h3>
+
+                                <!-- Customer Selection -->
+                                <div x-show="!selectedCustomer.name" class="mb-4">
+                                    <div class="relative">
+                                        <input type="text"
+                                               x-model="customerSearch"
+                                               @input="searchCustomers"
+                                               @focus="showCustomerDropdown = true"
+                                               placeholder="Search customers or leads..."
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+
+                                        <!-- Customer Dropdown -->
+                                        <div x-show="showCustomerDropdown && customerResults.length > 0"
+                                             x-transition:enter="transition ease-out duration-100"
+                                             x-transition:enter-start="transform opacity-0 scale-95"
+                                             x-transition:enter-end="transform opacity-100 scale-100"
+                                             class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                            <template x-for="customer in customerResults" :key="customer.id">
+                                                <div @click="selectCustomer(customer)"
+                                                     class="px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0">
+                                                    <div class="text-sm font-medium text-gray-900" x-text="customer.name"></div>
+                                                    <div class="text-xs text-gray-500" x-text="customer.email || customer.phone"></div>
+                                                    <div class="flex items-center mt-1">
+                                                        <span x-text="customer.type" class="inline-flex px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded"></span>
+                                                        <span x-show="customer.is_lead" class="ml-2 inline-flex px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded">From Lead</span>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-2">
+                                        <button @click="showNewCustomerModal = true" type="button"
+                                                class="text-sm font-medium text-blue-600 hover:text-blue-800 underline">
+                                            + Create New Customer
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Selected Customer Display -->
                                 <div x-show="selectedCustomer.name" class="space-y-1 text-sm">
-                                    <div class="font-medium text-gray-900" x-text="selectedCustomer.name"></div>
+                                    <div class="flex items-center justify-between">
+                                        <div class="font-medium text-gray-900" x-text="selectedCustomer.name"></div>
+                                        <button @click="selectedCustomer = {}; customerSearch = ''"
+                                                class="text-xs text-blue-600 hover:text-blue-800 underline">
+                                            Change Customer
+                                        </button>
+                                    </div>
                                     <div x-show="selectedCustomer.company" x-text="selectedCustomer.company" class="text-gray-600"></div>
                                     <div x-show="selectedCustomer.address" x-text="selectedCustomer.address" class="text-gray-600"></div>
                                     <div x-show="selectedCustomer.city" class="text-gray-600">
@@ -200,9 +217,6 @@
                                         <span x-show="selectedCustomer.phone && selectedCustomer.email"> • </span>
                                         <span x-show="selectedCustomer.email" x-text="selectedCustomer.email"></span>
                                     </div>
-                                </div>
-                                <div x-show="!selectedCustomer.name" class="text-sm text-gray-500 italic">
-                                    Select a customer from the sidebar
                                 </div>
                             </div>
 
@@ -228,7 +242,7 @@
                     </div>
 
                     <!-- Line Items Table -->
-                    <div class="px-8 py-6">
+                    <div class="px-12 py-8">
                         <table class="w-full">
                             <thead class="bg-gray-50">
                                 <tr>
@@ -242,9 +256,34 @@
                             <tbody class="divide-y divide-gray-200">
                                 <template x-for="(item, index) in lineItems" :key="index">
                                     <tr>
-                                        <td class="px-4 py-3">
-                                            <input type="text" x-model="item.description" placeholder="Item description..."
-                                                   class="w-full border-0 bg-transparent p-0 text-sm focus:ring-0">
+                                        <td class="px-4 py-3 relative">
+                                            <div class="relative">
+                                                <input type="text"
+                                                       x-model="item.description"
+                                                       @input="searchPricingItems(index)"
+                                                       @focus="showPricingDropdown[index] = true"
+                                                       placeholder="Search pricing book or enter custom description..."
+                                                       class="w-full border-0 bg-transparent p-0 text-sm focus:ring-0">
+
+                                                <!-- Pricing Items Dropdown -->
+                                                <div x-show="showPricingDropdown[index] && pricingResults[index] && pricingResults[index].length > 0"
+                                                     x-transition:enter="transition ease-out duration-100"
+                                                     x-transition:enter-start="transform opacity-0 scale-95"
+                                                     x-transition:enter-end="transform opacity-100 scale-100"
+                                                     class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                                    <template x-for="pricingItem in pricingResults[index]" :key="pricingItem.id">
+                                                        <div @click="selectPricingItem(index, pricingItem)"
+                                                             class="px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0">
+                                                            <div class="text-sm font-medium text-gray-900" x-text="pricingItem.name"></div>
+                                                            <div class="text-xs text-gray-500" x-text="pricingItem.description"></div>
+                                                            <div class="flex items-center justify-between mt-1">
+                                                                <span class="text-xs text-gray-600" x-text="pricingItem.item_code"></span>
+                                                                <span class="text-sm font-medium text-green-600">RM <span x-text="pricingItem.unit_price"></span></span>
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td class="px-4 py-3 text-right">
                                             <input type="number" x-model="item.quantity" @input="calculateTotals"
@@ -285,7 +324,7 @@
                     </div>
 
                     <!-- Totals Section -->
-                    <div class="px-8 py-6 bg-gray-50 border-t border-gray-200">
+                    <div class="px-12 py-8 bg-gray-50 border-t border-gray-200">
                         <div class="flex justify-end">
                             <div class="w-80 space-y-2">
                                 <div class="flex justify-between text-sm">
@@ -314,7 +353,7 @@
                     </div>
 
                     <!-- Payment Instructions (if enabled) -->
-                    <div x-show="optionalSections.show_payment_instructions" class="px-8 py-6 border-t border-gray-200">
+                    <div x-show="optionalSections.show_payment_instructions" class="px-12 py-8 border-t border-gray-200">
                         <h3 class="text-sm font-semibold text-gray-900 mb-3">Payment Instructions</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
                             <div>
@@ -331,10 +370,24 @@
                     </div>
 
                     <!-- Notes and Terms -->
-                    <div class="px-8 py-6 border-t border-gray-200">
+                    <div class="px-12 py-8 border-t border-gray-200">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div>
-                                <h3 class="text-sm font-semibold text-gray-900 mb-3">Notes</h3>
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-sm font-semibold text-gray-900">Notes</h3>
+                                    <div class="flex items-center space-x-2">
+                                        <select @change="loadNotesTemplate" class="text-xs border-gray-300 rounded px-2 py-1">
+                                            <option value="">Select template...</option>
+                                            <template x-for="template in notesTemplates" :key="template.id">
+                                                <option :value="template.content" x-text="template.name"></option>
+                                            </template>
+                                        </select>
+                                        <button @click="saveNotesAsTemplate" type="button"
+                                                class="text-xs text-blue-600 hover:text-blue-800 underline">
+                                            Save as Template
+                                        </button>
+                                    </div>
+                                </div>
                                 <textarea x-model="notes" placeholder="Add any additional notes..."
                                           class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                           rows="3"></textarea>
@@ -349,12 +402,13 @@
                     </div>
 
                     <!-- Signatures (if enabled) -->
-                    <div x-show="optionalSections.show_signatures" class="px-8 py-6 border-t border-gray-200">
+                    <div x-show="optionalSections.show_signatures" class="px-12 py-8 border-t border-gray-200">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div>
                                 <div class="h-20 border-t border-gray-400 mt-8">
-                                    <div class="mt-2 text-sm text-gray-600 text-center">Authorized Representative</div>
-                                    <div class="mt-1 text-sm text-gray-600 text-center">{{ auth()->user()->company->name }}</div>
+                                    <div class="mt-2 text-sm text-gray-900 text-center font-medium" x-text="representativeName">{{ auth()->user()->name }}</div>
+                                    <div class="mt-1 text-sm text-gray-600 text-center" x-text="representativeTitle">Sales Representative</div>
+                                    <div class="mt-1 text-xs text-gray-500 text-center">{{ auth()->user()->company->name }}</div>
                                 </div>
                             </div>
                             <div>
@@ -452,6 +506,10 @@ function invoiceBuilder() {
         customerResults: [],
         selectedCustomer: {},
 
+        // Pricing Book Integration
+        showPricingDropdown: {},
+        pricingResults: {},
+
         // New Customer Form
         newCustomer: {
             name: '',
@@ -464,7 +522,9 @@ function invoiceBuilder() {
         // Invoice Data
         invoiceNumber: 'INV-2025-000001',
         invoiceDate: new Date().toISOString().split('T')[0],
+        invoiceDateFormatted: '',
         dueDate: '',
+        dueDateFormatted: '',
 
         // Optional Sections
         optionalSections: {
@@ -485,7 +545,7 @@ function invoiceBuilder() {
 
         // Line Items
         lineItems: [
-            { description: '', quantity: 1, unit_price: 0 }
+            { description: '', quantity: 1, unit_price: 0, pricing_item_id: null, item_code: '' }
         ],
 
         // Financial Calculations
@@ -499,22 +559,63 @@ function invoiceBuilder() {
         notes: 'Thank you for your business!',
         terms: 'Payment is due within 30 days. Late payments may incur additional charges.',
 
+        // Logo Management
+        companyLogo: '{{ auth()->user()->company->logo ?? "/images/logo-placeholder.png" }}',
+
+        // Notes Templates
+        notesTemplates: [
+            { id: 1, name: 'Standard Thank You', content: 'Thank you for your business! We appreciate your continued trust in our services.' },
+            { id: 2, name: 'Payment Reminder', content: 'Please ensure payment is made by the due date to avoid any late fees.' },
+            { id: 3, name: 'Warranty Info', content: 'This invoice includes warranty coverage as per our standard terms and conditions.' },
+            { id: 4, name: 'Custom Service', content: 'Services provided as per custom specifications discussed.' }
+        ],
+
+        // Representative Information
+        representativeName: '{{ auth()->user()->name }}',
+        representativeTitle: 'Sales Representative',
+
         init() {
-            // Set default due date (30 days from now)
+            // Set default dates with DD/MM/YYYY format
+            this.invoiceDateFormatted = DateHelper.today();
             const dueDate = new Date();
             dueDate.setDate(dueDate.getDate() + 30);
-            this.dueDate = dueDate.toISOString().split('T')[0];
+            this.dueDate = DateHelper.toHtml5Input(dueDate);
+            this.dueDateFormatted = DateHelper.format(dueDate);
 
             // Calculate initial totals
             this.calculateTotals();
 
             // Load invoice settings
             this.loadInvoiceSettings();
+
+            // Load saved notes templates
+            this.loadSavedTemplates();
         },
 
         // Sidebar Toggle
         toggleSidebar() {
             this.sidebarOpen = !this.sidebarOpen;
+        },
+
+        // Date Formatting Methods
+        formatInvoiceDate() {
+            if (this.invoiceDateFormatted) {
+                const parsed = DateHelper.parse(this.invoiceDateFormatted);
+                if (parsed) {
+                    this.invoiceDate = DateHelper.toHtml5Input(parsed);
+                    this.invoiceDateFormatted = DateHelper.format(parsed);
+                }
+            }
+        },
+
+        formatDueDate() {
+            if (this.dueDateFormatted) {
+                const parsed = DateHelper.parse(this.dueDateFormatted);
+                if (parsed) {
+                    this.dueDate = DateHelper.toHtml5Input(parsed);
+                    this.dueDateFormatted = DateHelper.format(parsed);
+                }
+            }
         },
 
         // Customer Search
@@ -590,9 +691,117 @@ function invoiceBuilder() {
             };
         },
 
+        // Pricing Book Search
+        searchPricingItems(index) {
+            const item = this.lineItems[index];
+            if (item.description.length < 2) {
+                this.pricingResults[index] = [];
+                return;
+            }
+
+            fetch(`/pricing-items/search?q=${encodeURIComponent(item.description)}`)
+                .then(response => response.json())
+                .then(data => {
+                    this.pricingResults[index] = data.items || [];
+                })
+                .catch(error => {
+                    console.error('Pricing search error:', error);
+                    this.pricingResults[index] = [];
+                });
+        },
+
+        selectPricingItem(index, pricingItem) {
+            this.lineItems[index].description = pricingItem.name + ' - ' + pricingItem.description;
+            this.lineItems[index].unit_price = parseFloat(pricingItem.unit_price);
+            this.lineItems[index].pricing_item_id = pricingItem.id;
+            this.lineItems[index].item_code = pricingItem.item_code;
+
+            this.showPricingDropdown[index] = false;
+            this.calculateTotals();
+        },
+
+        // Logo Management
+        handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                this.$dispatch('notify', { type: 'error', message: 'Please select an image file' });
+                return;
+            }
+
+            // Validate file size (max 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                this.$dispatch('notify', { type: 'error', message: 'Image size should be less than 2MB' });
+                return;
+            }
+
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.companyLogo = e.target.result;
+                this.$dispatch('notify', { type: 'success', message: 'Logo updated successfully' });
+            };
+            reader.readAsDataURL(file);
+        },
+
+        // Notes Template Management
+        loadNotesTemplate(event) {
+            const selectedTemplate = event.target.value;
+            if (selectedTemplate) {
+                this.notes = selectedTemplate;
+                event.target.selectedIndex = 0; // Reset dropdown
+                this.$dispatch('notify', { type: 'success', message: 'Template loaded successfully' });
+            }
+        },
+
+        saveNotesAsTemplate() {
+            if (!this.notes.trim()) {
+                this.$dispatch('notify', { type: 'error', message: 'Please enter some notes to save as template' });
+                return;
+            }
+
+            const templateName = prompt('Enter template name:');
+            if (!templateName) return;
+
+            // Add to templates array
+            const newTemplate = {
+                id: Date.now(),
+                name: templateName,
+                content: this.notes
+            };
+
+            this.notesTemplates.push(newTemplate);
+
+            // Save to localStorage for persistence
+            localStorage.setItem('invoice_notes_templates', JSON.stringify(this.notesTemplates));
+
+            this.$dispatch('notify', { type: 'success', message: 'Template saved successfully!' });
+        },
+
+        loadSavedTemplates() {
+            const saved = localStorage.getItem('invoice_notes_templates');
+            if (saved) {
+                try {
+                    const templates = JSON.parse(saved);
+                    // Merge with default templates
+                    this.notesTemplates = [...this.notesTemplates, ...templates.filter(t => t.id > 100)];
+                } catch (error) {
+                    console.error('Error loading saved templates:', error);
+                }
+            }
+        },
+
         // Line Items Management
         addLineItem() {
-            this.lineItems.push({ description: '', quantity: 1, unit_price: 0 });
+            this.lineItems.push({
+                description: '',
+                quantity: 1,
+                unit_price: 0,
+                pricing_item_id: null,
+                item_code: ''
+            });
         },
 
         removeLineItem(index) {
