@@ -27,8 +27,7 @@ class CustomerController extends Controller
     public function index(Request $request): View
     {
         $query = Customer::forCompany()
-            ->with(['customerSegment', 'createdBy'])
-            ->withCount(['invoices', 'quotations']);
+            ->with(['customerSegment', 'createdBy']);
 
         // Apply filters
         if ($request->filled('search')) {
@@ -76,6 +75,7 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:100',
+            'company_name' => 'nullable|string|max:150',
             'phone' => 'required|string|max:20',
             'email' => 'nullable|email|max:100',
             'address' => 'nullable|string',

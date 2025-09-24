@@ -84,15 +84,8 @@ class Customer extends Model
         return $this->belongsTo(CustomerSegment::class);
     }
 
-    public function invoices(): HasMany
-    {
-        return $this->hasMany(Invoice::class);
-    }
-
-    public function quotations(): HasMany
-    {
-        return $this->hasMany(Quotation::class);
-    }
+    // Note: Invoices and Quotations store customer data as individual fields, not foreign keys
+    // These relationships cannot be used until the database schema is updated to include customer_id columns
 
     public function createdBy(): BelongsTo
     {
@@ -167,32 +160,8 @@ class Customer extends Model
         return implode(', ', $parts);
     }
 
-    public function getTotalInvoiceAmountAttribute(): float
-    {
-        return $this->invoices()->sum('total');
-    }
-
-    public function getOutstandingBalanceAttribute(): float
-    {
-        return $this->invoices()
-            ->whereNotIn('status', ['PAID', 'CANCELLED'])
-            ->sum('amount_due');
-    }
-
-    public function getInvoiceCountAttribute(): int
-    {
-        return $this->invoices()->count();
-    }
-
-    public function getPaidInvoiceCountAttribute(): int
-    {
-        return $this->invoices()->where('status', 'PAID')->count();
-    }
-
-    public function getOverdueInvoiceCountAttribute(): int
-    {
-        return $this->invoices()->where('status', 'OVERDUE')->count();
-    }
+    // Note: Invoice relationship methods removed due to missing customer_id foreign key
+    // These will be restored once the database schema is updated to support customer relationships
 
     /**
      * Create customer from lead
@@ -289,13 +258,7 @@ class Customer extends Model
             ];
         }
 
-        $outstandingBalance = $this->getOutstandingBalanceAttribute();
-        if ($outstandingBalance > 0) {
-            return [
-                'text' => 'Outstanding Balance',
-                'class' => 'bg-yellow-100 text-yellow-800'
-            ];
-        }
+        // Note: Outstanding balance check removed due to missing customer_id foreign key
 
         return [
             'text' => 'Good Standing',
@@ -320,8 +283,7 @@ class Customer extends Model
             'is_new_customer' => $this->is_new_customer,
             'type_badge' => $this->type_badge,
             'status_badge' => $this->status_badge,
-            'invoice_count' => $this->invoice_count,
-            'outstanding_balance' => $this->outstanding_balance,
+            // Note: invoice_count and outstanding_balance removed due to missing customer_id foreign key
         ];
     }
 }
