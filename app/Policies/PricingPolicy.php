@@ -171,4 +171,18 @@ class PricingPolicy
             'sales_manager'
         ]);
     }
+
+    /**
+     * Determine whether the user can import pricing data.
+     */
+    public function import(User $user): bool
+    {
+        // Same permissions as create - only managers and above can import pricing items
+        return $user->hasAnyRole([
+            'superadmin',
+            'company_manager',
+            'finance_manager',
+            'sales_manager'
+        ]);
+    }
 }
