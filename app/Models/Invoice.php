@@ -114,7 +114,7 @@ class Invoice extends Model
         static::creating(function ($invoice) {
             // Auto-generate invoice number if not set
             if (!$invoice->number) {
-                $invoice->number = $invoice->generateNumber();
+                $invoice->number = static::generateNumber($invoice->company_id);
             }
 
             // Set issued_date to today if not set
@@ -586,24 +586,24 @@ class Invoice extends Model
     /**
      * Generate invoice number
      */
-    public function generateNumber(): string
+    public static function generateNumber(?int $companyId = null): string
     {
-        $companyId = $this->company_id ?: (auth()->check() ? auth()->user()->company_id : 1);
+        $companyId = $companyId ?: (auth()->check() ? auth()->user()->company_id : 1);
         $year = now()->year;
-        
+
         // Get the last invoice number for this company and year
         $lastInvoice = static::forCompany($companyId)
             ->where('number', 'like', "INV-{$year}-%")
             ->orderByDesc('number')
             ->first();
-        
+
         if ($lastInvoice) {
             $lastNumber = (int) substr($lastInvoice->number, -6);
             $nextNumber = $lastNumber + 1;
         } else {
             $nextNumber = 1;
         }
-        
+
         return sprintf('INV-%s-%06d', $year, $nextNumber);
     }
 
