@@ -176,17 +176,20 @@ Route::middleware('auth')->group(function () {
     Route::post('service-templates/{serviceTemplate}/convert', [ServiceTemplateController::class, 'convertToQuotation'])->name('service-templates.convert');
     
     // Pricing Book Management
-    Route::resource('pricing', PricingController::class);
-    Route::post('pricing/{pricing}/duplicate', [PricingController::class, 'duplicate'])->name('pricing.duplicate');
-    Route::patch('pricing/{pricing}/toggle-status', [PricingController::class, 'toggleStatus'])->name('pricing.toggle-status');
+    // Bulk Import/Export Routes (must come before resource routes to avoid conflicts)
+    Route::get('pricing/import', [PricingController::class, 'import'])->name('pricing.import');
+    Route::post('pricing/process-import', [PricingController::class, 'processImport'])->name('pricing.process-import');
+    Route::get('pricing/download-template', [PricingController::class, 'downloadTemplate'])->name('pricing.download-template');
+
+    // Search and Export Routes
     Route::get('pricing-search', [PricingController::class, 'search'])->name('pricing.search');
     Route::get('pricing-export', [PricingController::class, 'export'])->name('pricing.export');
     Route::get('pricing-popular', [PricingController::class, 'popular'])->name('pricing.popular');
 
-    // Bulk Import/Export Routes
-    Route::get('pricing/import', [PricingController::class, 'import'])->name('pricing.import');
-    Route::post('pricing/process-import', [PricingController::class, 'processImport'])->name('pricing.process-import');
-    Route::get('pricing/download-template', [PricingController::class, 'downloadTemplate'])->name('pricing.download-template');
+    // Main Resource Routes
+    Route::resource('pricing', PricingController::class);
+    Route::post('pricing/{pricing}/duplicate', [PricingController::class, 'duplicate'])->name('pricing.duplicate');
+    Route::patch('pricing/{pricing}/toggle-status', [PricingController::class, 'toggleStatus'])->name('pricing.toggle-status');
     
     // Tier Pricing Management
     Route::get('pricing/{pricing}/tiers', [PricingController::class, 'manageTiers'])->name('pricing.manage-tiers');
