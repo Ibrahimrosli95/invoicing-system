@@ -355,14 +355,14 @@ function productInvoiceBuilder() {
             customer_segment_id: {!! json_encode($quotation->customer_segment_id ?? '') !!},
             issue_date: {!! json_encode(date('Y-m-d')) !!},
             due_date: {!! json_encode(date('Y-m-d', strtotime('+30 days'))) !!},
-            items: @json($quotation ? $quotation->items->map(function($item) {
+            items: {!! json_encode($quotation ? $quotation->items->map(function($item) {
                 return [
                     'description' => $item->description,
                     'quantity' => $item->quantity,
                     'unit_price' => $item->unit_price,
                     'sku' => $item->sku ?? ''
                 ];
-            }) : []),
+            }) : []) !!},
             subtotal: 0,
             discount_percentage: {{ $quotation->discount_percentage ?? 0 }},
             discount_amount: 0,
