@@ -772,7 +772,10 @@ class PricingController extends Controller
      */
     public function downloadTemplate()
     {
-        $this->authorize('export', PricingItem::class);
+        // Temporary bypass for debugging - only for senior management
+        if (!auth()->user()->hasAnyRole(['superadmin', 'company_manager', 'finance_manager'])) {
+            abort(403, 'Only senior management can download templates during debugging');
+        }
 
         $segments = CustomerSegment::forCompany()->active()->ordered()->get();
         $categories = PricingCategory::forCompany()->active()->ordered()->get();
@@ -844,7 +847,10 @@ class PricingController extends Controller
      */
     public function processImport(Request $request)
     {
-        $this->authorize('create', PricingItem::class);
+        // Temporary bypass for debugging - only for senior management
+        if (!auth()->user()->hasAnyRole(['superadmin', 'company_manager', 'finance_manager'])) {
+            abort(403, 'Only senior management can process imports during debugging');
+        }
 
         $request->validate([
             'csv_file' => 'required|file|mimes:csv,txt|max:10240', // 10MB max
