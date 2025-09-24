@@ -10,10 +10,39 @@
         </h2>
         <div class="flex space-x-2">
             @can('create', App\Models\Invoice::class)
-                <a href="{{ route('invoices.create') }}"
-                   class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Create Invoice
-                </a>
+                <!-- Dropdown for Create Invoice Options -->
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2">
+                        <span>Create Invoice</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+
+                    <div x-show="open"
+                         @click.away="open = false"
+                         x-transition
+                         class="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+                        <div class="py-1">
+                            <a href="{{ route('invoices.create') }}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <div class="font-medium">Basic Invoice</div>
+                                <div class="text-xs text-gray-500">Simple form-based invoice creation</div>
+                            </a>
+                            <a href="{{ route('invoices.create-product') }}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <div class="font-medium">Product Invoice</div>
+                                <div class="text-xs text-gray-500">Advanced builder with product catalog</div>
+                            </a>
+                            <a href="{{ route('invoices.create-service') }}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <div class="font-medium">Service Invoice</div>
+                                <div class="text-xs text-gray-500">Section-based service invoice builder</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             @endcan
         </div>
     </div>
