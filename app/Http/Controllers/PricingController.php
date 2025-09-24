@@ -759,9 +759,9 @@ class PricingController extends Controller
      */
     public function import()
     {
-        // Temporary bypass for debugging - only for superadmin
-        if (!auth()->user()->hasRole('superadmin')) {
-            abort(403, 'Only superadmin can access import during debugging');
+        // Restrict bulk import to senior management only
+        if (!auth()->user()->hasAnyRole(['superadmin', 'company_manager', 'finance_manager'])) {
+            abort(403, 'Unauthorized. Only senior management can access bulk import functionality.');
         }
 
         return view('pricing.import');
@@ -772,9 +772,9 @@ class PricingController extends Controller
      */
     public function downloadTemplate()
     {
-        // Temporary bypass for debugging - only for senior management
+        // Restrict template download to senior management only
         if (!auth()->user()->hasAnyRole(['superadmin', 'company_manager', 'finance_manager'])) {
-            abort(403, 'Only senior management can download templates during debugging');
+            abort(403, 'Unauthorized. Only senior management can download import templates.');
         }
 
         $segments = CustomerSegment::forCompany()->active()->ordered()->get();
@@ -847,9 +847,9 @@ class PricingController extends Controller
      */
     public function processImport(Request $request)
     {
-        // Temporary bypass for debugging - only for senior management
+        // Restrict import processing to senior management only
         if (!auth()->user()->hasAnyRole(['superadmin', 'company_manager', 'finance_manager'])) {
-            abort(403, 'Only senior management can process imports during debugging');
+            abort(403, 'Unauthorized. Only senior management can process bulk imports.');
         }
 
         $request->validate([
