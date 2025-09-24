@@ -25,6 +25,12 @@
                          x-transition
                          class="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-50">
                         <div class="py-1">
+                            <a href="{{ route('invoices.builder') }}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 border-l-4 border-blue-500">
+                                <div class="font-medium text-blue-700">🎨 Invoice Builder</div>
+                                <div class="text-xs text-blue-600">NEW: Document-style single-screen builder</div>
+                            </a>
+                            <div class="border-t border-gray-200 my-1"></div>
                             <a href="{{ route('invoices.create') }}"
                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 <div class="font-medium">Basic Invoice</div>
