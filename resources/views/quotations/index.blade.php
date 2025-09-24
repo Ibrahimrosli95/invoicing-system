@@ -262,14 +262,14 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-900">
-                                            {{ $quotation->created_at->format('M j, Y') }}
+                                            @displayDate($quotation->created_at)
                                         </div>
                                         <div class="text-xs text-gray-500">
                                             {{ $quotation->created_at->format('H:i') }}
                                         </div>
                                         @if($quotation->valid_until)
                                             <div class="text-xs {{ $quotation->isExpired() ? 'text-red-500' : 'text-gray-400' }}">
-                                                Valid until {{ $quotation->valid_until->format('M j') }}
+                                                Valid until @displayDate($quotation->valid_until)
                                             </div>
                                         @endif
                                     </td>

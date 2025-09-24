@@ -447,8 +447,8 @@
                 <div class="invoice-title">INVOICE</div>
                 <div class="invoice-number">{{ $invoice->number }}</div>
                 <div class="invoice-date">
-                    Issue Date: {{ $invoice->created_at->format('M j, Y') }}<br>
-                    Due Date: {{ $invoice->due_date->format('M j, Y') }}
+                    Issue Date: @displayDate($invoice->created_at)<br>
+                    Due Date: @displayDate($invoice->due_date)
                     @if($invoice->status === 'OVERDUE' && $invoice->overdue_days > 0)
                         <br><strong style="color: #dc2626;">{{ $invoice->overdue_days }} days overdue</strong>
                     @endif
@@ -502,8 +502,8 @@
                 <div class="section-title">Invoice Details</div>
                 <div class="invoice-details-info">
                     <strong>Invoice Number:</strong> {{ $invoice->number }}<br>
-                    <strong>Issue Date:</strong> {{ $invoice->created_at->format('M j, Y') }}<br>
-                    <strong>Due Date:</strong> {{ $invoice->due_date->format('M j, Y') }}<br>
+                    <strong>Issue Date:</strong> @displayDate($invoice->created_at)<br>
+                    <strong>Due Date:</strong> @displayDate($invoice->due_date)<br>
                     <strong>Payment Terms:</strong> {{ $invoice->payment_terms_days }} days<br>
                     @if($invoice->quotation)
                         <strong>From Quotation:</strong> {{ $invoice->quotation->number }}<br>
@@ -596,7 +596,7 @@
                 <div class="payment-record">
                     <div class="payment-record-header">
                         <span class="payment-amount-record">RM {{ number_format($payment->amount, 2) }}</span>
-                        <span class="payment-method">{{ $payment->payment_method }} • {{ $payment->payment_date->format('M j, Y') }}</span>
+                        <span class="payment-method">{{ $payment->payment_method }} • @displayDate($payment->payment_date)</span>
                     </div>
                     @if($payment->reference_number || $payment->receipt_number)
                         <div class="payment-reference">
@@ -750,7 +750,7 @@
         <div class="footer">
             <div class="footer-info">
                 <span>{{ $invoice->company->name ?? 'Bina Group' }} - Invoice {{ $invoice->number }}</span>
-                <span>Generated on {{ now()->format('M j, Y \a\t g:i A') }}</span>
+                <span>Generated on @displayDateTime(now())</span>
             </div>
         </div>
     </div>

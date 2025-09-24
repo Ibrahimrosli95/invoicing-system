@@ -353,8 +353,8 @@ function productInvoiceBuilder() {
             customer_email: {!! json_encode($quotation->customer_email ?? '') !!},
             customer_address: {!! json_encode($quotation->customer_address ?? '') !!},
             customer_segment_id: {!! json_encode($quotation->customer_segment_id ?? '') !!},
-            issue_date: {!! json_encode(date('Y-m-d')) !!},
-            due_date: {!! json_encode(date('Y-m-d', strtotime('+30 days'))) !!},
+            issue_date: {!! json_encode(\App\Helpers\DateHelper::formatForHtml5Input(now())) !!},
+            due_date: {!! json_encode(\App\Helpers\DateHelper::formatForHtml5Input(now()->addDays(30))) !!},
             items: {!! json_encode($quotation ? $quotation->items->map(function($item) {
                 return [
                     'description' => $item->description,

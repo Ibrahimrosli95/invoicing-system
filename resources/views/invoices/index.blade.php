@@ -401,7 +401,7 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {{ $invoice->due_date->format('M j, Y') }}
+                                        @displayDate($invoice->due_date)
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                         @can('view', $invoice)

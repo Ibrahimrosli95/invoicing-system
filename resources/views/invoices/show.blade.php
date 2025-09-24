@@ -92,12 +92,12 @@
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Created Date</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ $invoice->created_at->format('M j, Y') }}</dd>
+                                    <dd class="mt-1 text-sm text-gray-900">@displayDate($invoice->created_at)</dd>
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Due Date</dt>
                                     <dd class="mt-1 text-sm text-gray-900">
-                                        {{ $invoice->due_date->format('M j, Y') }}
+                                        @displayDate($invoice->due_date)
                                         @if($invoice->status === 'OVERDUE')
                                             <span class="text-red-600">({{ $invoice->overdue_days }} days overdue)</span>
                                         @endif
@@ -272,7 +272,7 @@
                                                         RM {{ number_format($payment->amount, 2) }}
                                                     </div>
                                                     <div class="text-xs text-gray-500">
-                                                        {{ $payment->payment_method }} • {{ $payment->payment_date->format('M j, Y') }}
+                                                        {{ $payment->payment_method }} • @displayDate($payment->payment_date)
                                                     </div>
                                                     @if($payment->reference_number)
                                                         <div class="text-xs text-gray-500">

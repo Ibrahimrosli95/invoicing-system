@@ -391,9 +391,9 @@
                 <div class="quotation-title">QUOTATION</div>
                 <div class="quotation-details">
                     <div><strong>Number:</strong> {{ $quotation->number }}</div>
-                    <div><strong>Date:</strong> {{ $quotation->created_at->format('d M Y') }}</div>
+                    <div><strong>Date:</strong> @displayDate($quotation->created_at)</div>
                     @if($quotation->valid_until)
-                        <div><strong>Valid Until:</strong> {{ $quotation->valid_until->format('d M Y') }}</div>
+                        <div><strong>Valid Until:</strong> @displayDate($quotation->valid_until)</div>
                     @endif
                     <div>
                         <span class="status-badge status-{{ strtolower($quotation->status) }}">
@@ -692,7 +692,7 @@
     <div class="footer">
         <div class="footer-left">
             <div>{{ $quotation->company->name ?? 'Bina Group' }}</div>
-            <div>Generated on {{ now()->format('d M Y \a\t H:i') }}</div>
+            <div>Generated on @displayDateTime(now())</div>
         </div>
         <div class="footer-right">
             <div>Quotation {{ $quotation->number }}</div>
