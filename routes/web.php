@@ -102,6 +102,13 @@ Route::middleware('auth')->group(function () {
     Route::post('customers/check-duplicate', [\App\Http\Controllers\CustomerController::class, 'checkDuplicate'])->name('customers.check-duplicate');
     Route::resource('customers', \App\Http\Controllers\CustomerController::class);
     Route::get('customers/{customer}/for-invoice', [\App\Http\Controllers\CustomerController::class, 'getForInvoice'])->name('customers.for-invoice');
+
+    // Customer Segment Management
+    Route::resource('customer-segments', \App\Http\Controllers\CustomerSegmentController::class);
+    Route::patch('customer-segments/{customerSegment}/toggle-status', [\App\Http\Controllers\CustomerSegmentController::class, 'toggleStatus'])->name('customer-segments.toggle-status');
+    Route::post('customer-segments/{customerSegment}/duplicate', [\App\Http\Controllers\CustomerSegmentController::class, 'duplicate'])->name('customer-segments.duplicate');
+    Route::post('customer-segments/update-sort-orders', [\App\Http\Controllers\CustomerSegmentController::class, 'updateSortOrders'])->name('customer-segments.update-sort-orders');
+    Route::get('customer-segments/statistics', [\App\Http\Controllers\CustomerSegmentController::class, 'statistics'])->name('customer-segments.statistics');
     
     // Lead Management (CRM-Lite)
     Route::resource('leads', LeadController::class);

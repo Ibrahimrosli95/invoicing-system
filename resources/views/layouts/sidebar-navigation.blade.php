@@ -22,6 +22,7 @@
                 'security' => '<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V7.5a4.5 4.5 0 10-9 0v3a2.25 2.25 0 00-2.25 2.25v5.25A2.25 2.25 0 007.5 20.25h9a2.25 2.25 0 002.25-2.25v-5.25A2.25 2.25 0 0016.5 10.5z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2.25" />',
                 'notifications' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 21a1.875 1.875 0 001.875-1.875h-3.75A1.875 1.875 0 0012 21z" /><path stroke-linecap="round" stroke-linejoin="round" d="M18 16.875H6l1.2-1.8a3 3 0 00.45-1.65V11.25a4.5 4.5 0 119 0v2.175a3 3 0 00.45 1.65l1.2 1.8z" />',
                 'customers' => '<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 7.5a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 20.25v-.75a6 6 0 016-6h3a6 6 0 016 6v.75" />',
+                'customer-segments' => '<path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM9 9a2 2 0 11-4 0 2 2 0 014 0z" />',
                 'users' => '<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 7.5a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 20.25v-.75a6 6 0 016-6h3a6 6 0 016 6v.75" />',
                 'company' => '<path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />',
                 'numbering' => '<path stroke-linecap="round" stroke-linejoin="round" d="M5.25 9h13.5m-15 6h13.5M9 3.75L7.5 20.25M16.5 3.75L15 20.25" />',
@@ -186,6 +187,13 @@
                     'patterns' => ['customers.*'],
                     'icon' => 'customers',
                     'visible' => ['type' => 'can', 'ability' => 'viewAny', 'arguments' => \App\Models\Customer::class],
+                ],
+                [
+                    'label' => 'Customer Segments',
+                    'route' => 'customer-segments.index',
+                    'patterns' => ['customer-segments.*'],
+                    'icon' => 'customer-segments',
+                    'visible' => ['type' => 'can', 'ability' => 'viewAny', 'arguments' => \App\Models\CustomerSegment::class],
                 ],
                 [
                     'label' => 'Organization',

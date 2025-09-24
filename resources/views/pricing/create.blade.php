@@ -94,128 +94,122 @@
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-
-                        <div>
-                            <label for="minimum_price" class="block text-sm font-medium text-gray-700">Minimum Price (RM)</label>
-                            <input type="number"
-                                   id="minimum_price"
-                                   name="minimum_price"
-                                   step="0.01"
-                                   min="0"
-                                   value="{{ old('minimum_price', '0.00') }}"
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            @error('minimum_price')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
                     </div>
                 </div>
 
                 <!-- Segment Pricing Section -->
                 <div class="p-6 border-b border-gray-200">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-medium text-gray-900">Segment Pricing</h3>
+                        <h3 class="text-lg font-medium text-gray-900">Customer Segment Pricing</h3>
                         <div class="flex items-center space-x-4">
-                            <label class="flex items-center">
-                                <input type="checkbox"
-                                       x-model="useSegmentPricing"
-                                       @change="toggleSegmentPricing"
-                                       name="use_segment_pricing"
-                                       value="1"
-                                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
-                                <span class="ml-2 text-sm text-gray-600">Enable segment-specific pricing</span>
-                            </label>
                             <button type="button"
                                     @click="generateSuggestedPrices"
                                     class="text-sm text-blue-600 hover:text-blue-700 font-medium">
                                 Generate Suggested Prices
                             </button>
+                            <button type="button"
+                                    @click="fillFromBasePrice"
+                                    class="text-sm text-gray-600 hover:text-gray-700 font-medium">
+                                Fill from Base Price
+                            </button>
                         </div>
                     </div>
 
-                    <div class="space-y-4" x-show="useSegmentPricing" x-transition>
-                        @foreach($segments as $segment)
-                            <div class="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
-                                <div class="flex items-center space-x-3 w-48">
-                                    <div class="w-4 h-4 rounded-full" style="background-color: {{ $segment->color }}"></div>
-                                    <span class="font-medium text-gray-900">{{ $segment->name }}</span>
-                                </div>
-
-                                <div class="flex-1">
-                                    <label class="block text-sm font-medium text-gray-700">Selling Price (RM)</label>
-                                    <input type="number"
-                                           name="segment_prices[{{ $segment->id }}]"
-                                           step="0.01"
-                                           min="0"
-                                           x-model="segmentPrices[{{ $segment->id }}]"
-                                           @input="calculateMargin({{ $segment->id }})"
-                                           value="{{ old('segment_prices.' . $segment->id, '0.00') }}"
-                                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    @error('segment_prices.' . $segment->id)
-                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <div class="w-32">
-                                    <label class="block text-sm font-medium text-gray-700">Margin</label>
-                                    <div class="mt-1 px-3 py-2 bg-gray-50 rounded-md">
-                                        <span x-text="margins[{{ $segment->id }}] || '0.00'" class="text-sm font-medium"></span>
-                                        <span class="text-xs text-gray-500">%</span>
-                                    </div>
-                                </div>
-
-                                <div class="w-20">
-                                    <div x-show="marginStatus[{{ $segment->id }}]"
-                                         :class="getMarginColorClass(marginStatus[{{ $segment->id }}])"
-                                         class="w-3 h-3 rounded-full mt-7"></div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-
-                    <!-- Alternative: Base price with segment discounts -->
-                    <div x-show="!useSegmentPricing" x-transition class="space-y-4">
-                        <div class="p-4 bg-blue-50 rounded-lg">
-                            <p class="text-sm text-blue-800">
-                                <strong>Default pricing:</strong> Each customer segment will use their default discount percentage applied to the base selling price.
-                            </p>
-                        </div>
-
-                        <div>
-                            <label for="unit_price" class="block text-sm font-medium text-gray-700">Base Selling Price (RM)</label>
-                            <input type="number"
-                                   id="unit_price"
-                                   name="unit_price"
-                                   step="0.01"
-                                   min="0"
-                                   x-model="basePrice"
-                                   @input="calculateDefaultMargin"
-                                   value="{{ old('unit_price', '0.00') }}"
-                                   required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            @error('unit_price')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <!-- Preview of segment pricing with default discounts -->
-                        <div class="mt-4">
-                            <h4 class="text-sm font-medium text-gray-700 mb-3">Price Preview (with segment discounts)</h4>
-                            <div class="space-y-2">
+                    <!-- Pricing Table -->
+                    <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                        <table class="min-w-full divide-y divide-gray-300">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Customer Segment
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Selling Price (RM)
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Profit Margin
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Status
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($segments as $segment)
-                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="w-3 h-3 rounded-full" style="background-color: {{ $segment->color }}"></div>
-                                            <span class="text-sm font-medium">{{ $segment->name }}</span>
-                                            @if($segment->default_discount_percentage > 0)
-                                                <span class="text-xs text-gray-500">({{ $segment->default_discount_percentage }}% discount)</span>
-                                            @endif
-                                        </div>
-                                        <span class="text-sm font-medium" x-text="'RM ' + getSegmentPreviewPrice({{ $segment->id }}, {{ $segment->default_discount_percentage }})"></span>
-                                    </div>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-4 h-4 rounded-full" style="background-color: {{ $segment->color }}"></div>
+                                                <div>
+                                                    <span class="text-sm font-medium text-gray-900">{{ $segment->name }}</span>
+                                                    @if($segment->description)
+                                                        <div class="text-xs text-gray-500">{{ $segment->description }}</div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <input type="number"
+                                                   name="segment_prices[{{ $segment->id }}]"
+                                                   step="0.01"
+                                                   min="0"
+                                                   placeholder="0.00"
+                                                   x-model="segmentPrices[{{ $segment->id }}]"
+                                                   @input="calculateMargin({{ $segment->id }})"
+                                                   value="{{ old('segment_prices.' . $segment->id, '0.00') }}"
+                                                   class="w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                            @error('segment_prices.' . $segment->id)
+                                                <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
+                                            @enderror
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center space-x-2">
+                                                <span x-text="margins[{{ $segment->id }}] || '0.00'"
+                                                      class="text-sm font-medium"
+                                                      :class="getMarginTextColor(marginStatus[{{ $segment->id }}])"></span>
+                                                <span class="text-xs text-gray-500">%</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div x-show="marginStatus[{{ $segment->id }}]"
+                                                     :class="getMarginColorClass(marginStatus[{{ $segment->id }}])"
+                                                     class="w-3 h-3 rounded-full mr-2"></div>
+                                                <span x-show="marginStatus[{{ $segment->id }}]"
+                                                      x-text="getMarginStatusText(marginStatus[{{ $segment->id }}])"
+                                                      class="text-xs font-medium"
+                                                      :class="getMarginTextColor(marginStatus[{{ $segment->id }}])"></span>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Base Price Input -->
+                    <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <label for="unit_price" class="block text-sm font-medium text-gray-700">Base Selling Price (RM)</label>
+                                <p class="text-xs text-gray-500">Used as fallback when segment-specific pricing is not available</p>
+                            </div>
+                            <div class="w-48">
+                                <input type="number"
+                                       id="unit_price"
+                                       name="unit_price"
+                                       step="0.01"
+                                       min="0"
+                                       x-model="basePrice"
+                                       @input="calculateDefaultMargin"
+                                       value="{{ old('unit_price', '0.00') }}"
+                                       required
+                                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             </div>
                         </div>
+                        @error('unit_price')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 
@@ -262,7 +256,6 @@
 <script>
 function pricingForm() {
     return {
-        useSegmentPricing: {{ old('use_segment_pricing') ? 'true' : 'false' }},
         costPrice: {{ old('cost_price', '0.00') }},
         basePrice: {{ old('unit_price', '0.00') }},
         segmentPrices: {
@@ -273,15 +266,12 @@ function pricingForm() {
         margins: {},
         marginStatus: {},
 
-        toggleSegmentPricing() {
-            if (this.useSegmentPricing) {
-                this.calculateMargins();
-            }
+        init() {
+            // Calculate initial margins
+            this.calculateMargins();
         },
 
         calculateMargins() {
-            if (!this.useSegmentPricing) return;
-
             const cost = parseFloat(this.costPrice) || 0;
 
             Object.keys(this.segmentPrices).forEach(segmentId => {
@@ -302,6 +292,9 @@ function pricingForm() {
                 else if (margin < 10) this.marginStatus[segmentId] = 'low';
                 else if (margin < 20) this.marginStatus[segmentId] = 'medium';
                 else this.marginStatus[segmentId] = 'good';
+            } else if (price > 0 && cost === 0) {
+                this.margins[segmentId] = '100.00';
+                this.marginStatus[segmentId] = 'good';
             } else {
                 this.margins[segmentId] = '0.00';
                 this.marginStatus[segmentId] = 'none';
@@ -309,14 +302,8 @@ function pricingForm() {
         },
 
         calculateDefaultMargin() {
-            // Calculate margin for base price (used when segment pricing is disabled)
-            const cost = parseFloat(this.costPrice) || 0;
-            const price = parseFloat(this.basePrice) || 0;
-
-            if (cost > 0 && price > 0) {
-                const margin = ((price - cost) / price) * 100;
-                // You could display this margin if needed
-            }
+            // Update all segment margins when cost price changes
+            this.calculateMargins();
         },
 
         getMarginColorClass(status) {
@@ -330,11 +317,26 @@ function pricingForm() {
             return classes[status] || 'bg-gray-300';
         },
 
-        getSegmentPreviewPrice(segmentId, discountPercentage) {
-            const base = parseFloat(this.basePrice) || 0;
-            const discount = discountPercentage || 0;
-            const discountedPrice = base * (1 - discount / 100);
-            return discountedPrice.toFixed(2);
+        getMarginTextColor(status) {
+            const classes = {
+                'loss': 'text-red-600',
+                'low': 'text-orange-600',
+                'medium': 'text-yellow-600',
+                'good': 'text-green-600',
+                'none': 'text-gray-500'
+            };
+            return classes[status] || 'text-gray-500';
+        },
+
+        getMarginStatusText(status) {
+            const texts = {
+                'loss': 'Loss',
+                'low': 'Low',
+                'medium': 'Medium',
+                'good': 'Good',
+                'none': 'None'
+            };
+            return texts[status] || 'None';
         },
 
         generateSuggestedPrices() {
@@ -360,6 +362,22 @@ function pricingForm() {
                 this.segmentPrices[segmentId] = suggestedPrice.toFixed(2);
                 this.calculateMargin(segmentId);
             });
+        },
+
+        fillFromBasePrice() {
+            const basePrice = parseFloat(this.basePrice) || 0;
+            if (basePrice <= 0) {
+                alert('Please enter a base selling price first.');
+                return;
+            }
+
+            // Apply segment discounts to base price
+            @foreach($segments as $segment)
+                const discount{{ $segment->id }} = {{ $segment->default_discount_percentage }} || 0;
+                const segmentPrice{{ $segment->id }} = basePrice * (1 - discount{{ $segment->id }} / 100);
+                this.segmentPrices[{{ $segment->id }}] = segmentPrice{{ $segment->id }}.toFixed(2);
+                this.calculateMargin({{ $segment->id }});
+            @endforeach
         }
     }
 }
