@@ -33,6 +33,7 @@ class Company extends Model
         'time_format',
         'number_format',
         'settings',
+        'invoice_settings',
         'is_active',
     ];
 
@@ -40,6 +41,7 @@ class Company extends Model
     {
         return [
             'settings' => 'json',
+            'invoice_settings' => 'json',
             'is_active' => 'boolean',
         ];
     }

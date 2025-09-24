@@ -46,6 +46,7 @@ class Invoice extends Model
         'created_by',
         'quotation_id',
         'lead_id',
+        'customer_id',
         'customer_segment_id',
         'number',
         'status',
@@ -59,10 +60,13 @@ class Invoice extends Model
         'customer_city',
         'customer_state',
         'customer_postal_code',
+        'customer_company',
+        'shipping_info',
         'title',
         'description',
         'terms_conditions',
         'notes',
+        'optional_sections',
         'subtotal',
         'discount_percentage',
         'discount_amount',
@@ -102,6 +106,8 @@ class Invoice extends Model
         'payment_terms' => 'integer',
         'type' => 'string',
         'overdue_days' => 'integer',
+        'optional_sections' => 'array',
+        'shipping_info' => 'array',
     ];
 
     /**
@@ -207,6 +213,11 @@ class Invoice extends Model
     public function lead(): BelongsTo
     {
         return $this->belongsTo(Lead::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     public function customerSegment(): BelongsTo
@@ -716,6 +727,228 @@ class Invoice extends Model
             self::STATUS_CANCELLED => 'bg-gray-100 text-gray-500',
             default => 'bg-gray-100 text-gray-800',
         };
+    }
+
+    /**
+     * Optional sections functionality
+     */
+    public function getOptionalSectionsAttribute($value): array
+    {
+        return $value ? json_decode($value, true) : $this->getDefaultOptionalSections();
+    }
+
+    public function setOptionalSectionsAttribute($value): void
+    {
+        $this->attributes['optional_sections'] = json_encode($value);
+    }
+
+    public function getDefaultOptionalSections(): array
+    {
+        return [
+            'show_shipping' => true,
+            'show_payment_instructions' => true,
+            'show_signatures' => true,
+            'show_company_logo' => true,
+            'show_additional_notes' => false,
+        ];
+    }
+
+    public function shouldShowSection(string $section): bool
+    {
+        $sections = $this->optional_sections ?: $this->getDefaultOptionalSections();
+        return $sections[$section] ?? false;
+    }
+
+    public function toggleSection(string $section, bool $show): void
+    {
+        $sections = $this->optional_sections ?: $this->getDefaultOptionalSections();
+        $sections[$section] = $show;
+        $this->optional_sections = $sections;
+    }
+
+    /**
+     * Customer data population from Customer model
+     */
+    public function populateCustomerData(?Customer $customer = null): void
+    {
+        $customer = $customer ?: $this->customer;
+
+        if (!$customer) {
+            return;
+        }
+
+        $this->fill([
+            'customer_name' => $customer->name,
+            'customer_phone' => $customer->phone,
+            'customer_email' => $customer->email,
+            'customer_address' => $customer->address,
+            'customer_city' => $customer->city,
+            'customer_state' => $customer->state,
+            'customer_postal_code' => $customer->postal_code,
+            'customer_segment_id' => $customer->customer_segment_id,
+        ]);
+    }
+
+    /**
+     * Create invoice from customer
+     */
+    public static function createFromCustomer(Customer $customer, array $data = []): self
+    {
+        $invoice = new static($data);
+        $invoice->customer_id = $customer->id;
+        $invoice->populateCustomerData($customer);
+        $invoice->save();
+
+        return $invoice;
+    }
+
+    /**
+     * Check if invoice has customer relationship
+     */
+    public function hasCustomer(): bool
+    {
+        return !is_null($this->customer_id);
+    }
+
+    /**
+     * Get customer display name (fallback to customer_name field)
+     */
+    public function getCustomerDisplayNameAttribute(): string
+    {
+        return $this->customer?->name ?: $this->customer_name;
+    }
+
+    /**
+     * Get customer full address (fallback to individual fields)
+     */
+    public function getCustomerFullAddressAttribute(): string
+    {
+        if ($this->customer) {
+            return $this->customer->full_address;
+        }
+
+        $parts = array_filter([
+            $this->customer_address,
+            $this->customer_city,
+            $this->customer_state,
+            $this->customer_postal_code
+        ]);
+
+        return implode(', ', $parts);
+    }
+
+    /**
+     * Check if a section should be shown
+     */
+    public function shouldShowSection(string $section): bool
+    {
+        $sections = $this->optional_sections ?? [];
+
+        if (is_string($sections)) {
+            $sections = json_decode($sections, true) ?? [];
+        }
+
+        return $sections["show_{$section}"] ?? false;
+    }
+
+    /**
+     * Get logo position setting
+     */
+    public function getLogoPosition(): string
+    {
+        $settings = $this->company->invoice_settings ?? [];
+        return $settings['logo']['logo_position'] ?? 'left';
+    }
+
+    /**
+     * Get logo size setting
+     */
+    public function getLogoSize(): string
+    {
+        $settings = $this->company->invoice_settings ?? [];
+        return $settings['logo']['logo_size'] ?? 'medium';
+    }
+
+    /**
+     * Get payment instructions from company settings
+     */
+    public function getPaymentInstructions(): array
+    {
+        $settings = $this->company->invoice_settings ?? [];
+        return $settings['content']['payment_instructions'] ?? [
+            'bank_name' => '',
+            'account_number' => '',
+            'account_holder' => '',
+            'swift_code' => '',
+            'additional_info' => 'Please include invoice number in payment reference.',
+        ];
+    }
+
+    /**
+     * Get customer display name
+     */
+    public function getCustomerDisplayName(): string
+    {
+        if ($this->customer) {
+            return $this->customer->name;
+        }
+
+        return $this->customer_name ?? 'N/A';
+    }
+
+    /**
+     * Apply invoice settings to this invoice
+     */
+    public function applyInvoiceSettings(): void
+    {
+        $service = app(\App\Services\InvoiceSettingsService::class);
+        $service->applySettingsToInvoice($this, $this->company_id);
+    }
+
+    /**
+     * Toggle a section's visibility
+     */
+    public function toggleSection(string $section, bool $visible = null): void
+    {
+        $sections = $this->optional_sections ?? [];
+
+        if (is_string($sections)) {
+            $sections = json_decode($sections, true) ?? [];
+        }
+
+        $visible = $visible ?? !($sections["show_{$section}"] ?? false);
+        $sections["show_{$section}"] = $visible;
+
+        $this->optional_sections = $sections;
+        $this->save();
+    }
+
+    /**
+     * Populate customer data from a customer or lead
+     */
+    public function populateCustomerData($source): void
+    {
+        if ($source instanceof \App\Models\Customer) {
+            $this->customer_id = $source->id;
+            $this->customer_name = $source->name;
+            $this->customer_phone = $source->phone;
+            $this->customer_email = $source->email;
+            $this->customer_company = $source->company;
+            $this->customer_address = $source->address;
+            $this->customer_city = $source->city;
+            $this->customer_state = $source->state;
+            $this->customer_postal_code = $source->postal_code;
+            $this->customer_segment_id = $source->customer_segment_id;
+        } elseif ($source instanceof \App\Models\Lead) {
+            $this->customer_name = $source->name;
+            $this->customer_phone = $source->phone;
+            $this->customer_email = $source->email;
+            $this->customer_company = $source->company;
+            $this->customer_address = $source->address;
+            $this->customer_city = $source->city;
+            $this->customer_state = $source->state;
+            $this->customer_postal_code = $source->postal_code;
+        }
     }
 }
 

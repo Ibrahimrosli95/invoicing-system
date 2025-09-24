@@ -5,10 +5,12 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\InvoiceSettingsController;
 use App\Http\Controllers\ServiceTemplateController;
 use App\Http\Controllers\PricingController;
 use App\Http\Controllers\DashboardController;
@@ -93,6 +95,13 @@ Route::middleware('auth')->group(function () {
     // Organization Hierarchy
     Route::get('organization', [OrganizationController::class, 'index'])->name('organization.index');
     Route::get('organization/chart', [OrganizationController::class, 'chart'])->name('organization.chart');
+
+    // Customer Management
+    Route::resource('customers', \App\Http\Controllers\CustomerController::class);
+    Route::get('customers/search', [\App\Http\Controllers\CustomerController::class, 'search'])->name('customers.search');
+    Route::post('customers/convert-lead', [\App\Http\Controllers\CustomerController::class, 'convertLead'])->name('customers.convert-lead');
+    Route::get('customers/{customer}/for-invoice', [\App\Http\Controllers\CustomerController::class, 'getForInvoice'])->name('customers.for-invoice');
+    Route::post('customers/check-duplicate', [\App\Http\Controllers\CustomerController::class, 'checkDuplicate'])->name('customers.check-duplicate');
     
     // Lead Management (CRM-Lite)
     Route::resource('leads', LeadController::class);
@@ -130,6 +139,7 @@ Route::middleware('auth')->group(function () {
     Route::post('quotations/get-segment-pricing', [QuotationController::class, 'getSegmentPricing'])->name('quotations.get-segment-pricing');
     
     // Invoice Management
+    Route::get('invoices/builder', [InvoiceController::class, 'builder'])->name('invoices.builder');
     Route::resource('invoices', InvoiceController::class);
 
     // Enhanced Invoice Builders
@@ -144,6 +154,12 @@ Route::middleware('auth')->group(function () {
     // Invoice PDF Generation
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'downloadPDF'])->name('invoices.pdf');
     Route::get('invoices/{invoice}/preview', [InvoiceController::class, 'previewPDF'])->name('invoices.preview');
+
+    // Invoice Settings
+    Route::get('invoice-settings', [InvoiceSettingsController::class, 'index'])->name('invoice-settings.index');
+    Route::put('invoice-settings', [InvoiceSettingsController::class, 'update'])->name('invoice-settings.update');
+    Route::get('invoice-settings/api', [InvoiceSettingsController::class, 'getSettings'])->name('invoice-settings.api');
+    Route::post('invoice-settings/preview', [InvoiceSettingsController::class, 'preview'])->name('invoice-settings.preview');
     
     // Service Template Management
     Route::resource('service-templates', ServiceTemplateController::class);

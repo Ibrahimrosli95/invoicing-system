@@ -160,6 +160,16 @@ class InvoiceController extends Controller
     }
 
     /**
+     * Show the document-style invoice builder.
+     */
+    public function builder(Request $request): View
+    {
+        $this->authorize('create', Invoice::class);
+
+        return view('invoices.builder');
+    }
+
+    /**
      * Show the form for creating a new invoice.
      *
      * Redirects to the appropriate builder based on feature flag and quotation type.

@@ -250,6 +250,12 @@
                             'patterns' => ['invoices.index', 'invoices.show', 'invoices.edit'],
                         ],
                         [
+                            'label' => 'Invoice Builder',
+                            'route' => 'invoices.builder',
+                            'patterns' => ['invoices.builder'],
+                            'visible' => ['type' => 'can', 'ability' => 'create', 'arguments' => \App\Models\Invoice::class],
+                        ],
+                        [
                             'label' => 'Create Product Invoice',
                             'route' => 'invoices.create.products',
                             'patterns' => ['invoices.create.products'],
@@ -394,6 +400,13 @@
                     'route' => 'settings.documents.index',
                     'patterns' => ['settings.documents.*'],
                     'icon' => 'documents',
+                    'visible' => ['type' => 'can', 'ability' => 'manage', 'arguments' => \App\Models\Company::class],
+                ],
+                [
+                    'label' => 'Invoice Settings',
+                    'route' => 'invoice-settings.index',
+                    'patterns' => ['invoice-settings.*'],
+                    'icon' => 'invoice-settings',
                     'visible' => ['type' => 'can', 'ability' => 'manage', 'arguments' => \App\Models\Company::class],
                 ],
                 [
