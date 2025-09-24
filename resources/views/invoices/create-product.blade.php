@@ -347,14 +347,14 @@
 function productInvoiceBuilder() {
     return {
         invoice: {
-            number: '{{ $nextNumber }}',
-            customer_name: '{{ $quotation->customer_name ?? "" }}',
-            customer_phone: '{{ $quotation->customer_phone ?? "" }}',
-            customer_email: '{{ $quotation->customer_email ?? "" }}',
-            customer_address: '{{ $quotation->customer_address ?? "" }}',
-            customer_segment_id: '{{ $quotation->customer_segment_id ?? "" }}',
-            issue_date: '{{ date("Y-m-d") }}',
-            due_date: '{{ date("Y-m-d", strtotime("+30 days")) }}',
+            number: {!! json_encode($nextNumber ?? '') !!},
+            customer_name: {!! json_encode($quotation->customer_name ?? '') !!},
+            customer_phone: {!! json_encode($quotation->customer_phone ?? '') !!},
+            customer_email: {!! json_encode($quotation->customer_email ?? '') !!},
+            customer_address: {!! json_encode($quotation->customer_address ?? '') !!},
+            customer_segment_id: {!! json_encode($quotation->customer_segment_id ?? '') !!},
+            issue_date: {!! json_encode(date('Y-m-d')) !!},
+            due_date: {!! json_encode(date('Y-m-d', strtotime('+30 days'))) !!},
             items: @json($quotation ? $quotation->items->map(function($item) {
                 return [
                     'description' => $item->description,
@@ -369,7 +369,7 @@ function productInvoiceBuilder() {
             tax_percentage: {{ $quotation->tax_percentage ?? 6 }},
             tax_amount: 0,
             total: 0,
-            notes: '{{ $quotation->notes ?? "" }}',
+            notes: {!! json_encode($quotation->notes ?? '') !!},
             type: 'product'
         },
 
