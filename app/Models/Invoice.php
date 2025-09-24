@@ -753,42 +753,6 @@ class Invoice extends Model
         ];
     }
 
-    public function shouldShowSection(string $section): bool
-    {
-        $sections = $this->optional_sections ?: $this->getDefaultOptionalSections();
-        return $sections[$section] ?? false;
-    }
-
-    public function toggleSection(string $section, bool $show): void
-    {
-        $sections = $this->optional_sections ?: $this->getDefaultOptionalSections();
-        $sections[$section] = $show;
-        $this->optional_sections = $sections;
-    }
-
-    /**
-     * Customer data population from Customer model
-     */
-    public function populateCustomerData(?Customer $customer = null): void
-    {
-        $customer = $customer ?: $this->customer;
-
-        if (!$customer) {
-            return;
-        }
-
-        $this->fill([
-            'customer_name' => $customer->name,
-            'customer_phone' => $customer->phone,
-            'customer_email' => $customer->email,
-            'customer_address' => $customer->address,
-            'customer_city' => $customer->city,
-            'customer_state' => $customer->state,
-            'customer_postal_code' => $customer->postal_code,
-            'customer_segment_id' => $customer->customer_segment_id,
-        ]);
-    }
-
     /**
      * Create invoice from customer
      */
