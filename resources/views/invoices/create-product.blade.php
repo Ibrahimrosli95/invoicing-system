@@ -380,9 +380,56 @@ function productInvoiceBuilder() {
         searchedClients: [],
 
         showProductSearch: false,
+        selectedTemplate: '',
+
+        // Quick search functionality
+        quickSearch: {
+            query: '',
+            results: []
+        },
 
         init() {
             this.calculateTotals();
+        },
+
+        // Quick search functionality for sidebar
+        performQuickSearch() {
+            if (this.quickSearch.query.length < 2) {
+                this.quickSearch.results = [];
+                return;
+            }
+
+            fetch(`/api/pricing-items/search?query=${encodeURIComponent(this.quickSearch.query)}&limit=5`)
+                .then(response => response.json())
+                .then(data => {
+                    this.quickSearch.results = data.products || data.data || [];
+                })
+                .catch(error => {
+                    console.error('Quick search error:', error);
+                    this.quickSearch.results = [];
+                });
+        },
+
+        addProductFromSearch(product) {
+            this.addProduct(product);
+            this.quickSearch.query = '';
+            this.quickSearch.results = [];
+        },
+
+        // Method to get product pricing with segment consideration
+        getProductPrice(product) {
+            if (this.invoice.customer_segment_id && product.segment_pricing) {
+                return parseFloat(product.segment_pricing.unit_price || product.unit_price);
+            }
+            return parseFloat(product.unit_price || product.base_price || product.selling_price || 0);
+        },
+
+        // Clear all items functionality
+        clearAllItems() {
+            if (confirm('Are you sure you want to clear all items?')) {
+                this.invoice.items = [];
+                this.calculateTotals();
+            }
         },
 
         canSave() {
@@ -398,11 +445,16 @@ function productInvoiceBuilder() {
 
         searchClients(query) {
             if (query && query.length >= 2) {
-                fetch(`/api/clients/search?q=${encodeURIComponent(query)}`)
+                fetch(`/api/invoices/search-clients?query=${encodeURIComponent(query)}`)
                     .then(response => response.json())
                     .then(data => {
-                        this.clientSuggestions = data.clients;
-                        this.showClientSuggestions = true;
+                        if (data.success) {
+                            this.clientSuggestions = data.data;
+                            this.showClientSuggestions = true;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error searching clients:', error);
                     });
             } else {
                 this.showClientSuggestions = false;
@@ -419,10 +471,15 @@ function productInvoiceBuilder() {
 
         performClientSearch() {
             if (this.clientSearchQuery.length >= 2) {
-                fetch(`/api/clients/search?q=${encodeURIComponent(this.clientSearchQuery)}`)
+                fetch(`/api/invoices/search-clients?query=${encodeURIComponent(this.clientSearchQuery)}`)
                     .then(response => response.json())
                     .then(data => {
-                        this.searchedClients = data.clients;
+                        if (data.success) {
+                            this.searchedClients = data.data;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error searching clients:', error);
                     });
             }
         },
@@ -433,18 +490,18 @@ function productInvoiceBuilder() {
         },
 
         updatePricingForSegment() {
-            this.invoice.items.forEach((item, index) => {
-                this.calculateItemTotal(index);
-            });
+            // Recalculate all pricing with segment-specific rates
+            this.calculateTotalsWithApi();
         },
 
         calculateItemTotal(index) {
             const item = this.invoice.items[index];
             item.total = item.quantity * item.unit_price;
-            this.calculateTotals();
+            this.calculateTotalsWithApi();
         },
 
         calculateTotals() {
+            // Local calculation for immediate feedback
             this.invoice.subtotal = this.invoice.items.reduce((sum, item) => {
                 return sum + (item.quantity * item.unit_price);
             }, 0);
@@ -457,13 +514,72 @@ function productInvoiceBuilder() {
             this.invoice.total = afterDiscount + this.invoice.tax_amount;
         },
 
+        calculateTotalsWithApi() {
+            // Enhanced calculation using the API for segment-specific pricing
+            if (this.invoice.items.length === 0) {
+                this.calculateTotals();
+                return;
+            }
+
+            const payload = {
+                items: this.invoice.items.map(item => ({
+                    pricing_item_id: item.pricing_item_id || null,
+                    quantity: item.quantity,
+                    unit_price: item.unit_price
+                })),
+                customer_segment_id: this.invoice.customer_segment_id || null,
+                discount_percentage: this.invoice.discount_percentage || 0,
+                tax_percentage: this.invoice.tax_percentage || 0,
+                _token: '{{ csrf_token() }}'
+            };
+
+            fetch('/api/invoices/calculate-pricing', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.invoice.subtotal = data.data.subtotal;
+                    this.invoice.discount_amount = data.data.discount_amount;
+                    this.invoice.tax_amount = data.data.tax_amount;
+                    this.invoice.total = data.data.grand_total;
+
+                    // Update individual item calculations if provided
+                    if (data.data.items) {
+                        data.data.items.forEach((apiItem, index) => {
+                            if (this.invoice.items[index]) {
+                                this.invoice.items[index].unit_price = apiItem.unit_price;
+                                this.invoice.items[index].total = apiItem.line_total;
+                            }
+                        });
+                    }
+                } else {
+                    // Fallback to local calculation
+                    this.calculateTotals();
+                }
+            })
+            .catch(error => {
+                console.error('Error calculating pricing:', error);
+                // Fallback to local calculation
+                this.calculateTotals();
+            });
+        },
+
         removeItem(index) {
             this.invoice.items.splice(index, 1);
             this.calculateTotals();
         },
 
         addProduct(product) {
-            const existingIndex = this.invoice.items.findIndex(item => item.sku === product.sku);
+            const existingIndex = this.invoice.items.findIndex(item =>
+                (item.item_code && item.item_code === product.item_code) ||
+                (item.description === product.name && item.unit_price === product.unit_price)
+            );
 
             if (existingIndex >= 0) {
                 this.invoice.items[existingIndex].quantity += 1;
@@ -471,12 +587,82 @@ function productInvoiceBuilder() {
             } else {
                 this.invoice.items.push({
                     description: product.name,
-                    sku: product.sku,
+                    item_code: product.item_code || '',
+                    unit: product.unit || 'pcs',
                     quantity: 1,
-                    unit_price: product.selling_price
+                    unit_price: product.unit_price || product.selling_price,
+                    pricing_item_id: product.id,
+                    specifications: product.specifications || '',
+                    source_type: 'pricing_item',
+                    source_id: product.id
                 });
-                this.calculateTotals();
+                this.calculateTotalsWithApi();
             }
+        },
+
+        addManualItem() {
+            this.invoice.items.push({
+                description: '',
+                item_code: '',
+                unit: 'pcs',
+                quantity: 1,
+                unit_price: 0,
+                specifications: '',
+                source_type: 'manual',
+                source_id: null
+            });
+        },
+
+        loadServiceTemplate() {
+            if (!this.selectedTemplate) return;
+
+            fetch(`/api/invoices/load-service-template?template_id=${this.selectedTemplate}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data.template) {
+                        const template = data.data.template;
+
+                        // Add all template items to invoice
+                        template.sections.forEach(section => {
+                            section.items.forEach(item => {
+                                this.invoice.items.push({
+                                    description: item.description,
+                                    item_code: item.item_code || '',
+                                    unit: item.unit || 'pcs',
+                                    quantity: item.quantity || 1,
+                                    unit_price: item.unit_price,
+                                    specifications: '',
+                                    source_type: 'service_template_item',
+                                    source_id: item.id
+                                });
+                            });
+                        });
+
+                        this.calculateTotalsWithApi();
+                        this.selectedTemplate = '';
+
+                        // Show success message
+                        this.showNotification(`Added ${template.name} template items to invoice`, 'success');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading service template:', error);
+                    this.showNotification('Error loading service template', 'error');
+                });
+        },
+
+        showNotification(message, type = 'success') {
+            // Create a simple toast notification
+            const toast = document.createElement('div');
+            toast.className = `fixed top-4 right-4 px-4 py-2 rounded-md shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+            }`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
         },
 
         saveAsDraft() {

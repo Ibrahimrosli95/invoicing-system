@@ -325,6 +325,11 @@ Route::prefix('api')->middleware('auth')->group(function () {
     // Customer Segment Pricing API
     Route::post('quotations/calculate-segment-pricing', [QuotationController::class, 'calculateSegmentPricing'])->name('api.quotations.calculate-segment-pricing');
     Route::post('invoices/calculate-segment-pricing', [InvoiceController::class, 'calculateSegmentPricing'])->name('api.invoices.calculate-segment-pricing');
+
+    // Invoice Builder API (New enhanced features)
+    Route::post('invoices/calculate-pricing', [InvoiceController::class, 'calculatePricing'])->name('api.invoices.calculate-pricing');
+    Route::get('invoices/search-clients', [InvoiceController::class, 'searchClients'])->name('api.invoices.search-clients');
+    Route::get('invoices/load-service-template', [InvoiceController::class, 'loadServiceTemplate'])->name('api.invoices.load-service-template');
 });
 
 require __DIR__.'/auth.php';

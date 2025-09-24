@@ -649,4 +649,183 @@ class InvoiceController extends Controller
             'recentClients' => $recentClients,
         ];
     }
+
+    /**
+     * API endpoint for real-time pricing calculations.
+     */
+    public function calculatePricing(Request $request): JsonResponse
+    {
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.pricing_item_id' => 'nullable|exists:pricing_items,id',
+            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'customer_segment_id' => 'nullable|exists:customer_segments,id',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'tax_percentage' => 'nullable|numeric|min:0|max:100',
+        ]);
+
+        $subtotal = 0;
+        $processedItems = [];
+
+        foreach ($request->items as $item) {
+            $quantity = (float) $item['quantity'];
+            $unitPrice = (float) $item['unit_price'];
+
+            // Apply segment-specific pricing if applicable
+            if (!empty($item['pricing_item_id']) && $request->customer_segment_id) {
+                $pricingItem = PricingItem::find($item['pricing_item_id']);
+                if ($pricingItem) {
+                    $segmentPrice = $pricingItem->getSegmentPrice($request->customer_segment_id, $quantity);
+                    if ($segmentPrice !== null) {
+                        $unitPrice = $segmentPrice;
+                    }
+                }
+            }
+
+            $lineTotal = $quantity * $unitPrice;
+            $subtotal += $lineTotal;
+
+            $processedItems[] = [
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
+                'line_total' => $lineTotal,
+            ];
+        }
+
+        $discountPercentage = (float) ($request->discount_percentage ?? 0);
+        $discountAmount = ($subtotal * $discountPercentage) / 100;
+        $afterDiscount = $subtotal - $discountAmount;
+
+        $taxPercentage = (float) ($request->tax_percentage ?? 0);
+        $taxAmount = ($afterDiscount * $taxPercentage) / 100;
+        $grandTotal = $afterDiscount + $taxAmount;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'items' => $processedItems,
+                'subtotal' => round($subtotal, 2),
+                'discount_percentage' => $discountPercentage,
+                'discount_amount' => round($discountAmount, 2),
+                'after_discount' => round($afterDiscount, 2),
+                'tax_percentage' => $taxPercentage,
+                'tax_amount' => round($taxAmount, 2),
+                'grand_total' => round($grandTotal, 2),
+            ]
+        ]);
+    }
+
+    /**
+     * API endpoint for fetching client suggestions.
+     */
+    public function searchClients(Request $request): JsonResponse
+    {
+        $request->validate([
+            'query' => 'required|string|min:2',
+        ]);
+
+        $query = $request->query;
+        $results = collect();
+
+        // Search recent quotations
+        $quotationClients = Quotation::forCompany()
+            ->where(function ($q) use ($query) {
+                $q->where('customer_name', 'LIKE', "%{$query}%")
+                  ->orWhere('customer_email', 'LIKE', "%{$query}%")
+                  ->orWhere('customer_phone', 'LIKE', "%{$query}%");
+            })
+            ->select('customer_name', 'customer_email', 'customer_phone', 'customer_address')
+            ->whereNotNull('customer_name')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($quotation) {
+                return [
+                    'name' => $quotation->customer_name,
+                    'email' => $quotation->customer_email,
+                    'phone' => $quotation->customer_phone,
+                    'address' => $quotation->customer_address,
+                    'source' => 'quotation'
+                ];
+            });
+
+        // Search leads
+        $leadClients = Lead::forCompany()
+            ->where(function ($q) use ($query) {
+                $q->where('name', 'LIKE', "%{$query}%")
+                  ->orWhere('email', 'LIKE', "%{$query}%")
+                  ->orWhere('phone', 'LIKE', "%{$query}%");
+            })
+            ->select('name', 'email', 'phone', 'address')
+            ->whereNotNull('name')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($lead) {
+                return [
+                    'name' => $lead->name,
+                    'email' => $lead->email,
+                    'phone' => $lead->phone,
+                    'address' => $lead->address,
+                    'source' => 'lead'
+                ];
+            });
+
+        $results = $quotationClients->concat($leadClients)
+            ->unique('phone')
+            ->take(15);
+
+        return response()->json([
+            'success' => true,
+            'data' => $results->values()
+        ]);
+    }
+
+    /**
+     * API endpoint for loading service templates.
+     */
+    public function loadServiceTemplate(Request $request): JsonResponse
+    {
+        $request->validate([
+            'template_id' => 'required|exists:service_templates,id',
+        ]);
+
+        $template = ServiceTemplate::forCompany()
+            ->with(['sections.items'])
+            ->findOrFail($request->template_id);
+
+        $this->authorize('view', $template);
+
+        $sections = $template->sections->map(function ($section) {
+            return [
+                'id' => $section->id,
+                'name' => $section->name,
+                'description' => $section->description,
+                'items' => $section->items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'description' => $item->description,
+                        'unit_price' => $item->unit_price,
+                        'unit' => $item->unit,
+                        'quantity' => $item->default_quantity ?? 1,
+                        'item_code' => $item->item_code,
+                    ];
+                })
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'template' => [
+                    'id' => $template->id,
+                    'name' => $template->name,
+                    'description' => $template->description,
+                    'category' => $template->category,
+                    'sections' => $sections
+                ]
+            ]
+        ]);
+    }
 }

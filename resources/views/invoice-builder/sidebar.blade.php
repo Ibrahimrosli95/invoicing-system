@@ -95,26 +95,50 @@
 
         <div class="space-y-2">
             <input type="text"
-                   x-model="quickProductSearch"
-                   @input="searchQuickProducts()"
+                   x-model="quickSearch.query"
+                   @input="performQuickSearch()"
                    placeholder="Search products..."
                    class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent">
 
-            <div class="space-y-1 max-h-32 overflow-y-auto" x-show="quickProducts.length > 0">
-                <template x-for="product in quickProducts" :key="product.id">
+            <div class="space-y-1 max-h-32 overflow-y-auto" x-show="quickSearch.results.length > 0">
+                <template x-for="product in quickSearch.results" :key="product.id">
                     <div class="p-2 border border-gray-200 rounded hover:bg-gray-50 cursor-pointer text-xs"
-                         @click="addQuickProduct(product)">
+                         @click="addProductToInvoice(product)">
                         <div class="font-medium text-gray-900" x-text="product.name"></div>
-                        <div class="text-gray-500" x-text="'RM ' + product.price"></div>
+                        <div class="text-gray-500" x-text="'RM ' + getProductPrice(product).toFixed(2)"></div>
+                        <div class="text-gray-400" x-text="product.item_code"></div>
                     </div>
                 </template>
             </div>
         </div>
 
         <button type="button"
-                @click="openProductSearch()"
+                @click="showProductSearch = true"
                 class="w-full mt-2 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700">
             Browse All Products
+        </button>
+    </div>
+
+    <!-- Service Templates Section (For Product invoices too) -->
+    <div class="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+        <h3 class="text-sm font-medium text-gray-900 mb-3">Service Templates</h3>
+
+        <div class="space-y-2">
+            <select x-model="selectedTemplate"
+                    @change="loadServiceTemplate()"
+                    class="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent">
+                <option value="">Select a template</option>
+                <option value="1">Basic Installation</option>
+                <option value="2">Maintenance Package</option>
+                <option value="3">Consulting Service</option>
+                <option value="4">Training Package</option>
+            </select>
+        </div>
+
+        <button type="button"
+                class="w-full mt-2 px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-600 rounded hover:bg-blue-50"
+                onclick="window.open('{{ route('service-templates.index') }}', '_blank')">
+            Manage Templates
         </button>
     </div>
     @endif
