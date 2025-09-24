@@ -64,12 +64,14 @@
                                     </div>
                                     <div class="flex justify-end">
                                         <span class="w-24 text-gray-600">Date:</span>
-                                        <input type="date" x-model="invoiceDate"
+                                        <input type="text" x-model="invoiceDateDisplay" @input="updateInvoiceDate"
+                                               placeholder="DD/MM/YYYY" maxlength="10"
                                                class="font-mono border-0 bg-transparent text-right p-0 focus:ring-0 w-32">
                                     </div>
                                     <div class="flex justify-end">
                                         <span class="w-24 text-gray-600">Due Date:</span>
-                                        <input type="date" x-model="dueDate"
+                                        <input type="text" x-model="dueDateDisplay" @input="updateDueDate"
+                                               placeholder="DD/MM/YYYY" maxlength="10"
                                                class="font-mono border-0 bg-transparent text-right p-0 focus:ring-0 w-32">
                                     </div>
                                 </div>
@@ -446,13 +448,15 @@ function invoiceBuilder() {
         // Invoice Data
         invoiceNumber: 'INV-2025-000001',
         invoiceDate: new Date().toISOString().split('T')[0],
+        invoiceDateDisplay: '',
         dueDate: '',
+        dueDateDisplay: '',
 
         // Optional Sections
         optionalSections: {
-            show_shipping: false,
+            show_shipping: true,
             show_payment_instructions: true,
-            show_signatures: false,
+            show_signatures: true,
             show_company_logo: true
         },
 
@@ -497,10 +501,14 @@ function invoiceBuilder() {
         representativeTitle: 'Sales Representative',
 
         init() {
-            // Set default due date (30 days from now)
+            // Set default dates in DD/MM/YYYY format
+            const today = new Date();
+            this.invoiceDateDisplay = this.formatDateDDMMYYYY(today);
+
             const dueDate = new Date();
             dueDate.setDate(dueDate.getDate() + 30);
             this.dueDate = dueDate.toISOString().split('T')[0];
+            this.dueDateDisplay = this.formatDateDDMMYYYY(dueDate);
 
             // Calculate initial totals
             this.calculateTotals();
@@ -512,7 +520,61 @@ function invoiceBuilder() {
             this.loadSavedTemplates();
         },
 
+        // Date Formatting Methods
+        formatDateDDMMYYYY(date) {
+            const d = new Date(date);
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+        },
 
+        parseDDMMYYYY(dateString) {
+            const parts = dateString.replace(/[^\d]/g, '');
+            if (parts.length >= 8) {
+                const day = parts.substr(0, 2);
+                const month = parts.substr(2, 2);
+                const year = parts.substr(4, 4);
+                return new Date(year, month - 1, day);
+            }
+            return null;
+        },
+
+        updateInvoiceDate() {
+            // Auto-format as user types
+            let value = this.invoiceDateDisplay.replace(/[^\d]/g, '');
+            if (value.length >= 2) {
+                value = value.substr(0, 2) + '/' + value.substr(2);
+            }
+            if (value.length >= 5) {
+                value = value.substr(0, 5) + '/' + value.substr(5, 4);
+            }
+            this.invoiceDateDisplay = value.substr(0, 10);
+
+            // Update internal date if valid
+            const parsed = this.parseDDMMYYYY(this.invoiceDateDisplay);
+            if (parsed) {
+                this.invoiceDate = parsed.toISOString().split('T')[0];
+            }
+        },
+
+        updateDueDate() {
+            // Auto-format as user types
+            let value = this.dueDateDisplay.replace(/[^\d]/g, '');
+            if (value.length >= 2) {
+                value = value.substr(0, 2) + '/' + value.substr(2);
+            }
+            if (value.length >= 5) {
+                value = value.substr(0, 5) + '/' + value.substr(5, 4);
+            }
+            this.dueDateDisplay = value.substr(0, 10);
+
+            // Update internal date if valid
+            const parsed = this.parseDDMMYYYY(this.dueDateDisplay);
+            if (parsed) {
+                this.dueDate = parsed.toISOString().split('T')[0];
+            }
+        },
 
         // Customer Search
         searchCustomers() {
@@ -748,10 +810,36 @@ function invoiceBuilder() {
                 return;
             }
 
-            // For now, show a notification that preview will be available after saving
-            this.$dispatch('notify', {
-                type: 'info',
-                message: 'PDF preview will be available after saving the invoice. Click "Save Invoice" first.'
+            if (this.lineItems.filter(item => item.description.trim() !== '').length === 0) {
+                this.$dispatch('notify', { type: 'error', message: 'Please add at least one line item' });
+                return;
+            }
+
+            // Save as draft first, then open preview
+            const invoiceData = this.getInvoiceData();
+            invoiceData.status = 'DRAFT'; // Ensure it's marked as draft
+
+            fetch('/invoices', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(invoiceData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Open PDF preview in new tab
+                    window.open(`/invoices/${data.invoice.id}/preview`, '_blank');
+                    this.$dispatch('notify', { type: 'success', message: 'Opening PDF preview...' });
+                } else {
+                    this.$dispatch('notify', { type: 'error', message: data.message || 'Failed to create preview' });
+                }
+            })
+            .catch(error => {
+                console.error('Preview error:', error);
+                this.$dispatch('notify', { type: 'error', message: 'Failed to create preview' });
             });
         },
 
