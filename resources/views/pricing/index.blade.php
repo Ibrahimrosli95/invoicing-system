@@ -129,6 +129,15 @@
                                 <option value="{{ $category->id }}">{{ $category->name }}</option>
                             @endforeach
                         </select>
+                        <select x-model="selectedSegment" @change="filterItems" class="rounded-md border-gray-300 text-sm">
+                            <option value="">All Segments</option>
+                            @foreach($segments as $segment)
+                                <option value="{{ $segment->id }}">
+                                    <span style="background-color: {{ $segment->color }}; width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px;"></span>
+                                    {{ $segment->name }}
+                                </option>
+                            @endforeach
+                        </select>
                         <select x-model="statusFilter" @change="filterItems" class="rounded-md border-gray-300 text-sm">
                             <option value="">All Status</option>
                             <option value="active">Active Only</option>
@@ -319,11 +328,20 @@ function pricingBook() {
         activeSegment: {{ $segments->first()->id ?? 1 }},
         search: '',
         selectedCategory: '',
+        selectedSegment: '',
         statusFilter: '',
 
         filterItems() {
-            // This would typically trigger an AJAX request to filter items
-            // For now, we'll implement client-side filtering if needed
+            // Build query parameters
+            const params = new URLSearchParams();
+            if (this.search) params.append('search', this.search);
+            if (this.selectedCategory) params.append('category', this.selectedCategory);
+            if (this.selectedSegment) params.append('segment', this.selectedSegment);
+            if (this.statusFilter) params.append('status', this.statusFilter);
+
+            // Reload page with filters
+            const url = params.toString() ? `{{ route('pricing.index') }}?${params.toString()}` : '{{ route('pricing.index') }}';
+            window.location.href = url;
         },
 
         editPrice(itemId, segmentId) {

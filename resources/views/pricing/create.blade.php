@@ -102,16 +102,50 @@
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-medium text-gray-900">Customer Segment Pricing</h3>
                         <div class="flex items-center space-x-4">
-                            <button type="button"
-                                    @click="generateSuggestedPrices"
-                                    class="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                                Generate Suggested Prices
-                            </button>
-                            <button type="button"
-                                    @click="fillFromBasePrice"
-                                    class="text-sm text-gray-600 hover:text-gray-700 font-medium">
-                                Fill from Base Price
-                            </button>
+                            <!-- Quick Add Segment -->
+                            <div class="flex items-center space-x-2" x-show="!showAddSegment">
+                                <button type="button"
+                                        @click="showAddSegment = true"
+                                        class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    Add Segment
+                                </button>
+                            </div>
+
+                            <!-- Quick Add Form -->
+                            <div x-show="showAddSegment" x-transition class="flex items-center space-x-2">
+                                <input type="text"
+                                       x-model="newSegmentName"
+                                       placeholder="Segment name"
+                                       @keydown.enter="addSegment"
+                                       @keydown.escape="cancelAddSegment"
+                                       class="w-32 text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <input type="number"
+                                       x-model="newSegmentDiscount"
+                                       placeholder="Discount %"
+                                       step="0.01"
+                                       min="0"
+                                       max="100"
+                                       @keydown.enter="addSegment"
+                                       @keydown.escape="cancelAddSegment"
+                                       class="w-24 text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <button type="button"
+                                        @click="addSegment"
+                                        class="text-green-600 hover:text-green-700">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                </button>
+                                <button type="button"
+                                        @click="cancelAddSegment"
+                                        class="text-red-600 hover:text-red-700">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -135,54 +169,71 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                @foreach($segments as $segment)
+                                <template x-for="segment in activeSegments" :key="segment.id">
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex items-center space-x-3">
-                                                <div class="w-4 h-4 rounded-full" style="background-color: {{ $segment->color }}"></div>
-                                                <div>
-                                                    <span class="text-sm font-medium text-gray-900">{{ $segment->name }}</span>
-                                                    @if($segment->description)
-                                                        <div class="text-xs text-gray-500">{{ $segment->description }}</div>
-                                                    @endif
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="w-4 h-4 rounded-full" :style="'background-color: ' + segment.color"></div>
+                                                    <div>
+                                                        <span class="text-sm font-medium text-gray-900" x-text="segment.name"></span>
+                                                        <div class="text-xs text-gray-500" x-show="segment.description" x-text="segment.description"></div>
+                                                    </div>
                                                 </div>
+                                                <button type="button"
+                                                        @click="removeSegment(segment.id)"
+                                                        x-show="segment.isNew"
+                                                        class="text-red-600 hover:text-red-700 text-xs">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                    </svg>
+                                                </button>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <input type="number"
-                                                   name="segment_prices[{{ $segment->id }}]"
+                                                   :name="'segment_prices[' + segment.id + ']'"
                                                    step="0.01"
                                                    min="0"
                                                    placeholder="0.00"
-                                                   x-model="segmentPrices[{{ $segment->id }}]"
-                                                   @input="calculateMargin({{ $segment->id }})"
-                                                   value="{{ old('segment_prices.' . $segment->id, '0.00') }}"
+                                                   x-model="segmentPrices[segment.id]"
+                                                   @input="calculateMargin(segment.id)"
                                                    class="w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                                            @error('segment_prices.' . $segment->id)
-                                                <div class="mt-1 text-xs text-red-600">{{ $message }}</div>
-                                            @enderror
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center space-x-2">
-                                                <span x-text="margins[{{ $segment->id }}] || '0.00'"
+                                                <span x-text="margins[segment.id] || '0.00'"
                                                       class="text-sm font-medium"
-                                                      :class="getMarginTextColor(marginStatus[{{ $segment->id }}])"></span>
+                                                      :class="getMarginTextColor(marginStatus[segment.id])"></span>
                                                 <span class="text-xs text-gray-500">%</span>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
-                                                <div x-show="marginStatus[{{ $segment->id }}]"
-                                                     :class="getMarginColorClass(marginStatus[{{ $segment->id }}])"
+                                                <div x-show="marginStatus[segment.id]"
+                                                     :class="getMarginColorClass(marginStatus[segment.id])"
                                                      class="w-3 h-3 rounded-full mr-2"></div>
-                                                <span x-show="marginStatus[{{ $segment->id }}]"
-                                                      x-text="getMarginStatusText(marginStatus[{{ $segment->id }}])"
+                                                <span x-show="marginStatus[segment.id]"
+                                                      x-text="getMarginStatusText(marginStatus[segment.id])"
                                                       class="text-xs font-medium"
-                                                      :class="getMarginTextColor(marginStatus[{{ $segment->id }}])"></span>
+                                                      :class="getMarginTextColor(marginStatus[segment.id])"></span>
                                             </div>
                                         </td>
                                     </tr>
-                                @endforeach
+                                </template>
+
+                                <!-- Empty State -->
+                                <tr x-show="activeSegments.length === 0">
+                                    <td colspan="4" class="px-6 py-12 text-center">
+                                        <div class="text-gray-500">
+                                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM9 9a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                            </svg>
+                                            <h3 class="mt-2 text-sm font-medium text-gray-900">No segments added</h3>
+                                            <p class="mt-1 text-sm text-gray-500">Add customer segments to set specific pricing.</p>
+                                        </div>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -266,9 +317,86 @@ function pricingForm() {
         margins: {},
         marginStatus: {},
 
+        // Dynamic segment management
+        showAddSegment: false,
+        newSegmentName: '',
+        newSegmentDiscount: '',
+        activeSegments: [
+            @foreach($segments as $segment)
+                {
+                    id: {{ $segment->id }},
+                    name: '{{ $segment->name }}',
+                    discount: {{ $segment->default_discount_percentage }},
+                    color: '{{ $segment->color }}',
+                    isNew: false
+                },
+            @endforeach
+        ],
+        newSegmentCounter: 1000, // Start from high number to avoid conflicts
+
         init() {
             // Calculate initial margins
             this.calculateMargins();
+        },
+
+        addSegment() {
+            if (!this.newSegmentName.trim()) {
+                alert('Please enter a segment name.');
+                return;
+            }
+
+            if (!this.newSegmentDiscount || this.newSegmentDiscount < 0) {
+                alert('Please enter a valid discount percentage.');
+                return;
+            }
+
+            // Generate temporary ID for new segment
+            const tempId = 'new_' + this.newSegmentCounter++;
+
+            // Add to active segments
+            this.activeSegments.push({
+                id: tempId,
+                name: this.newSegmentName.trim(),
+                discount: parseFloat(this.newSegmentDiscount),
+                color: this.getRandomColor(),
+                isNew: true
+            });
+
+            // Initialize pricing for new segment
+            this.segmentPrices[tempId] = '0.00';
+            this.margins[tempId] = '0.00';
+            this.marginStatus[tempId] = 'none';
+
+            // Reset form
+            this.newSegmentName = '';
+            this.newSegmentDiscount = '';
+            this.showAddSegment = false;
+
+            // Recalculate margins
+            this.calculateMargins();
+        },
+
+        removeSegment(segmentId) {
+            if (confirm('Are you sure you want to remove this segment from pricing?')) {
+                // Remove from active segments
+                this.activeSegments = this.activeSegments.filter(segment => segment.id !== segmentId);
+
+                // Remove pricing data
+                delete this.segmentPrices[segmentId];
+                delete this.margins[segmentId];
+                delete this.marginStatus[segmentId];
+            }
+        },
+
+        cancelAddSegment() {
+            this.newSegmentName = '';
+            this.newSegmentDiscount = '';
+            this.showAddSegment = false;
+        },
+
+        getRandomColor() {
+            const colors = ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444', '#EC4899', '#84CC16', '#06B6D4'];
+            return colors[Math.floor(Math.random() * colors.length)];
         },
 
         calculateMargins() {
@@ -337,47 +465,6 @@ function pricingForm() {
                 'none': 'None'
             };
             return texts[status] || 'None';
-        },
-
-        generateSuggestedPrices() {
-            const cost = parseFloat(this.costPrice) || 0;
-            if (cost <= 0) {
-                alert('Please enter a cost price first to generate suggested prices.');
-                return;
-            }
-
-            // Default target margins per segment
-            const targetMargins = {
-                @foreach($segments as $segment)
-                    {{ $segment->id }}: {{
-                        $segment->name === 'End User' ? 25 :
-                        ($segment->name === 'Contractor' ? 20 : 15)
-                    }},
-                @endforeach
-            };
-
-            Object.keys(targetMargins).forEach(segmentId => {
-                const targetMargin = targetMargins[segmentId];
-                const suggestedPrice = cost / (1 - targetMargin / 100);
-                this.segmentPrices[segmentId] = suggestedPrice.toFixed(2);
-                this.calculateMargin(segmentId);
-            });
-        },
-
-        fillFromBasePrice() {
-            const basePrice = parseFloat(this.basePrice) || 0;
-            if (basePrice <= 0) {
-                alert('Please enter a base selling price first.');
-                return;
-            }
-
-            // Apply segment discounts to base price
-            @foreach($segments as $segment)
-                const discount{{ $segment->id }} = {{ $segment->default_discount_percentage }} || 0;
-                const segmentPrice{{ $segment->id }} = basePrice * (1 - discount{{ $segment->id }} / 100);
-                this.segmentPrices[{{ $segment->id }}] = segmentPrice{{ $segment->id }}.toFixed(2);
-                this.calculateMargin({{ $segment->id }});
-            @endforeach
         }
     }
 }

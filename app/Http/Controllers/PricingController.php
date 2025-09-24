@@ -55,6 +55,13 @@ class PricingController extends Controller
             $query->byPriceRange($request->price_min, $request->price_max);
         }
 
+        // Filter by customer segment
+        if ($request->filled('segment')) {
+            $query->whereHas('pricingTiers', function ($q) use ($request) {
+                $q->where('customer_segment_id', $request->segment);
+            });
+        }
+
         // Sort
         $sortBy = $request->get('sort', 'name');
         $sortDirection = $request->get('direction', 'asc');
