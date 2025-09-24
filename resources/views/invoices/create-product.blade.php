@@ -287,7 +287,7 @@
 
         <!-- Sidebar (30%) -->
         <div class="w-96 bg-white border-l border-gray-200 flex flex-col">
-            @include('invoice-builder.sidebar')
+            @include('invoice-builder.sidebar', ['type' => 'product'])
         </div>
     </div>
 
