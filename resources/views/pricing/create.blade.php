@@ -60,37 +60,6 @@
                             @enderror
                         </div>
 
-                        <div>
-                            <label for="pricing_category_id" class="block text-sm font-medium text-gray-700">Category</label>
-                            <select id="pricing_category_id"
-                                    name="pricing_category_id"
-                                    required
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <option value="">Select Category</option>
-                                @foreach($categories ?? [] as $category)
-                                    <option value="{{ $category->id }}"
-                                            {{ old('pricing_category_id') == $category->id ? 'selected' : '' }}>
-                                        {{ $category->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('pricing_category_id')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label for="unit" class="block text-sm font-medium text-gray-700">Unit</label>
-                            <input type="text"
-                                   id="unit"
-                                   name="unit"
-                                   value="{{ old('unit', 'pcs') }}"
-                                   required
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            @error('unit')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
 
                         <div class="lg:col-span-2">
                             <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
