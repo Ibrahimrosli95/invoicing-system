@@ -759,7 +759,10 @@ class PricingController extends Controller
      */
     public function import()
     {
-        $this->authorize('export', PricingItem::class);
+        // Temporary bypass for debugging - only for superadmin
+        if (!auth()->user()->hasRole('superadmin')) {
+            abort(403, 'Only superadmin can access import during debugging');
+        }
 
         return view('pricing.import');
     }
