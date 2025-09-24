@@ -106,10 +106,11 @@
                                                 <div @click="selectCustomer(customer)"
                                                      class="px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0">
                                                     <div class="text-sm font-medium text-gray-900" x-text="customer.name"></div>
+                                                    <div x-show="customer.company_name" class="text-xs text-gray-600" x-text="customer.company_name"></div>
                                                     <div class="text-xs text-gray-500" x-text="customer.email || customer.phone"></div>
                                                     <div class="flex items-center mt-1">
-                                                        <span x-text="customer.type" class="inline-flex px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded"></span>
-                                                        <span x-show="customer.is_lead" class="ml-2 inline-flex px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded">From Lead</span>
+                                                        <span x-text="customer.type_badge || 'Customer'" class="inline-flex px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded"></span>
+                                                        <span x-show="customer.is_new_customer" class="ml-2 inline-flex px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded">New</span>
                                                     </div>
                                                 </div>
                                             </template>
@@ -387,7 +388,11 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Phone</label>
                                 <input type="text" x-model="newCustomer.phone"
+                                       @input="formatPhoneNumber"
+                                       placeholder="e.g., 012-345-6789"
+                                       maxlength="15"
                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                <p class="mt-1 text-xs text-gray-500">Malaysian format: 01X-XXX-XXXX or +60X-XXX-XXXX</p>
                             </div>
                         </div>
 
@@ -610,15 +615,75 @@ function invoiceBuilder() {
             };
         },
 
+        // Phone Number Formatting
+        formatPhoneNumber() {
+            let phone = this.newCustomer.phone.replace(/\D/g, ''); // Remove all non-digits
+
+            // Handle Malaysian phone formats
+            if (phone.length > 0) {
+                if (phone.startsWith('60')) {
+                    // International format: +60X-XXX-XXXX
+                    phone = phone.substring(2); // Remove country code for formatting
+                    if (phone.length >= 2) {
+                        phone = phone.substring(0, 2) + '-' + phone.substring(2);
+                    }
+                    if (phone.length >= 6) {
+                        phone = phone.substring(0, 6) + '-' + phone.substring(6, 10);
+                    }
+                    this.newCustomer.phone = '+60' + phone;
+                } else if (phone.startsWith('0')) {
+                    // Local format: 01X-XXX-XXXX
+                    if (phone.length >= 3) {
+                        phone = phone.substring(0, 3) + '-' + phone.substring(3);
+                    }
+                    if (phone.length >= 7) {
+                        phone = phone.substring(0, 7) + '-' + phone.substring(7, 11);
+                    }
+                    this.newCustomer.phone = phone;
+                } else {
+                    // Assume local number, add 0 prefix
+                    if (phone.length >= 2) {
+                        phone = '0' + phone.substring(0, 2) + '-' + phone.substring(2);
+                    }
+                    if (phone.length >= 6) {
+                        phone = phone.substring(0, 6) + '-' + phone.substring(6, 10);
+                    }
+                    this.newCustomer.phone = phone;
+                }
+            }
+        },
+
+        validatePhoneNumber(phone) {
+            // Malaysian phone number patterns
+            const patterns = [
+                /^(\+?60|0)[1-9]\d{1}-\d{3}-\d{4}$/, // Standard format with dashes
+                /^(\+?60|0)[1-9]\d{7,8}$/ // Without dashes
+            ];
+
+            return patterns.some(pattern => pattern.test(phone.replace(/\s/g, '')));
+        },
+
         // Create New Customer
         createCustomer() {
+            // Validate phone number if provided
+            if (this.newCustomer.phone && !this.validatePhoneNumber(this.newCustomer.phone)) {
+                this.$dispatch('notify', {
+                    type: 'error',
+                    message: 'Please enter a valid Malaysian phone number (e.g., 012-345-6789 or +601-234-5678)'
+                });
+                return;
+            }
+
             fetch('/customers', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
-                body: JSON.stringify(this.newCustomer)
+                body: JSON.stringify({
+                    ...this.newCustomer,
+                    company_name: this.newCustomer.company // Map company to company_name
+                })
             })
             .then(response => response.json())
             .then(data => {
@@ -788,7 +853,7 @@ function invoiceBuilder() {
 
         // Load Invoice Settings
         loadInvoiceSettings() {
-            fetch('/invoice-settings')
+            fetch('/invoice-settings/api')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.settings) {
@@ -819,7 +884,7 @@ function invoiceBuilder() {
             const invoiceData = this.getInvoiceData();
             invoiceData.status = 'DRAFT'; // Ensure it's marked as draft
 
-            fetch('/invoices', {
+            fetch('/api/invoices', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -846,7 +911,7 @@ function invoiceBuilder() {
         saveInvoice() {
             const invoiceData = this.getInvoiceData();
 
-            fetch('/invoices', {
+            fetch('/api/invoices', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -874,7 +939,17 @@ function invoiceBuilder() {
 
         getInvoiceData() {
             return {
-                customer_id: this.selectedCustomer.id,
+                // Customer information from selected customer
+                customer_name: this.selectedCustomer.name || '',
+                customer_phone: this.selectedCustomer.phone || '',
+                customer_email: this.selectedCustomer.email || '',
+                customer_address: this.selectedCustomer.address || this.selectedCustomer.full_address || '',
+                customer_city: this.selectedCustomer.city || '',
+                customer_state: this.selectedCustomer.state || '',
+                customer_postal_code: this.selectedCustomer.postal_code || '',
+                customer_segment_id: this.selectedCustomer.customer_segment_id || null,
+
+                // Invoice details
                 invoice_date: this.invoiceDate,
                 due_date: this.dueDate,
                 subtotal: this.subtotal,
@@ -885,9 +960,18 @@ function invoiceBuilder() {
                 total: this.total,
                 notes: this.notes,
                 terms_conditions: this.terms,
-                optional_sections: this.optionalSections,
-                shipping_info: this.optionalSections.show_shipping ? this.shippingInfo : null,
-                items: this.lineItems.filter(item => item.description.trim() !== '')
+
+                // Line items
+                items: this.lineItems.filter(item => item.description.trim() !== '').map(item => ({
+                    description: item.description,
+                    quantity: parseFloat(item.quantity) || 1,
+                    unit_price: parseFloat(item.unit_price) || 0,
+                    item_code: item.item_code || '',
+                    specifications: item.specifications || '',
+                    notes: item.notes || '',
+                    source_type: item.pricing_item_id ? 'pricing_item' : 'manual',
+                    source_id: item.pricing_item_id || null
+                }))
             };
         },
 

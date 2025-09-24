@@ -17,6 +17,7 @@ class Customer extends Model
         'company_id',
         'lead_id',
         'name',
+        'company_name',
         'phone',
         'email',
         'address',
@@ -139,6 +140,7 @@ class Customer extends Model
     {
         return $query->where(function ($q) use ($term) {
             $q->where('name', 'LIKE', "%{$term}%")
+              ->orWhere('company_name', 'LIKE', "%{$term}%")
               ->orWhere('phone', 'LIKE', "%{$term}%")
               ->orWhere('email', 'LIKE', "%{$term}%")
               ->orWhere('city', 'LIKE', "%{$term}%");
@@ -309,6 +311,7 @@ class Customer extends Model
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'company_name' => $this->company_name,
             'phone' => $this->phone,
             'email' => $this->email,
             'city' => $this->city,

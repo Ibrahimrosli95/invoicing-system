@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Response;
 
 class InvoiceController extends Controller
@@ -295,6 +296,115 @@ class InvoiceController extends Controller
 
         return redirect()->route('invoices.show', $invoice)
             ->with('success', 'Invoice created successfully.');
+    }
+
+    /**
+     * Store a new invoice via API (for invoice builder)
+     */
+    public function storeApi(Request $request): JsonResponse
+    {
+        $this->authorize('create', Invoice::class);
+
+        try {
+            $type = $request->input('type', Invoice::TYPE_PRODUCT);
+
+            $validated = $request->validate([
+                'type' => ['nullable', Rule::in(array_keys(Invoice::getTypes()))],
+                'quotation_id' => 'nullable|exists:quotations,id',
+                'team_id' => 'nullable|exists:teams,id',
+                'assigned_to' => 'nullable|exists:users,id',
+                'customer_segment_id' => 'nullable|exists:customer_segments,id',
+                'customer_name' => 'required|string|max:100',
+                'customer_phone' => 'required|string|max:20',
+                'customer_email' => 'nullable|email|max:100',
+                'customer_address' => 'nullable|string',
+                'customer_city' => 'nullable|string|max:100',
+                'customer_state' => 'nullable|string|max:100',
+                'customer_postal_code' => 'nullable|string|max:20',
+                'title' => 'nullable|string|max:150',
+                'description' => 'nullable|string',
+                'terms_conditions' => 'nullable|string',
+                'notes' => 'nullable|string',
+                'invoice_date' => 'required|date',
+                'due_date' => 'required|date|after_or_equal:invoice_date',
+                'payment_terms_days' => 'nullable|integer|min:0|max:365',
+                'payment_terms' => 'nullable|integer|min:0|max:365',
+                'tax_percentage' => 'nullable|numeric|min:0|max:100',
+                'discount_percentage' => 'nullable|numeric|min:0|max:100',
+                'status' => 'nullable|in:DRAFT,SENT',
+                'items' => 'required|array|min:1',
+                'items.*.description' => 'required|string|max:500',
+                'items.*.unit' => 'nullable|string|max:20',
+                'items.*.quantity' => 'required|numeric|min:0.01',
+                'items.*.unit_price' => 'required|numeric|min:0',
+                'items.*.item_code' => 'nullable|string|max:100',
+                'items.*.specifications' => 'nullable|string',
+                'items.*.notes' => 'nullable|string',
+                'items.*.source_type' => 'nullable|string|in:pricing_item,service_template_item,manual',
+                'items.*.source_id' => 'nullable|integer',
+            ]);
+
+            $validated['type'] = $type;
+            $validated['payment_terms'] = $validated['payment_terms'] ?? $validated['payment_terms_days'] ?? 30;
+            unset($validated['payment_terms_days']);
+
+            $validated['company_id'] = auth()->user()->company_id;
+            $validated['created_by'] = auth()->id();
+            $validated['status'] = $validated['status'] ?? Invoice::STATUS_DRAFT;
+
+            $items = $validated['items'];
+            unset($validated['items']);
+
+            $invoice = Invoice::create($validated);
+
+            foreach ($items as $index => $item) {
+                InvoiceItem::create([
+                    'invoice_id' => $invoice->id,
+                    'description' => $item['description'],
+                    'unit' => $item['unit'] ?? 'pcs',
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'item_code' => $item['item_code'] ?? null,
+                    'specifications' => $item['specifications'] ?? null,
+                    'notes' => $item['notes'] ?? null,
+                    'source_type' => $item['source_type'] ?? null,
+                    'source_id' => $item['source_id'] ?? null,
+                    'sort_order' => $index,
+                ]);
+            }
+
+            $invoice->fresh()->calculateTotals();
+            $invoice->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Invoice created successfully.',
+                'invoice' => [
+                    'id' => $invoice->id,
+                    'number' => $invoice->number,
+                    'status' => $invoice->status,
+                    'total' => $invoice->total,
+                ]
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Invoice creation failed', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+                'request_data' => $request->all()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create invoice. Please try again.'
+            ], 500);
+        }
     }
 
     /**
