@@ -187,6 +187,12 @@ Route::middleware('auth')->group(function () {
     Route::get('pricing-export', [PricingController::class, 'export'])->name('pricing.export');
     Route::get('pricing-popular', [PricingController::class, 'popular'])->name('pricing.popular');
 
+    // Pricing Category Management (must come before main pricing resource to avoid conflicts)
+    Route::resource('pricing/categories', PricingCategoryController::class, ['as' => 'pricing']);
+    Route::post('pricing/categories/{category}/duplicate', [PricingCategoryController::class, 'duplicate'])->name('pricing.categories.duplicate');
+    Route::patch('pricing/categories/{category}/toggle-status', [PricingCategoryController::class, 'toggleStatus'])->name('pricing.categories.toggle-status');
+    Route::post('pricing/categories/ajax-store', [PricingCategoryController::class, 'ajaxStore'])->name('pricing.categories.ajax-store');
+
     // Main Resource Routes
     Route::resource('pricing', PricingController::class);
     Route::post('pricing/{pricing}/duplicate', [PricingController::class, 'duplicate'])->name('pricing.duplicate');
@@ -206,12 +212,6 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('customer-segments.index');
     })->name('pricing.segments');
 
-    // Pricing Category Management
-    Route::resource('pricing/categories', PricingCategoryController::class, ['as' => 'pricing']);
-    Route::post('pricing/categories/{category}/duplicate', [PricingCategoryController::class, 'duplicate'])->name('pricing.categories.duplicate');
-    Route::patch('pricing/categories/{category}/toggle-status', [PricingCategoryController::class, 'toggleStatus'])->name('pricing.categories.toggle-status');
-    Route::post('pricing/categories/ajax-store', [PricingCategoryController::class, 'ajaxStore'])->name('pricing.categories.ajax-store');
-    
     // Reports & Analytics
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('reports/builder', [ReportController::class, 'builder'])->name('reports.builder');
