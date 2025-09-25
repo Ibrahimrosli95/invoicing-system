@@ -29,11 +29,11 @@
     <div>
         <!-- Document Preview Area -->
         <div class="flex-1 min-h-screen">
-            <div class="max-w-4xl mx-auto p-8">
+            <div class="max-w-4xl mx-auto p-10">
                 <!-- Invoice Document -->
-                <div class="bg-white shadow-xl rounded-lg overflow-hidden border border-gray-200">
+                <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
                     <!-- Document Header -->
-                    <div class="px-12 py-8 border-b border-gray-200">
+                    <div class="px-16 py-10 border-b border-gray-200">
                         <div class="flex justify-between items-start">
                             <!-- Company Info -->
                             <div class="flex-1">
@@ -80,7 +80,7 @@
                     </div>
 
                     <!-- Customer Information -->
-                    <div class="px-12 py-8 bg-gray-50 border-b border-gray-200">
+                    <div class="px-16 py-10 bg-gray-50 border-b border-gray-200">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <!-- Bill To -->
                             <div>
@@ -185,22 +185,23 @@
                         </div>
                     </div>
 
-                    <!-- Line Items Table -->
-                    <div class="px-12 py-8">
-                        <table class="w-full">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Qty</th>
-                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Rate</th>
-                                    <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Total</th>
-                                    <th class="w-10"></th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
+                    <!-- Line Items Table - Desktop -->
+                    <div class="hidden md:block px-16 py-10">
+                        <div class="overflow-hidden rounded-xl border border-gray-200">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Qty</th>
+                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Rate</th>
+                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Total</th>
+                                        <th class="w-10"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
                                 <template x-for="(item, index) in lineItems" :key="index">
                                     <tr>
-                                        <td class="px-4 py-3 relative">
+                                        <td class="px-6 py-4 relative">
                                             <div class="relative">
                                                 <input type="text"
                                                        x-model="item.description"
@@ -230,18 +231,18 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-4 py-3 text-right">
+                                        <td class="px-6 py-4 text-right">
                                             <input type="number" x-model="item.quantity" @input="calculateTotals"
                                                    class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px]" min="1" step="1">
                                         </td>
-                                        <td class="px-4 py-3 text-right">
+                                        <td class="px-6 py-4 text-right">
                                             <input type="number" x-model="item.unit_price" @input="calculateTotals"
                                                    class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px]" min="0" step="0.01" style="min-width: 120px;">
                                         </td>
-                                        <td class="px-4 py-3 text-right text-sm font-medium">
+                                        <td class="px-6 py-4 text-right text-sm font-medium">
                                             RM <span x-text="(item.quantity * item.unit_price).toFixed(2)">0.00</span>
                                         </td>
-                                        <td class="px-4 py-3 text-center">
+                                        <td class="px-6 py-4 text-center">
                                             <button @click="removeLineItem(index)" type="button"
                                                     class="text-red-400 hover:text-red-600">
                                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -254,7 +255,7 @@
 
                                 <!-- Add Item Row -->
                                 <tr class="bg-gray-50">
-                                    <td colspan="5" class="px-4 py-3">
+                                    <td colspan="5" class="px-6 py-4">
                                         <button @click="addLineItem" type="button"
                                                 class="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100">
                                             <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -265,11 +266,88 @@
                                     </td>
                                 </tr>
                             </tbody>
-                        </table>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Line Items Cards - Mobile -->
+                    <div class="md:hidden px-16 py-10 space-y-4">
+                        <template x-for="(item, index) in lineItems" :key="index">
+                            <div class="rounded-lg border border-gray-200 bg-white shadow-sm">
+                                <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="text-sm font-medium text-gray-900" x-text="`Item ${index + 1}`"></h4>
+                                        <button @click="removeLineItem(index)" type="button"
+                                                class="text-red-400 hover:text-red-600">
+                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="px-4 py-3 space-y-3">
+                                    <!-- Description -->
+                                    <div class="relative">
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Description</label>
+                                        <input type="text" x-model="item.description"
+                                               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                                               placeholder="Item description">
+                                        <div x-show="showPricingDropdown === index" x-transition
+                                             class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                            <template x-for="(suggestion, suggestionIndex) in pricingSuggestions" :key="suggestionIndex">
+                                                <div @click="selectPricingItem(index, suggestion)"
+                                                     class="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0">
+                                                    <div class="font-medium text-sm text-gray-900" x-text="suggestion.name"></div>
+                                                    <div class="text-xs text-gray-500">
+                                                        <span x-text="suggestion.item_code"></span> •
+                                                        <span x-text="'RM ' + parseFloat(suggestion.unit_price).toFixed(2)"></span>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <!-- Quantity and Rate Row -->
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Qty</label>
+                                            <input type="number" x-model="item.quantity" @input="calculateTotals"
+                                                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-right focus:ring-blue-500 focus:border-blue-500"
+                                                   min="1" step="1">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-700 mb-1">Rate (RM)</label>
+                                            <input type="number" x-model="item.unit_price" @input="calculateTotals"
+                                                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-right focus:ring-blue-500 focus:border-blue-500"
+                                                   min="0" step="0.01">
+                                        </div>
+                                    </div>
+
+                                    <!-- Total -->
+                                    <div class="pt-2 border-t border-gray-100">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm font-medium text-gray-700">Total:</span>
+                                            <span class="text-sm font-semibold text-gray-900">
+                                                RM <span x-text="(item.quantity * item.unit_price).toFixed(2)">0.00</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Add Item Button - Mobile -->
+                        <button @click="addLineItem" type="button"
+                                class="w-full flex items-center justify-center px-4 py-3 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100">
+                            <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Add Line Item
+                        </button>
                     </div>
 
                     <!-- Totals Section -->
-                    <div class="px-12 py-8 bg-gray-50 border-t border-gray-200">
+                    <div class="px-16 py-10 bg-gray-50 border-t border-gray-200">
                         <div class="flex justify-end">
                             <div class="w-80 space-y-2">
                                 <div class="flex justify-between text-sm">
@@ -306,7 +384,7 @@
                     </div>
 
                     <!-- Payment Instructions (if enabled) -->
-                    <div x-show="optionalSections.show_payment_instructions" class="px-12 py-8 border-t border-gray-200">
+                    <div x-show="optionalSections.show_payment_instructions" class="px-16 py-10 border-t border-gray-200">
                         <h3 class="text-sm font-semibold text-gray-900 mb-3">Payment Instructions</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
                             <div>
@@ -323,7 +401,7 @@
                     </div>
 
                     <!-- Notes and Terms -->
-                    <div class="px-12 py-8 border-t border-gray-200">
+                    <div class="px-16 py-10 border-t border-gray-200">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div>
                                 <div class="flex items-center justify-between mb-3">
@@ -355,7 +433,7 @@
                     </div>
 
                     <!-- Signatures (if enabled) -->
-                    <div x-show="optionalSections.show_signatures" class="px-12 py-8 border-t border-gray-200">
+                    <div x-show="optionalSections.show_signatures" class="px-16 py-10 border-t border-gray-200">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div>
                                 <div class="h-20 border-t border-gray-400 mt-8">
