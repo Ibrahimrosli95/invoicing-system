@@ -91,16 +91,16 @@ Edit: {{ $pricingItem->name }}
                                     </div>
 
                                     <div>
-                                        <x-input-label for="selling_price" :value="__('Selling Price (RM)')" />
-                                        <x-text-input id="selling_price"
-                                                      name="selling_price"
+                                        <x-input-label for="unit_price" :value="__('Unit Price (RM)')" />
+                                        <x-text-input id="unit_price"
+                                                      name="unit_price"
                                                       type="number"
                                                       step="0.01"
                                                       min="0"
                                                       class="mt-1 block w-full"
-                                                      :value="old('selling_price', $pricingItem->selling_price)"
+                                                      :value="old('unit_price', $pricingItem->unit_price)"
                                                       required />
-                                        <x-input-error class="mt-2" :messages="$errors->get('selling_price')" />
+                                        <x-input-error class="mt-2" :messages="$errors->get('unit_price')" />
                                     </div>
 
                                     <div>
@@ -116,16 +116,17 @@ Edit: {{ $pricingItem->name }}
                                     </div>
 
                                     <div>
-                                        <x-input-label for="target_margin_percentage" :value="__('Target Margin %')" />
-                                        <x-text-input id="target_margin_percentage"
-                                                      name="target_margin_percentage"
+                                        <x-input-label for="markup_percentage" :value="__('Markup Percentage (%)')" />
+                                        <x-text-input id="markup_percentage"
+                                                      name="markup_percentage"
                                                       type="number"
                                                       step="0.01"
                                                       min="0"
-                                                      max="100"
+                                                      max="1000"
                                                       class="mt-1 block w-full"
-                                                      :value="old('target_margin_percentage', $pricingItem->target_margin_percentage)" />
-                                        <x-input-error class="mt-2" :messages="$errors->get('target_margin_percentage')" />
+                                                      :value="old('markup_percentage', $pricingItem->markup_percentage)" />
+                                        <x-input-error class="mt-2" :messages="$errors->get('markup_percentage')" />
+                                        <p class="mt-1 text-sm text-gray-500">Percentage markup over cost price.</p>
                                     </div>
                                 </div>
 

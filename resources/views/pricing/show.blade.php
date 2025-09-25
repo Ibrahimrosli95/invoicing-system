@@ -77,7 +77,7 @@
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Selling Price</dt>
-                                    <dd class="mt-1 text-lg font-semibold text-blue-600">RM {{ number_format($pricingItem->selling_price, 2) }}</dd>
+                                    <dd class="mt-1 text-lg font-semibold text-blue-600">RM {{ number_format($pricingItem->unit_price, 2) }}</dd>
                                 </div>
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Minimum Price</dt>
@@ -87,8 +87,8 @@
                                     <dt class="text-sm font-medium text-gray-500">Margin</dt>
                                     <dd class="mt-1 text-sm text-gray-900">
                                         {{ number_format($pricingItem->getMarginPercentage(), 2) }}%
-                                        @if($pricingItem->target_margin_percentage)
-                                            <span class="text-gray-500">(Target: {{ number_format($pricingItem->target_margin_percentage, 2) }}%)</span>
+                                        @if($pricingItem->markup_percentage)
+                                            <span class="text-gray-500">(Markup: {{ number_format($pricingItem->markup_percentage, 2) }}%)</span>
                                         @endif
                                     </dd>
                                 </div>

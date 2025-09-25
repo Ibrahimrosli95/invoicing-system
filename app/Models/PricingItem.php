@@ -918,4 +918,29 @@ class PricingItem extends Model
 
         return $data;
     }
+
+    /**
+     * Get margin percentage based on unit price and cost price
+     */
+    public function getMarginPercentage(): float
+    {
+        if (!$this->unit_price || $this->unit_price <= 0 || !$this->cost_price || $this->cost_price <= 0) {
+            return 0;
+        }
+
+        $marginAmount = $this->unit_price - $this->cost_price;
+        return ($marginAmount / $this->unit_price) * 100;
+    }
+
+    /**
+     * Get profit amount based on unit price and cost price
+     */
+    public function getProfit(): float
+    {
+        if (!$this->unit_price || !$this->cost_price) {
+            return 0;
+        }
+
+        return $this->unit_price - $this->cost_price;
+    }
 }
