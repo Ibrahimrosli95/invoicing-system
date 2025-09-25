@@ -29,16 +29,41 @@
     <div>
         <!-- Document Preview Area -->
         <div class="flex-1 min-h-screen">
-            <div class="max-w-4xl mx-auto p-10">
+            <div class="max-w-4xl mx-auto px-10 md:px-12 lg:px-16 py-10">
                 <!-- Invoice Document -->
                 <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
                     <!-- Document Header -->
-                    <div class="px-16 py-10 border-b border-gray-200">
-                        <div class="flex justify-between items-start">
-                            <!-- Company Info -->
-                            <div class="flex-1">
-                                <div x-show="optionalSections.show_company_logo" class="mb-4 relative group">
-                                    <img :src="companyLogo" alt="Company Logo" class="h-12 cursor-pointer" @click="$refs.logoUpload.click()">
+                    <div class="px-14 py-12 lg:px-18">
+                        <!-- Header Top Section -->
+                        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-8">
+                            <!-- Company Info - Left Column -->
+                            <div class="w-full lg:w-2/3 pr-0 lg:pr-8 space-y-3 mb-6 lg:mb-0">
+                                <h1 class="text-2xl font-bold text-blue-600 leading-tight">
+                                    {{ auth()->user()->company->name ?? 'Company Name' }}
+                                </h1>
+                                <div class="text-sm text-gray-700 space-y-1.5 leading-relaxed">
+                                    <div class="font-medium">{{ auth()->user()->company->address ?? '123 Business Street' }}</div>
+                                    <div>{{ auth()->user()->company->city ?? 'City' }}, {{ auth()->user()->company->state ?? 'State' }} {{ auth()->user()->company->postal_code ?? '12345' }}</div>
+                                    <div class="pt-1 space-y-1">
+                                        <div>
+                                            <span class="inline-block w-12 text-gray-500 text-xs uppercase tracking-wide">Phone:</span>
+                                            <span class="font-medium">{{ auth()->user()->company->phone ?? '+60 12-345 6789' }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="inline-block w-12 text-gray-500 text-xs uppercase tracking-wide">Email:</span>
+                                            <span class="font-medium">{{ auth()->user()->company->email ?? 'info@company.com' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Invoice Title and Logo - Right Column -->
+                            <div class="flex flex-col items-center lg:items-end space-y-4 w-full lg:w-1/3">
+                                <h2 class="text-3xl font-bold text-gray-900">INVOICE</h2>
+
+                                <!-- Logo Section -->
+                                <div x-show="optionalSections.show_company_logo" class="relative group">
+                                    <img :src="companyLogo" alt="Company Logo" class="h-16 cursor-pointer" @click="$refs.logoUpload.click()">
                                     <input type="file" x-ref="logoUpload" @change="handleLogoUpload" accept="image/*" class="hidden">
                                     <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded" @click="$refs.logoUpload.click()">
                                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,46 +71,58 @@
                                         </svg>
                                     </div>
                                 </div>
-                                <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ auth()->user()->company->name }}</h1>
-                                <div class="text-sm text-gray-600 space-y-1">
-                                    <div>{{ auth()->user()->company->address }}</div>
-                                    <div>{{ auth()->user()->company->city }}, {{ auth()->user()->company->state }} {{ auth()->user()->company->postal_code }}</div>
-                                    <div>{{ auth()->user()->company->phone }} • {{ auth()->user()->company->email }}</div>
+
+                                <!-- Logo Action Buttons -->
+                                <div x-show="optionalSections.show_company_logo" class="flex space-x-2">
+                                    <button @click="$refs.logoUpload.click()" class="px-3 py-1 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-200 rounded-full hover:bg-amber-200 transition-colors">
+                                        Change Logo
+                                    </button>
+                                    <button @click="companyLogo = '/images/placeholder-logo.png'" class="px-3 py-1 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-200 rounded-full hover:bg-amber-200 transition-colors">
+                                        Remove Logo
+                                    </button>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Invoice Details -->
-                            <div class="text-right">
-                                <h2 class="text-3xl font-bold text-blue-600 mb-4">INVOICE</h2>
-                                <div class="space-y-2 text-sm">
-                                    <div class="flex justify-end">
-                                        <span class="w-24 text-gray-600">Invoice #:</span>
-                                        <span class="font-mono" x-text="invoiceNumber">INV-2025-000001</span>
-                                    </div>
-                                    <div class="flex justify-end">
-                                        <span class="w-24 text-gray-600">Date:</span>
-                                        <input type="text" x-model="invoiceDateDisplay" @input="updateInvoiceDate"
-                                               placeholder="DD/MM/YYYY" maxlength="10"
-                                               class="font-mono border-0 bg-transparent text-right p-0 focus:ring-0 w-32">
-                                    </div>
-                                    <div class="flex justify-end">
-                                        <span class="w-24 text-gray-600">Due Date:</span>
-                                        <input type="text" x-model="dueDateDisplay" @input="updateDueDate"
-                                               placeholder="DD/MM/YYYY" maxlength="10"
-                                               class="font-mono border-0 bg-transparent text-right p-0 focus:ring-0 w-32">
-                                    </div>
+                        <!-- Invoice Metadata Section -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 pt-8 border-t border-gray-200">
+                            <!-- Left: Bill To Header -->
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Bill To</h3>
+                            </div>
+
+                            <!-- Right: Invoice Metadata -->
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-sm font-medium text-gray-600">Invoice #:</span>
+                                    <span class="text-sm font-mono font-semibold" x-text="invoiceNumber">INV-2025-000001</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm font-medium text-gray-600">Invoice Date:</span>
+                                    <input type="text" x-model="invoiceDateDisplay" @input="updateInvoiceDate"
+                                           placeholder="DD/MM/YYYY" maxlength="10"
+                                           class="text-sm font-mono font-semibold border-0 bg-transparent text-right p-0 focus:ring-0 w-24">
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm font-medium text-gray-600">Due Date:</span>
+                                    <input type="text" x-model="dueDateDisplay" @input="updateDueDate"
+                                           placeholder="DD/MM/YYYY" maxlength="10"
+                                           class="text-sm font-mono font-semibold border-0 bg-transparent text-right p-0 focus:ring-0 w-24">
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm font-medium text-gray-600">PO No:</span>
+                                    <input type="text" placeholder="Optional"
+                                           class="text-sm font-mono font-semibold border-0 bg-transparent text-right p-0 focus:ring-0 w-24">
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Customer Information -->
-                    <div class="px-16 py-10 bg-gray-50 border-b border-gray-200">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <!-- Bill To -->
+                    <div class="px-16 py-10 bg-gray-50 border-t-2 border-gray-100 border-b border-gray-200">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <!-- Customer Selection -->
                             <div>
-                                <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">Bill To</h3>
-
                                 <!-- Customer Selection -->
                                 <div x-show="!selectedCustomer.name" class="mb-4">
                                     <div class="relative">
