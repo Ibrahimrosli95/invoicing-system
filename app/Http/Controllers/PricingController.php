@@ -182,15 +182,15 @@ class PricingController extends Controller
             unset($validated['segment_prices']);
 
             // Set defaults
-            $validated['is_active'] = $validated['is_active'] ?? false;
+            $validated['is_active'] = $validated['is_active'] ?? true;
 
             // Create the pricing item
             $item = PricingItem::create($validated);
 
             DB::commit();
 
-            return redirect()->route('pricing.show', $item)
-                ->with('success', 'Pricing item created successfully with segment pricing.');
+            return redirect()->route('pricing.index')
+                ->with('success', 'Pricing item "' . $item->name . '" created successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
