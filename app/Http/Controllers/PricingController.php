@@ -1033,12 +1033,16 @@ class PricingController extends Controller
      */
     public function searchApi(Request $request)
     {
-        $query = $request->get('query', '');
+        // Accept both 'q' and 'query' parameters for compatibility
+        $query = $request->get('q', '');
+        if (empty($query)) {
+            $query = $request->get('query', '');
+        }
         $category = $request->get('category', '');
         $limit = $request->get('limit', 50);
 
         if (strlen($query) < 2 && empty($category)) {
-            return response()->json(['products' => []]);
+            return response()->json(['items' => []]);
         }
 
         $products = PricingItem::query()
@@ -1058,7 +1062,7 @@ class PricingController extends Controller
             $products->inCategory($category);
         }
 
-        $products = $products->orderBy('name')
+        $items = $products->orderBy('name')
             ->limit($limit)
             ->get()
             ->map(function ($item) {
@@ -1067,7 +1071,8 @@ class PricingController extends Controller
                     'name' => $item->name,
                     'item_code' => $item->item_code,
                     'description' => $item->description,
-                    'unit_price' => $item->unit_price,
+                    'unit_price' => number_format($item->unit_price, 2),
+                    'unit_price_raw' => $item->unit_price,
                     'segment_pricing' => $item->segmentPricing->map(function ($sp) {
                         return [
                             'customer_segment_id' => $sp->customer_segment_id,
@@ -1084,7 +1089,7 @@ class PricingController extends Controller
                 ];
             });
 
-        return response()->json(['products' => $products]);
+        return response()->json(['items' => $items]);
     }
 
     /**

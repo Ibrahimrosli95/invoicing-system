@@ -207,13 +207,14 @@
                                                        @input="searchPricingItems(index)"
                                                        @focus="showPricingDropdown[index] = true"
                                                        placeholder="Search pricing book or enter custom description..."
-                                                       class="w-full border-0 bg-transparent p-0 text-sm focus:ring-0">
+                                                       class="w-full border-0 bg-transparent py-2 text-sm focus:ring-0 min-h-[40px]">
 
                                                 <!-- Pricing Items Dropdown -->
                                                 <div x-show="showPricingDropdown[index] && pricingResults[index] && pricingResults[index].length > 0"
                                                      x-transition:enter="transition ease-out duration-100"
                                                      x-transition:enter-start="transform opacity-0 scale-95"
                                                      x-transition:enter-end="transform opacity-100 scale-100"
+                                                     @click.outside="showPricingDropdown[index] = false"
                                                      class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
                                                     <template x-for="pricingItem in pricingResults[index]" :key="pricingItem.id">
                                                         <div @click="selectPricingItem(index, pricingItem)"
@@ -231,11 +232,11 @@
                                         </td>
                                         <td class="px-4 py-3 text-right">
                                             <input type="number" x-model="item.quantity" @input="calculateTotals"
-                                                   class="w-full border-0 bg-transparent p-0 text-sm text-right focus:ring-0" min="1" step="0.01">
+                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px]" min="1" step="0.01">
                                         </td>
                                         <td class="px-4 py-3 text-right">
                                             <input type="number" x-model="item.unit_price" @input="calculateTotals"
-                                                   class="w-full border-0 bg-transparent p-0 text-sm text-right focus:ring-0" min="0" step="0.01">
+                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px]" min="0" step="0.01">
                                         </td>
                                         <td class="px-4 py-3 text-right text-sm font-medium">
                                             RM <span x-text="(item.quantity * item.unit_price).toFixed(2)">0.00</span>
@@ -456,6 +457,7 @@ function invoiceBuilder() {
         // Pricing Book Integration
         showPricingDropdown: {},
         pricingResults: {},
+        searchTimeout: null,
 
         // New Customer Form
         newCustomer: {
@@ -748,28 +750,39 @@ function invoiceBuilder() {
             };
         },
 
-        // Pricing Book Search
+        // Pricing Book Search with debounce
         searchPricingItems(index) {
             const item = this.lineItems[index];
             if (item.description.length < 2) {
                 this.pricingResults[index] = [];
+                this.showPricingDropdown[index] = false;
                 return;
             }
 
-            fetch(`/pricing-items/search?q=${encodeURIComponent(item.description)}`)
-                .then(response => response.json())
-                .then(data => {
-                    this.pricingResults[index] = data.items || [];
-                })
-                .catch(error => {
-                    console.error('Pricing search error:', error);
-                    this.pricingResults[index] = [];
-                });
+            // Clear previous timeout
+            if (this.searchTimeout) {
+                clearTimeout(this.searchTimeout);
+            }
+
+            // Set new timeout for debounced search
+            this.searchTimeout = setTimeout(() => {
+                fetch(`/pricing-items/search?q=${encodeURIComponent(item.description)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        this.pricingResults[index] = data.items || [];
+                        this.showPricingDropdown[index] = true;
+                    })
+                    .catch(error => {
+                        console.error('Pricing search error:', error);
+                        this.pricingResults[index] = [];
+                        this.showPricingDropdown[index] = false;
+                    });
+            }, 300); // 300ms debounce delay
         },
 
         selectPricingItem(index, pricingItem) {
-            this.lineItems[index].description = pricingItem.name + ' - ' + pricingItem.description;
-            this.lineItems[index].unit_price = parseFloat(pricingItem.unit_price);
+            this.lineItems[index].description = pricingItem.name;
+            this.lineItems[index].unit_price = parseFloat(pricingItem.unit_price_raw || pricingItem.unit_price);
             this.lineItems[index].pricing_item_id = pricingItem.id;
             this.lineItems[index].item_code = pricingItem.item_code;
 
