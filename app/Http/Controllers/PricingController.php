@@ -189,6 +189,12 @@ class PricingController extends Controller
             // Remove segment_prices from validated as it's not a database column
             unset($validated['segment_prices']);
 
+            // Map category_id to pricing_category_id for database column
+            if (isset($validated['category_id'])) {
+                $validated['pricing_category_id'] = $validated['category_id'];
+                unset($validated['category_id']);
+            }
+
             // Set defaults
             $validated['is_active'] = $validated['is_active'] ?? true;
 
