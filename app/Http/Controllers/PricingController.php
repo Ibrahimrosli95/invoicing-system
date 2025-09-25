@@ -1099,39 +1099,45 @@ class PricingController extends Controller
             return response()->json(['segment_price' => $item->unit_price]);
         }
 
-        $segmentPricing = $item->segmentPricing()
-            ->where('customer_segment_id', $segmentId)
-            ->first();
-
-        $segmentPrice = $segmentPricing ? $segmentPricing->unit_price : $item->unit_price;
+        // Use the existing segment pricing system
+        $segmentPrice = $item->getSellingPriceForSegment($segmentId);
+        $hasSegmentPricing = $item->hasSegmentPricing() && isset($item->segment_selling_prices[$segmentId]);
 
         return response()->json([
             'segment_price' => $segmentPrice,
             'unit_price' => $item->unit_price,
-            'has_segment_pricing' => $segmentPricing !== null,
+            'has_segment_pricing' => $hasSegmentPricing,
         ]);
     }
 
     /**
-     * Get item tier pricing (API endpoint).
+     * Get item segment pricing with quantity (API endpoint).
      */
     public function getItemTierPricing(Request $request, PricingItem $item)
     {
         $quantity = (float) $request->get('quantity', 1);
+        $segmentId = $request->get('segment_id');
 
-        $tierPricing = $item->tierPricing()
-            ->where('min_quantity', '<=', $quantity)
-            ->orderBy('min_quantity', 'desc')
-            ->first();
-
-        if ($tierPricing && $tierPricing->unit_price < $item->unit_price) {
-            $savings = ($item->unit_price - $tierPricing->unit_price) * $quantity;
+        if (!$segmentId) {
             return response()->json([
-                'tier_price' => $tierPricing->unit_price,
+                'tier_price' => null,
+                'unit_price' => $item->unit_price,
+                'savings' => 0,
+                'tier_info' => null,
+            ]);
+        }
+
+        // Use segment pricing (no tiers, just segment-based pricing)
+        $segmentPrice = $item->getSellingPriceForSegment($segmentId);
+        $savings = ($item->unit_price - $segmentPrice) * $quantity;
+
+        if ($savings > 0) {
+            return response()->json([
+                'tier_price' => $segmentPrice,
                 'unit_price' => $item->unit_price,
                 'savings' => $savings,
-                'tier_info' => "Tier pricing: Save RM {$savings}",
-                'min_quantity' => $tierPricing->min_quantity,
+                'tier_info' => "Segment pricing: Save RM " . number_format($savings, 2),
+                'tier_range' => null,
             ]);
         }
 
