@@ -109,7 +109,7 @@
                                                     <div x-show="customer.company_name" class="text-xs text-gray-600" x-text="customer.company_name"></div>
                                                     <div class="text-xs text-gray-500" x-text="customer.email || customer.phone"></div>
                                                     <div class="flex items-center mt-1">
-                                                        <span x-text="customer.type_badge || 'Customer'" class="inline-flex px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded"></span>
+                                                        <span x-text="customer.customer_segment || 'Customer'" class="inline-flex px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-800 rounded"></span>
                                                         <span x-show="customer.is_new_customer" class="ml-2 inline-flex px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded">New</span>
                                                     </div>
                                                 </div>
