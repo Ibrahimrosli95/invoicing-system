@@ -236,7 +236,7 @@
                                         </td>
                                         <td class="px-4 py-3 text-right">
                                             <input type="number" x-model="item.unit_price" @input="calculateTotals"
-                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px] w-32" min="0" step="0.01">
+                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px]" min="0" step="0.01" style="min-width: 120px;">
                                         </td>
                                         <td class="px-4 py-3 text-right text-sm font-medium">
                                             RM <span x-text="(item.quantity * item.unit_price).toFixed(2)">0.00</span>
