@@ -231,11 +231,11 @@
                                 @endforeach
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex justify-end space-x-2">
-                                        <a href="{{ route('pricing.edit', $item) }}"
+                                        <a href="{{ route('pricing.edit', $item->id) }}"
                                            class="text-blue-600 hover:text-blue-900">
                                             Edit
                                         </a>
-                                        <a href="{{ route('pricing.show', $item) }}"
+                                        <a href="{{ route('pricing.show', $item->id) }}"
                                            class="text-gray-600 hover:text-gray-900">
                                             View
                                         </a>
