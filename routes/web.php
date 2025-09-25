@@ -201,11 +201,10 @@ Route::middleware('auth')->group(function () {
     Route::post('pricing/{pricing}/bulk-create-tiers', [PricingController::class, 'bulkCreateTiers'])->name('pricing.bulk-create-tiers');
     Route::post('pricing/get-segment-pricing', [PricingController::class, 'getSegmentPricing'])->name('pricing.get-segment-pricing');
     
-    // Customer Segment Management
-    Route::get('pricing/segments', [PricingController::class, 'segments'])->name('pricing.segments');
-    Route::post('pricing/segments', [PricingController::class, 'storeSegment'])->name('pricing.store-segment');
-    Route::patch('pricing/segments/{segment}', [PricingController::class, 'updateSegment'])->name('pricing.update-segment');
-    Route::patch('pricing/segments/{segment}/toggle', [PricingController::class, 'toggleSegment'])->name('pricing.toggle-segment');
+    // Customer Segment Management (redirect to customer-segments)
+    Route::get('pricing/segments', function() {
+        return redirect()->route('customer-segments.index');
+    })->name('pricing.segments');
 
     // Pricing Category Management
     Route::resource('pricing/categories', PricingCategoryController::class, ['as' => 'pricing']);
