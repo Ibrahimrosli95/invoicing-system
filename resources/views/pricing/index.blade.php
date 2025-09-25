@@ -231,14 +231,26 @@
                                 @endforeach
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex justify-end space-x-2">
-                                        <a href="{{ route('pricing.edit', $item->id) }}"
-                                           class="text-blue-600 hover:text-blue-900">
-                                            Edit
-                                        </a>
                                         <a href="{{ route('pricing.show', $item->id) }}"
                                            class="text-gray-600 hover:text-gray-900">
                                             View
                                         </a>
+                                        <a href="{{ route('pricing.edit', $item->id) }}"
+                                           class="text-blue-600 hover:text-blue-900">
+                                            Edit
+                                        </a>
+                                        @can('delete', $item)
+                                            <form method="POST" action="{{ route('pricing.destroy', $item->id) }}"
+                                                  class="inline"
+                                                  onsubmit="return confirm('Are you sure you want to delete this pricing item? This action cannot be undone.')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                        class="text-red-600 hover:text-red-900">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

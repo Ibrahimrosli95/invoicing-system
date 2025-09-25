@@ -805,7 +805,7 @@ class PricingController extends Controller
             'description',
             'category',
             'cost_price',
-            'base_price',
+            'unit_price',
             'is_active',
         ];
 
@@ -821,14 +821,28 @@ class PricingController extends Controller
             'This is a sample product description',
             $categories->first()->name ?? 'Construction Materials',
             '100.00',
-            '120.00',
+            '120.00',  // Unit price (will be updated to highest segment price)
             'TRUE',
         ];
 
-        // Add sample segment prices
-        foreach ($segments as $segment) {
-            $sampleData[] = $segment->name === 'End User' ? '150.00' :
-                           ($segment->name === 'Contractor' ? '140.00' : '125.00');
+        // Generate dynamic sample segment prices based on actual segments
+        $segmentPrices = [];
+        $costPrice = 100.00; // Cost price from sample data
+        $basePriceMargin = 20.00; // Base margin above cost
+        $segmentIncrement = 15.00; // Price increment between segments
+
+        foreach ($segments as $index => $segment) {
+            // Create tiered pricing: higher segment index = higher price
+            // Each segment gets progressively higher pricing
+            $segmentPrice = $costPrice + $basePriceMargin + ($index * $segmentIncrement);
+            $sampleData[] = number_format($segmentPrice, 2);
+            $segmentPrices[] = $segmentPrice;
+        }
+
+        // Update unit_price to be the highest segment price (follows business rule)
+        if (!empty($segmentPrices)) {
+            $highestPrice = max($segmentPrices);
+            $sampleData[5] = number_format($highestPrice, 2); // Index 5 is unit_price
         }
 
         // Create CSV content
@@ -875,7 +889,7 @@ class PricingController extends Controller
             $headers = array_map('strtolower', array_shift($csvData));
 
             // Validate headers
-            $requiredHeaders = ['name', 'category', 'cost_price', 'base_price'];
+            $requiredHeaders = ['name', 'category', 'cost_price', 'unit_price'];
             $missingHeaders = array_diff($requiredHeaders, $headers);
 
             if (!empty($missingHeaders)) {
@@ -910,7 +924,7 @@ class PricingController extends Controller
                     $data = array_combine($headers, $row);
 
                     // Validate required fields
-                    if (empty($data['name']) || empty($data['category']) || empty($data['base_price'])) {
+                    if (empty($data['name']) || empty($data['category']) || empty($data['unit_price'])) {
                         throw new \Exception("Missing required fields");
                     }
 
@@ -942,7 +956,7 @@ class PricingController extends Controller
                         'description' => $data['description'] ?? null,
                         'pricing_category_id' => $categoryId,
                         'cost_price' => !empty($data['cost_price']) ? (float) $data['cost_price'] : 0,
-                        'unit_price' => !empty($data['base_price']) ? (float) $data['base_price'] : 0,
+                        'unit_price' => !empty($data['unit_price']) ? (float) $data['unit_price'] : 0,
                         'is_active' => !empty($data['is_active']) ? (strtolower($data['is_active']) === 'true' || $data['is_active'] === '1') : true,
                     ];
 
@@ -1092,7 +1106,7 @@ class PricingController extends Controller
 
         return response()->json([
             'segment_price' => $segmentPrice,
-            'base_price' => $item->unit_price,
+            'unit_price' => $item->unit_price,
             'has_segment_pricing' => $segmentPricing !== null,
         ]);
     }
@@ -1113,7 +1127,7 @@ class PricingController extends Controller
             $savings = ($item->unit_price - $tierPricing->unit_price) * $quantity;
             return response()->json([
                 'tier_price' => $tierPricing->unit_price,
-                'base_price' => $item->unit_price,
+                'unit_price' => $item->unit_price,
                 'savings' => $savings,
                 'tier_info' => "Tier pricing: Save RM {$savings}",
                 'min_quantity' => $tierPricing->min_quantity,
@@ -1122,7 +1136,7 @@ class PricingController extends Controller
 
         return response()->json([
             'tier_price' => null,
-            'base_price' => $item->unit_price,
+            'unit_price' => $item->unit_price,
             'savings' => 0,
             'tier_info' => null,
         ]);

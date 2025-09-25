@@ -45,7 +45,6 @@
 
 @section('content')
 <div class="py-6" x-data="{
-    showImageModal: false,
     marginPercentage: {{ $pricingItem->getMarginPercentage() }},
     profitAmount: {{ $pricingItem->getProfit() }}
 }">
@@ -137,30 +136,8 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Left Column - Image and Status -->
+            <!-- Left Column - Status -->
             <div class="lg:col-span-1">
-                <!-- Image Card -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Product Image</h3>
-                    @if($pricingItem->image_path)
-                        <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer" @click="showImageModal = true">
-                            <img src="{{ Storage::url($pricingItem->image_path) }}"
-                                 alt="{{ $pricingItem->name }}"
-                                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-200">
-                        </div>
-                        <p class="text-xs text-gray-500 text-center mt-2">Click to view larger image</p>
-                    @else
-                        <div class="aspect-square bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center">
-                            <div class="text-center">
-                                <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
-                                <p class="text-sm text-gray-500 font-medium">No Image</p>
-                                <p class="text-xs text-gray-400">Image not uploaded</p>
-                            </div>
-                        </div>
-                    @endif
-                </div>
 
                 <!-- Margin Progress Card -->
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -308,20 +285,5 @@
         </div>
     </div>
 
-    <!-- Image Modal -->
-    @if($pricingItem->image_path)
-        <div x-show="showImageModal"
-             x-transition.opacity
-             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-             @click="showImageModal = false"
-             style="display: none;">
-            <div class="max-w-4xl max-h-full">
-                <img src="{{ Storage::url($pricingItem->image_path) }}"
-                     alt="{{ $pricingItem->name }}"
-                     class="max-w-full max-h-full object-contain rounded-lg"
-                     @click.stop>
-            </div>
-        </div>
-    @endif
 </div>
 @endsection
