@@ -34,8 +34,6 @@ class PricingController extends Controller
                 $query->active();
             } elseif ($request->status === 'inactive') {
                 $query->where('is_active', false);
-            } elseif ($request->status === 'featured') {
-                $query->featured();
             } elseif ($request->status === 'segment_pricing') {
                 $query->where('use_segment_pricing', true);
             }
@@ -46,8 +44,7 @@ class PricingController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('item_code', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('specifications', 'like', "%{$search}%");
+                  ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -92,7 +89,6 @@ class PricingController extends Controller
         $stats = [
             'total_items' => PricingItem::forCompany()->count(),
             'active_items' => PricingItem::forCompany()->active()->count(),
-            'featured_items' => PricingItem::forCompany()->featured()->count(),
             'segment_pricing_items' => PricingItem::forCompany()->where('use_segment_pricing', true)->count(),
             'total_categories' => PricingCategory::forCompany()->count(),
             'needs_price_review' => PricingItem::needsPriceReview()->count(),
@@ -133,7 +129,7 @@ class PricingController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'pricing_category_id' => 'required|exists:pricing_categories,id',
+            'category_id' => 'required|exists:pricing_categories,id',
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'item_code' => [
@@ -142,16 +138,9 @@ class PricingController extends Controller
                 'max:50',
                 Rule::unique('pricing_items')->where('company_id', Auth::user()->company_id)
             ],
-            'unit' => 'required|string|max:20',
             'unit_price' => 'required|numeric|min:0|max:99999999.99',
             'cost_price' => 'nullable|numeric|min:0|max:99999999.99',
-            'specifications' => 'nullable|string',
-            'tags' => 'nullable|array',
-            'tags.*' => 'string|max:50',
-            'is_featured' => 'boolean',
             'is_active' => 'boolean',
-            'track_stock' => 'boolean',
-            'stock_quantity' => 'nullable|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'use_segment_pricing' => 'boolean',
             'segment_prices' => 'nullable|array',
@@ -159,7 +148,7 @@ class PricingController extends Controller
         ]);
 
         // Validate category belongs to company
-        $category = PricingCategory::forCompany()->findOrFail($validated['pricing_category_id']);
+        $category = PricingCategory::forCompany()->findOrFail($validated['category_id']);
 
         try {
             DB::beginTransaction();
@@ -194,7 +183,6 @@ class PricingController extends Controller
 
             // Set defaults
             $validated['is_active'] = $validated['is_active'] ?? false;
-            $validated['is_featured'] = $validated['is_featured'] ?? false;
 
             // Create the pricing item
             $item = PricingItem::create($validated);
@@ -257,7 +245,7 @@ class PricingController extends Controller
     public function update(Request $request, PricingItem $pricing)
     {
         $validated = $request->validate([
-            'pricing_category_id' => 'required|exists:pricing_categories,id',
+            'category_id' => 'required|exists:pricing_categories,id',
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'item_code' => [
@@ -268,22 +256,15 @@ class PricingController extends Controller
                     ->where('company_id', Auth::user()->company_id)
                     ->ignore($pricing->id)
             ],
-            'unit' => 'required|string|max:20',
             'unit_price' => 'required|numeric|min:0|max:99999999.99',
             'cost_price' => 'nullable|numeric|min:0|max:99999999.99',
-            'specifications' => 'nullable|string',
-            'tags' => 'nullable|array',
-            'tags.*' => 'string|max:50',
             'is_active' => 'boolean',
-            'is_featured' => 'boolean',
-            'track_stock' => 'boolean',
-            'stock_quantity' => 'nullable|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'remove_image' => 'boolean',
         ]);
 
         // Validate category belongs to company
-        $category = PricingCategory::forCompany()->findOrFail($validated['pricing_category_id']);
+        $category = PricingCategory::forCompany()->findOrFail($validated['category_id']);
 
         try {
             DB::beginTransaction();
@@ -409,12 +390,10 @@ class PricingController extends Controller
                     'id' => $item->id,
                     'name' => $item->name,
                     'item_code' => $item->item_code,
-                    'unit' => $item->unit,
                     'unit_price' => $item->unit_price,
                     'category_name' => $item->category->name ?? '',
                     'category_path' => $item->getCategoryPath(),
                     'image_url' => $item->getImageUrl(),
-                    'specifications' => $item->specifications,
                 ];
             });
 
@@ -458,10 +437,9 @@ class PricingController extends Controller
             
             // Add CSV headers
             fputcsv($handle, [
-                'Item Code', 'Name', 'Description', 'Category', 'Unit',
+                'Item Code', 'Name', 'Description', 'Category',
                 'Unit Price', 'Cost Price', 'Minimum Price', 'Markup %',
-                'Specifications', 'Active', 'Featured', 'Stock Qty',
-                'Created', 'Last Price Update'
+                'Active', 'Created', 'Last Price Update'
             ]);
 
             // Add data rows
@@ -479,7 +457,6 @@ class PricingController extends Controller
     public function popular()
     {
         $popularItems = PricingItem::getPopular(null, 8);
-        $featuredItems = PricingItem::getFeatured(null, 8);
         $recentItems = PricingItem::forCompany()
             ->active()
             ->latest()
@@ -488,7 +465,6 @@ class PricingController extends Controller
 
         return view('pricing.popular', compact(
             'popularItems',
-            'featuredItems', 
             'recentItems'
         ));
     }
@@ -786,13 +762,9 @@ class PricingController extends Controller
             'item_code',
             'description',
             'category',
-            'unit',
             'cost_price',
-            'specifications',
-            'tags',
-            'stock_quantity',
+            'base_price',
             'is_active',
-            'is_featured',
         ];
 
         // Add segment price columns dynamically
@@ -806,13 +778,9 @@ class PricingController extends Controller
             'SP001',
             'This is a sample product description',
             $categories->first()->name ?? 'Construction Materials',
-            'pcs',
             '100.00',
-            'High quality construction material with 5-year warranty',
-            'construction,materials,tools',
-            '50',
+            '120.00',
             'TRUE',
-            'FALSE',
         ];
 
         // Add sample segment prices
@@ -865,7 +833,7 @@ class PricingController extends Controller
             $headers = array_map('strtolower', array_shift($csvData));
 
             // Validate headers
-            $requiredHeaders = ['name', 'category', 'unit', 'cost_price'];
+            $requiredHeaders = ['name', 'category', 'cost_price', 'base_price'];
             $missingHeaders = array_diff($requiredHeaders, $headers);
 
             if (!empty($missingHeaders)) {
@@ -900,7 +868,7 @@ class PricingController extends Controller
                     $data = array_combine($headers, $row);
 
                     // Validate required fields
-                    if (empty($data['name']) || empty($data['category']) || empty($data['unit'])) {
+                    if (empty($data['name']) || empty($data['category']) || empty($data['base_price'])) {
                         throw new \Exception("Missing required fields");
                     }
 
@@ -931,21 +899,11 @@ class PricingController extends Controller
                         'item_code' => $data['item_code'] ?? null,
                         'description' => $data['description'] ?? null,
                         'pricing_category_id' => $categoryId,
-                        'unit' => $data['unit'],
                         'cost_price' => !empty($data['cost_price']) ? (float) $data['cost_price'] : 0,
-                        'unit_price' => !empty($data['unit_price']) ? (float) $data['unit_price'] : 0,
-                        'specifications' => $data['specifications'] ?? null,
-                        'stock_quantity' => !empty($data['stock_quantity']) ? (int) $data['stock_quantity'] : null,
+                        'unit_price' => !empty($data['base_price']) ? (float) $data['base_price'] : 0,
                         'is_active' => !empty($data['is_active']) ? (strtolower($data['is_active']) === 'true' || $data['is_active'] === '1') : true,
-                        'is_featured' => !empty($data['is_featured']) ? (strtolower($data['is_featured']) === 'true' || $data['is_featured'] === '1') : false,
                     ];
 
-                    // Process tags - convert comma-separated string to array
-                    if (!empty($data['tags'])) {
-                        $tags = array_map('trim', explode(',', $data['tags']));
-                        $tags = array_filter($tags); // Remove empty tags
-                        $itemData['tags'] = $tags;
-                    }
 
                     // Handle segment pricing
                     $segmentPrices = [];
@@ -1054,8 +1012,6 @@ class PricingController extends Controller
                     'item_code' => $item->item_code,
                     'description' => $item->description,
                     'unit_price' => $item->unit_price,
-                    'unit' => $item->unit,
-                    'stock_quantity' => $item->stock_quantity,
                     'segment_pricing' => $item->segmentPricing->map(function ($sp) {
                         return [
                             'customer_segment_id' => $sp->customer_segment_id,

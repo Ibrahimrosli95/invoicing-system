@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Models;
 
@@ -78,6 +78,14 @@ class CustomerSegment extends Model
     public function quotations(): HasMany
     {
         return $this->hasMany(Quotation::class);
+    }
+
+    /**
+     * Get the customers assigned to this segment.
+     */
+    public function customers(): HasMany
+    {
+        return $this->hasMany(Customer::class);
     }
 
     /**
@@ -170,7 +178,7 @@ class CustomerSegment extends Model
                 'discount_applied' => $tier->discount_percentage ?? 0,
                 'pricing_method' => 'tier',
                 'tier_id' => $tier->id,
-                'tier_range' => $tier->min_quantity . '-' . ($tier->max_quantity ?? '∞'),
+                'tier_range' => $tier->min_quantity . '-' . ($tier->max_quantity ?? 'âˆž'),
             ];
         }
 
@@ -316,3 +324,6 @@ class CustomerSegment extends Model
         ];
     }
 }
+
+
+

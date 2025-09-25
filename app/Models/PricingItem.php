@@ -19,7 +19,6 @@ class PricingItem extends Model
         'name',
         'description',
         'item_code',
-        'unit',
         'unit_price',
         'cost_price',
         'minimum_price',
@@ -27,15 +26,10 @@ class PricingItem extends Model
         'segment_target_margins',
         'segment_prices_updated_at',
         'use_segment_pricing',
-        'specifications',
-        'tags',
         'image_path',
         'is_active',
-        'is_featured',
         'sort_order',
         'settings',
-        'stock_quantity',
-        'track_stock',
         'markup_percentage',
         'last_price_update',
         'created_by',
@@ -50,13 +44,9 @@ class PricingItem extends Model
         'segment_target_margins' => 'array',
         'segment_prices_updated_at' => 'datetime',
         'use_segment_pricing' => 'boolean',
-        'tags' => 'array',
         'is_active' => 'boolean',
-        'is_featured' => 'boolean',
         'sort_order' => 'integer',
         'settings' => 'array',
-        'stock_quantity' => 'integer',
-        'track_stock' => 'boolean',
         'markup_percentage' => 'decimal:2',
         'last_price_update' => 'datetime',
     ];
@@ -138,10 +128,6 @@ class PricingItem extends Model
         return $query->where('is_active', true);
     }
 
-    public function scopeFeatured($query)
-    {
-        return $query->where('is_featured', true);
-    }
 
     public function scopeInCategory($query, $categoryId)
     {
@@ -153,10 +139,6 @@ class PricingItem extends Model
         return $query->where('item_code', $itemCode);
     }
 
-    public function scopeWithTag($query, $tag)
-    {
-        return $query->whereJsonContains('tags', $tag);
-    }
 
     public function scopeOrdered($query)
     {
@@ -197,23 +179,6 @@ class PricingItem extends Model
         return !is_null($this->minimum_price) && $this->minimum_price > 0;
     }
 
-    public function isInStock(): bool
-    {
-        if (!$this->track_stock) {
-            return true; // Items not tracking stock are always "in stock"
-        }
-        
-        return $this->stock_quantity > 0;
-    }
-
-    public function isLowStock($threshold = 10): bool
-    {
-        if (!$this->track_stock) {
-            return false;
-        }
-        
-        return $this->stock_quantity <= $threshold;
-    }
 
     /**
      * Calculate margin based on cost price
@@ -293,24 +258,6 @@ class PricingItem extends Model
         ];
     }
 
-    /**
-     * Update stock quantity (if tracking stock)
-     */
-    public function adjustStock(int $adjustment, string $reason = null): bool
-    {
-        if (!$this->track_stock) {
-            return false;
-        }
-
-        $newQuantity = $this->stock_quantity + $adjustment;
-        
-        if ($newQuantity < 0) {
-            return false; // Cannot have negative stock
-        }
-
-        $this->stock_quantity = $newQuantity;
-        return $this->save();
-    }
 
     /**
      * Get category breadcrumb path
@@ -349,11 +296,11 @@ class PricingItem extends Model
     {
         return [
             'description' => $customizations['description'] ?? $this->name,
-            'unit' => $customizations['unit'] ?? $this->unit,
+            'unit' => $customizations['unit'] ?? 'pcs', // Default unit since field removed
             'quantity' => $customizations['quantity'] ?? $quantity,
             'unit_price' => $customizations['unit_price'] ?? $this->unit_price,
             'item_code' => $this->item_code,
-            'specifications' => $customizations['specifications'] ?? $this->specifications,
+            'specifications' => $customizations['specifications'] ?? '', // Empty since field removed
             'notes' => $customizations['notes'] ?? '',
             'pricing_item_id' => $this->id,
             'is_from_pricing' => true,
@@ -373,8 +320,7 @@ class PricingItem extends Model
             ->where(function ($query) use ($term) {
                 $query->where('name', 'like', "%{$term}%")
                       ->orWhere('item_code', 'like', "%{$term}%")
-                      ->orWhere('description', 'like', "%{$term}%")
-                      ->orWhere('specifications', 'like', "%{$term}%");
+                      ->orWhere('description', 'like', "%{$term}%");
             })
             ->active()
             ->with(['category'])
@@ -382,36 +328,6 @@ class PricingItem extends Model
             ->get();
     }
 
-    /**
-     * Get items by tag
-     */
-    public static function getByTag($tag, $companyId = null): \Illuminate\Support\Collection
-    {
-        $companyId = $companyId ?: auth()->user()->company_id;
-        
-        return static::forCompany($companyId)
-            ->withTag($tag)
-            ->active()
-            ->with(['category'])
-            ->ordered()
-            ->get();
-    }
-
-    /**
-     * Get featured items
-     */
-    public static function getFeatured($companyId = null, $limit = 10): \Illuminate\Support\Collection
-    {
-        $companyId = $companyId ?: auth()->user()->company_id;
-        
-        return static::forCompany($companyId)
-            ->featured()
-            ->active()
-            ->with(['category'])
-            ->ordered()
-            ->limit($limit)
-            ->get();
-    }
 
     /**
      * Duplicate item to another category
@@ -458,10 +374,14 @@ class PricingItem extends Model
     public static function getPopular($companyId = null, $limit = 10): \Illuminate\Support\Collection
     {
         $companyId = $companyId ?: auth()->user()->company_id;
-        
-        // For now, return featured items as popular
-        // In a full implementation, this would track usage in quotations/invoices
-        return static::getFeatured($companyId, $limit);
+
+        // Return most recently updated items as popular since featured functionality removed
+        return static::forCompany($companyId)
+            ->active()
+            ->with(['category'])
+            ->orderBy('updated_at', 'desc')
+            ->limit($limit)
+            ->get();
     }
 
     /**

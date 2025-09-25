@@ -40,12 +40,11 @@
                     <div class="mt-2 text-sm text-blue-700">
                         <ul class="list-disc list-inside space-y-1">
                             <li>Download the CSV template to see the correct format and column headers</li>
-                            <li><strong>Required fields:</strong> name, category, unit, cost_price</li>
-                            <li><strong>Optional fields:</strong> item_code, description, specifications, tags, stock_quantity</li>
+                            <li><strong>Required fields:</strong> name, category, unit_price</li>
+                            <li><strong>Optional fields:</strong> item_code, description, cost_price, minimum_price</li>
                             <li><strong>Segment pricing:</strong> Add columns for each customer segment (e.g., end_user_price, contractor_price, dealer_price)</li>
-                            <li><strong>Boolean fields:</strong> is_active, is_featured - use TRUE/FALSE or 1/0</li>
-                            <li><strong>Tags format:</strong> Use comma-separated values (e.g., "construction,materials,tools")</li>
-                            <li><strong>Numbers:</strong> Prices in RM format (150.00), stock_quantity as whole numbers</li>
+                            <li><strong>Boolean fields:</strong> is_active - use TRUE/FALSE or 1/0</li>
+                            <li><strong>Numbers:</strong> Prices in RM format (150.00)</li>
                             <li>Categories must exist in the system (create them first if needed)</li>
                             <li>Maximum file size: 10MB, Maximum rows: 1000</li>
                         </ul>

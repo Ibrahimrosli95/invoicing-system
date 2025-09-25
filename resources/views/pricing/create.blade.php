@@ -61,7 +61,70 @@
                         </div>
 
 
-                        <div class="lg:col-span-2">
+                        <div>
+                            <label for="category_id" class="block text-sm font-medium text-gray-700">Category</label>
+                            <div class="mt-1 flex">
+                                <select id="category_id"
+                                        name="category_id"
+                                        class="flex-1 rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="">-- Select Category --</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category->id }}" {{ old('category_id', request('category_id')) == $category->id ? 'selected' : '' }}>
+                                            {{ $category->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @can('create', App\Models\PricingCategory::class)
+                                    <button type="button"
+                                            @click="showQuickAddCategory = !showQuickAddCategory"
+                                            class="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 bg-gray-50 rounded-r-md text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                        </svg>
+                                    </button>
+                                @endcan
+                            </div>
+                            @error('category_id')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+
+                            <!-- Quick Add Category Form -->
+                            @can('create', App\Models\PricingCategory::class)
+                                <div x-show="showQuickAddCategory" x-transition class="mt-3 p-4 border border-gray-200 bg-gray-50 rounded-lg">
+                                    <div class="space-y-3">
+                                        <div>
+                                            <input type="text"
+                                                   x-model="newCategoryName"
+                                                   placeholder="Category name..."
+                                                   @keydown.enter="addQuickCategory"
+                                                   @keydown.escape="cancelQuickAddCategory"
+                                                   class="w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <button type="button"
+                                                    @click="addQuickCategory"
+                                                    :disabled="!newCategoryName.trim()"
+                                                    class="flex-1 inline-flex justify-center items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                                Add Category
+                                            </button>
+                                            <button type="button"
+                                                    @click="cancelQuickAddCategory"
+                                                    class="flex-1 inline-flex justify-center items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endcan
+                        </div>
+
+                        <div>
                             <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
                             <textarea id="description"
                                       name="description"
@@ -287,6 +350,10 @@ function pricingForm() {
         // Dynamic segment management
         showAddSegment: false,
         newSegmentName: '',
+
+        // Quick category addition
+        showQuickAddCategory: false,
+        newCategoryName: '',
         activeSegments: [
             @foreach($segments as $segment)
                 {
@@ -351,6 +418,66 @@ function pricingForm() {
         cancelAddSegment() {
             this.newSegmentName = '';
             this.showAddSegment = false;
+        },
+
+        addQuickCategory() {
+            if (!this.newCategoryName.trim()) {
+                alert('Please enter a category name.');
+                return;
+            }
+
+            // Send AJAX request to create category
+            fetch('{{ route("pricing.categories.ajax-store") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    name: this.newCategoryName.trim()
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Add new option to select
+                    const categorySelect = document.getElementById('category_id');
+                    const option = new Option(data.category.name, data.category.id, true, true);
+                    categorySelect.add(option);
+
+                    // Reset form
+                    this.newCategoryName = '';
+                    this.showQuickAddCategory = false;
+
+                    // Show success message
+                    this.showNotification('Category created successfully!', 'success');
+                } else {
+                    alert('Failed to create category: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while creating the category.');
+            });
+        },
+
+        cancelQuickAddCategory() {
+            this.newCategoryName = '';
+            this.showQuickAddCategory = false;
+        },
+
+        showNotification(message, type = 'success') {
+            // Simple notification - you can enhance this
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-4 py-2 rounded-md text-sm font-medium z-50 ${
+                type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
         },
 
         getRandomColor() {

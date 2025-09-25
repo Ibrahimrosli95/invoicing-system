@@ -27,19 +27,6 @@
                             </div>
                         @endif
 
-                        <!-- Tags -->
-                        @if($pricingItem->tags)
-                            <div class="mt-4">
-                                <h4 class="text-sm font-medium text-gray-900 mb-2">Tags</h4>
-                                <div class="flex flex-wrap gap-2">
-                                    @foreach($pricingItem->getTagsArray() as $tag)
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                            {{ $tag }}
-                                        </span>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
 
                         <!-- Status Badges -->
                         <div class="mt-4 space-y-2">
@@ -48,13 +35,6 @@
                                     {{ $pricingItem->is_active ? 'Active' : 'Inactive' }}
                                 </span>
                             </div>
-                            @if($pricingItem->is_featured)
-                                <div class="flex items-center">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                        Featured
-                                    </span>
-                                </div>
-                            @endif
                         </div>
                     </div>
 
@@ -74,10 +54,6 @@
                                     <dd class="mt-1 text-sm text-gray-900">{{ $pricingItem->category->name ?? 'N/A' }}</dd>
                                 </div>
                                 <div>
-                                    <dt class="text-sm font-medium text-gray-500">Unit</dt>
-                                    <dd class="mt-1 text-sm text-gray-900">{{ $pricingItem->unit }}</dd>
-                                </div>
-                                <div>
                                     <dt class="text-sm font-medium text-gray-500">Created</dt>
                                     <dd class="mt-1 text-sm text-gray-900">{{ $pricingItem->created_at->format('M j, Y') }}</dd>
                                 </div>
@@ -85,12 +61,6 @@
                                     <div class="sm:col-span-2">
                                         <dt class="text-sm font-medium text-gray-500">Description</dt>
                                         <dd class="mt-1 text-sm text-gray-900">{{ $pricingItem->description }}</dd>
-                                    </div>
-                                @endif
-                                @if($pricingItem->specifications)
-                                    <div class="sm:col-span-2">
-                                        <dt class="text-sm font-medium text-gray-500">Specifications</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ $pricingItem->specifications }}</dd>
                                     </div>
                                 @endif
                             </dl>
@@ -129,39 +99,6 @@
                             </dl>
                         </div>
 
-                        <!-- Stock Information -->
-                        @if($pricingItem->track_stock)
-                            <div class="border-b border-gray-200 pb-6">
-                                <h3 class="text-lg font-medium text-gray-900 mb-4">Stock Information</h3>
-
-                                <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-3">
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Current Stock</dt>
-                                        <dd class="mt-1 text-lg font-semibold {{ $pricingItem->isLowStock() ? 'text-red-600' : 'text-green-600' }}">
-                                            {{ $pricingItem->stock_quantity }} {{ $pricingItem->unit }}
-                                        </dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Minimum Stock</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ $pricingItem->minimum_stock }} {{ $pricingItem->unit }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Status</dt>
-                                        <dd class="mt-1">
-                                            @if($pricingItem->isLowStock())
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                    Low Stock
-                                                </span>
-                                            @else
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                    In Stock
-                                                </span>
-                                            @endif
-                                        </dd>
-                                    </div>
-                                </dl>
-                            </div>
-                        @endif
 
                         <!-- Actions -->
                         <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">

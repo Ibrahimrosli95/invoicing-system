@@ -60,16 +60,6 @@ Edit: {{ $pricingItem->name }}
                                         <x-input-error class="mt-2" :messages="$errors->get('pricing_category_id')" />
                                     </div>
 
-                                    <div>
-                                        <x-input-label for="unit" :value="__('Unit')" />
-                                        <x-text-input id="unit"
-                                                      name="unit"
-                                                      type="text"
-                                                      class="mt-1 block w-full"
-                                                      :value="old('unit', $pricingItem->unit)"
-                                                      required />
-                                        <x-input-error class="mt-2" :messages="$errors->get('unit')" />
-                                    </div>
 
                                     <div>
                                         <x-input-label for="item_code" :value="__('Item Code')" />
@@ -176,80 +166,12 @@ Edit: {{ $pricingItem->name }}
                                 </div>
                             </div>
 
-                            <!-- Stock Information -->
-                            <div class="border-b border-gray-200 pb-6">
-                                <h3 class="text-lg font-medium text-gray-900 mb-4">Stock Information</h3>
-
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <x-input-label for="stock_quantity" :value="__('Stock Quantity')" />
-                                        <x-text-input id="stock_quantity"
-                                                      name="stock_quantity"
-                                                      type="number"
-                                                      min="0"
-                                                      class="mt-1 block w-full"
-                                                      :value="old('stock_quantity', $pricingItem->stock_quantity)" />
-                                        <x-input-error class="mt-2" :messages="$errors->get('stock_quantity')" />
-                                    </div>
-
-                                    <div>
-                                        <x-input-label for="minimum_stock" :value="__('Minimum Stock Level')" />
-                                        <x-text-input id="minimum_stock"
-                                                      name="minimum_stock"
-                                                      type="number"
-                                                      min="0"
-                                                      class="mt-1 block w-full"
-                                                      :value="old('minimum_stock', $pricingItem->minimum_stock)" />
-                                        <x-input-error class="mt-2" :messages="$errors->get('minimum_stock')" />
-                                    </div>
-                                </div>
-
-                                <div class="mt-4">
-                                    <label class="flex items-center">
-                                        <input type="checkbox"
-                                               name="track_stock"
-                                               value="1"
-                                               class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
-                                               {{ old('track_stock', $pricingItem->track_stock) ? 'checked' : '' }}>
-                                        <span class="ml-2 text-sm text-gray-600">Track stock levels for this item</span>
-                                    </label>
-                                </div>
-                            </div>
 
                             <!-- Additional Information -->
                             <div>
                                 <h3 class="text-lg font-medium text-gray-900 mb-4">Additional Information</h3>
 
                                 <div class="space-y-4">
-                                    <div>
-                                        <x-input-label for="specifications" :value="__('Specifications')" />
-                                        <textarea id="specifications"
-                                                  name="specifications"
-                                                  rows="3"
-                                                  class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ old('specifications', $pricingItem->specifications) }}</textarea>
-                                        <x-input-error class="mt-2" :messages="$errors->get('specifications')" />
-                                    </div>
-
-                                    <div>
-                                        <x-input-label for="tags" :value="__('Tags (comma separated)')" />
-                                        <x-text-input id="tags"
-                                                      name="tags"
-                                                      type="text"
-                                                      class="mt-1 block w-full"
-                                                      :value="old('tags', $pricingItem->tags)"
-                                                      placeholder="building, construction, tools" />
-                                        <x-input-error class="mt-2" :messages="$errors->get('tags')" />
-                                    </div>
-
-                                    <div class="space-y-3">
-                                        <label class="flex items-center">
-                                            <input type="checkbox"
-                                                   name="is_featured"
-                                                   value="1"
-                                                   class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
-                                                   {{ old('is_featured', $pricingItem->is_featured) ? 'checked' : '' }}>
-                                            <span class="ml-2 text-sm text-gray-600">Feature this item</span>
-                                        </label>
 
                                         <label class="flex items-center">
                                             <input type="checkbox"

@@ -13,6 +13,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\InvoiceSettingsController;
 use App\Http\Controllers\ServiceTemplateController;
 use App\Http\Controllers\PricingController;
+use App\Http\Controllers\PricingCategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\NotificationPreferenceController;
@@ -205,6 +206,12 @@ Route::middleware('auth')->group(function () {
     Route::post('pricing/segments', [PricingController::class, 'storeSegment'])->name('pricing.store-segment');
     Route::patch('pricing/segments/{segment}', [PricingController::class, 'updateSegment'])->name('pricing.update-segment');
     Route::patch('pricing/segments/{segment}/toggle', [PricingController::class, 'toggleSegment'])->name('pricing.toggle-segment');
+
+    // Pricing Category Management
+    Route::resource('pricing/categories', PricingCategoryController::class, ['as' => 'pricing']);
+    Route::post('pricing/categories/{category}/duplicate', [PricingCategoryController::class, 'duplicate'])->name('pricing.categories.duplicate');
+    Route::patch('pricing/categories/{category}/toggle-status', [PricingCategoryController::class, 'toggleStatus'])->name('pricing.categories.toggle-status');
+    Route::post('pricing/categories/ajax-store', [PricingCategoryController::class, 'ajaxStore'])->name('pricing.categories.ajax-store');
     
     // Reports & Analytics
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
