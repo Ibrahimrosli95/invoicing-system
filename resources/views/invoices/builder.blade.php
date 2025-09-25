@@ -232,11 +232,11 @@
                                         </td>
                                         <td class="px-4 py-3 text-right">
                                             <input type="number" x-model="item.quantity" @input="calculateTotals"
-                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px]" min="1" step="0.01">
+                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px]" min="1" step="1">
                                         </td>
                                         <td class="px-4 py-3 text-right">
                                             <input type="number" x-model="item.unit_price" @input="calculateTotals"
-                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px]" min="0" step="0.01">
+                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px] w-32" min="0" step="0.01">
                                         </td>
                                         <td class="px-4 py-3 text-right text-sm font-medium">
                                             RM <span x-text="(item.quantity * item.unit_price).toFixed(2)">0.00</span>
@@ -279,15 +279,23 @@
                                 <div class="flex justify-between text-sm">
                                     <span class="text-gray-600">Discount:</span>
                                     <div class="flex items-center">
-                                        <input type="number" x-model="discountPercentage" @input="calculateTotals"
+                                        <input type="number" x-model="discountPercentage" @input="calculateTotalsFromPercentage"
                                                class="w-16 border-0 bg-transparent p-0 text-sm text-right focus:ring-0" min="0" max="100" step="0.01">
                                         <span class="ml-1 text-gray-600">%</span>
-                                        <span class="ml-2 font-medium">-RM <span x-text="discountAmount.toFixed(2)">0.00</span></span>
+                                        <span class="mx-2 text-gray-400">or</span>
+                                        <span class="text-gray-600">RM</span>
+                                        <input type="number" x-model="discountAmount" @input="calculateTotalsFromAmount"
+                                               class="w-20 border-0 bg-transparent p-0 text-sm text-right focus:ring-0 ml-1" min="0" step="0.01">
                                     </div>
                                 </div>
                                 <div class="flex justify-between text-sm">
-                                    <span class="text-gray-600">Tax (6%):</span>
-                                    <span class="font-medium">RM <span x-text="taxAmount.toFixed(2)">0.00</span></span>
+                                    <span class="text-gray-600">Tax:</span>
+                                    <div class="flex items-center">
+                                        <input type="number" x-model="taxPercentage" @input="calculateTotals"
+                                               class="w-16 border-0 bg-transparent p-0 text-sm text-right focus:ring-0" min="0" max="100" step="0.01">
+                                        <span class="ml-1 text-gray-600">%</span>
+                                        <span class="ml-2 font-medium">RM <span x-text="taxAmount.toFixed(2)">0.00</span></span>
+                                    </div>
                                 </div>
                                 <div class="flex justify-between text-lg font-semibold border-t border-gray-300 pt-2">
                                     <span>Total:</span>
@@ -502,6 +510,7 @@ function invoiceBuilder() {
         subtotal: 0,
         discountPercentage: 0,
         discountAmount: 0,
+        taxPercentage: 0,
         taxAmount: 0,
         total: 0,
 
@@ -892,9 +901,36 @@ function invoiceBuilder() {
                 return sum + (parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0));
             }, 0);
 
+            // Keep existing discount calculation
+            if (this.discountPercentage > 0) {
+                this.discountAmount = (this.subtotal * parseFloat(this.discountPercentage || 0)) / 100;
+            }
+
+            const afterDiscount = this.subtotal - (parseFloat(this.discountAmount) || 0);
+            this.taxAmount = (afterDiscount * parseFloat(this.taxPercentage || 0)) / 100;
+            this.total = afterDiscount + this.taxAmount;
+        },
+
+        calculateTotalsFromPercentage() {
+            this.subtotal = this.lineItems.reduce((sum, item) => {
+                return sum + (parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0));
+            }, 0);
+
             this.discountAmount = (this.subtotal * parseFloat(this.discountPercentage || 0)) / 100;
             const afterDiscount = this.subtotal - this.discountAmount;
-            this.taxAmount = afterDiscount * 0.06; // 6% tax
+            this.taxAmount = (afterDiscount * parseFloat(this.taxPercentage || 0)) / 100;
+            this.total = afterDiscount + this.taxAmount;
+        },
+
+        calculateTotalsFromAmount() {
+            this.subtotal = this.lineItems.reduce((sum, item) => {
+                return sum + (parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0));
+            }, 0);
+
+            // Calculate percentage from amount
+            this.discountPercentage = this.subtotal > 0 ? ((parseFloat(this.discountAmount) || 0) / this.subtotal) * 100 : 0;
+            const afterDiscount = this.subtotal - (parseFloat(this.discountAmount) || 0);
+            this.taxAmount = (afterDiscount * parseFloat(this.taxPercentage || 0)) / 100;
             this.total = afterDiscount + this.taxAmount;
         },
 
@@ -1003,7 +1039,7 @@ function invoiceBuilder() {
                 subtotal: this.subtotal,
                 discount_percentage: this.discountPercentage,
                 discount_amount: this.discountAmount,
-                tax_percentage: 6,
+                tax_percentage: this.taxPercentage,
                 tax_amount: this.taxAmount,
                 total: this.total,
                 notes: this.notes,

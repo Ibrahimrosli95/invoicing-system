@@ -283,21 +283,45 @@
                         <!-- Financial Settings -->
                         <div>
                             <h3 class="text-lg font-semibold text-gray-900 mb-4">Financial Settings</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-6">
+                                <!-- Discount Settings -->
                                 <div>
-                                    <x-input-label for="discount_percentage" :value="__('Discount (%)')" />
-                                    <x-text-input id="discount_percentage" name="discount_percentage" type="number" 
-                                                  class="mt-1 block w-full" :value="old('discount_percentage', $quotation->discount_percentage)" 
-                                                  min="0" max="100" step="0.01" />
-                                    <x-input-error :messages="$errors->get('discount_percentage')" class="mt-2" />
+                                    <h4 class="text-md font-medium text-gray-900 mb-3">Discount</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <x-input-label for="discount_percentage" :value="__('Discount (%)')" />
+                                            <x-text-input id="discount_percentage" name="discount_percentage" type="number"
+                                                          class="mt-1 block w-full" :value="old('discount_percentage', $quotation->discount_percentage)"
+                                                          min="0" max="100" step="0.01" />
+                                            <x-input-error :messages="$errors->get('discount_percentage')" class="mt-2" />
+                                        </div>
+                                        <div>
+                                            <x-input-label for="discount_amount" :value="__('Discount Amount (RM)')" />
+                                            <x-text-input id="discount_amount" name="discount_amount" type="number"
+                                                          class="mt-1 block w-full" :value="old('discount_amount', $quotation->discount_amount ?? 0)"
+                                                          min="0" step="0.01" />
+                                            <x-input-error :messages="$errors->get('discount_amount')" class="mt-2" />
+                                            <p class="mt-1 text-xs text-gray-500">Either percentage or fixed amount can be used</p>
+                                        </div>
+                                    </div>
                                 </div>
 
+                                <!-- Tax Settings -->
                                 <div>
-                                    <x-input-label for="tax_percentage" :value="__('Tax (%)')" />
-                                    <x-text-input id="tax_percentage" name="tax_percentage" type="number" 
-                                                  class="mt-1 block w-full" :value="old('tax_percentage', $quotation->tax_percentage)" 
-                                                  min="0" max="100" step="0.01" />
-                                    <x-input-error :messages="$errors->get('tax_percentage')" class="mt-2" />
+                                    <h4 class="text-md font-medium text-gray-900 mb-3">Tax</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <x-input-label for="tax_percentage" :value="__('Tax (%)')" />
+                                            <x-text-input id="tax_percentage" name="tax_percentage" type="number"
+                                                          class="mt-1 block w-full" :value="old('tax_percentage', $quotation->tax_percentage)"
+                                                          min="0" max="100" step="0.01" />
+                                            <x-input-error :messages="$errors->get('tax_percentage')" class="mt-2" />
+                                            <p class="mt-1 text-xs text-gray-500">Default: 0% (add if applicable)</p>
+                                        </div>
+                                        <div>
+                                            <!-- Placeholder for tax amount if needed in future -->
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
