@@ -97,9 +97,10 @@ class Customer extends Model
      * Get quotations for this customer.
      * Since quotations don't have customer_id, we get quotations through the lead relationship.
      */
-    public function quotations(): HasManyThrough
+    public function quotations(): HasMany
     {
-        return $this->hasManyThrough(Quotation::class, Lead::class);
+        // Create a custom relationship query that gets quotations through the lead
+        return $this->hasMany(Quotation::class, 'lead_id', 'lead_id');
     }
 
     public function createdBy(): BelongsTo
