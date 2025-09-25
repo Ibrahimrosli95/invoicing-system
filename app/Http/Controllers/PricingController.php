@@ -1048,7 +1048,7 @@ class PricingController extends Controller
         $products = PricingItem::query()
             ->forCompany()
             ->active()
-            ->with(['category', 'segmentPricing', 'tierPricing']);
+            ->with(['category', 'pricingTiers']);
 
         if (!empty($query)) {
             $products->where(function ($q) use ($query) {
@@ -1073,15 +1073,11 @@ class PricingController extends Controller
                     'description' => $item->description,
                     'unit_price' => number_format($item->unit_price, 2),
                     'unit_price_raw' => $item->unit_price,
-                    'segment_pricing' => $item->segmentPricing->map(function ($sp) {
-                        return [
-                            'customer_segment_id' => $sp->customer_segment_id,
-                            'unit_price' => $sp->unit_price,
-                        ];
-                    }),
-                    'tier_pricing' => $item->tierPricing->map(function ($tp) {
+                    'segment_pricing' => $item->segment_selling_prices ?? [],
+                    'tier_pricing' => $item->pricingTiers->map(function ($tp) {
                         return [
                             'min_quantity' => $tp->min_quantity,
+                            'max_quantity' => $tp->max_quantity,
                             'unit_price' => $tp->unit_price,
                         ];
                     }),
