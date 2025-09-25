@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerSegmentController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\QuotationController;
@@ -105,11 +106,11 @@ Route::middleware('auth')->group(function () {
     Route::get('customers/{customer}/for-invoice', [\App\Http\Controllers\CustomerController::class, 'getForInvoice'])->name('customers.for-invoice');
 
     // Customer Segment Management
-    Route::resource('customer-segments', \App\Http\Controllers\CustomerSegmentController::class);
-    Route::patch('customer-segments/{customerSegment}/toggle-status', [\App\Http\Controllers\CustomerSegmentController::class, 'toggleStatus'])->name('customer-segments.toggle-status');
-    Route::post('customer-segments/{customerSegment}/duplicate', [\App\Http\Controllers\CustomerSegmentController::class, 'duplicate'])->name('customer-segments.duplicate');
-    Route::post('customer-segments/update-sort-orders', [\App\Http\Controllers\CustomerSegmentController::class, 'updateSortOrders'])->name('customer-segments.update-sort-orders');
-    Route::get('customer-segments/statistics', [\App\Http\Controllers\CustomerSegmentController::class, 'statistics'])->name('customer-segments.statistics');
+    Route::resource('customer-segments', CustomerSegmentController::class);
+    Route::patch('customer-segments/{customerSegment}/toggle-status', [CustomerSegmentController::class, 'toggleStatus'])->name('customer-segments.toggle-status');
+    Route::post('customer-segments/{customerSegment}/duplicate', [CustomerSegmentController::class, 'duplicate'])->name('customer-segments.duplicate');
+    Route::post('customer-segments/update-sort-orders', [CustomerSegmentController::class, 'updateSortOrders'])->name('customer-segments.update-sort-orders');
+    Route::get('customer-segments/statistics', [CustomerSegmentController::class, 'statistics'])->name('customer-segments.statistics');
     
     // Lead Management (CRM-Lite)
     Route::resource('leads', LeadController::class);
@@ -206,11 +207,6 @@ Route::middleware('auth')->group(function () {
     Route::post('pricing/{pricing}/generate-suggested-tiers', [PricingController::class, 'generateSuggestedTiers'])->name('pricing.generate-suggested-tiers');
     Route::post('pricing/{pricing}/bulk-create-tiers', [PricingController::class, 'bulkCreateTiers'])->name('pricing.bulk-create-tiers');
     Route::post('pricing/get-segment-pricing', [PricingController::class, 'getSegmentPricing'])->name('pricing.get-segment-pricing');
-    
-    // Customer Segment Management (redirect to customer-segments)
-    Route::get('pricing/segments', function() {
-        return redirect()->route('customer-segments.index');
-    })->name('pricing.segments');
 
     // Reports & Analytics
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
