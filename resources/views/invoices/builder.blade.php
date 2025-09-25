@@ -476,13 +476,13 @@
 
                                     <!-- Buttons stack -->
                                     <div class="space-y-2">
-                                        <button @click="showDiscountInput = !showDiscountInput" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2">
+                                        <button @click="showDiscountInput = !showDiscountInput" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg py-2">
                                             + Discount
                                         </button>
-                                        <button @click="showTaxInput = !showTaxInput" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2">
+                                        <button @click="showTaxInput = !showTaxInput" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg py-2">
                                             + Tax
                                         </button>
-                                        <button @click="showRoundOffInput = !showRoundOffInput" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2">
+                                        <button @click="showRoundOffInput = !showRoundOffInput" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg py-2">
                                             + Round Off
                                         </button>
                                     </div>
