@@ -153,6 +153,13 @@ class PricingController extends Controller
         try {
             DB::beginTransaction();
 
+            // Debug logging
+            \Log::info('Attempting to create pricing item', [
+                'user_id' => auth()->id(),
+                'company_id' => auth()->user()->company_id ?? null,
+                'validated_data' => $validated
+            ]);
+
             // Handle image upload
             if ($request->hasFile('image')) {
                 $imagePath = $request->file('image')->store(
@@ -163,7 +170,7 @@ class PricingController extends Controller
             }
 
             // Handle segment pricing
-            if ($validated['use_segment_pricing'] && !empty($validated['segment_prices'])) {
+            if (!empty($validated['segment_prices'])) {
                 // Filter out empty prices and format properly
                 $segmentPrices = [];
                 foreach ($validated['segment_prices'] as $segmentId => $price) {
@@ -175,6 +182,7 @@ class PricingController extends Controller
                 if (!empty($segmentPrices)) {
                     $validated['segment_selling_prices'] = $segmentPrices;
                     $validated['segment_prices_updated_at'] = now();
+                    $validated['use_segment_pricing'] = true;
                 }
             }
 
@@ -184,8 +192,13 @@ class PricingController extends Controller
             // Set defaults
             $validated['is_active'] = $validated['is_active'] ?? true;
 
+            // Debug: Log data about to be created
+            \Log::info('Creating pricing item with data', $validated);
+
             // Create the pricing item
             $item = PricingItem::create($validated);
+
+            \Log::info('Pricing item created successfully', ['item_id' => $item->id]);
 
             DB::commit();
 
@@ -199,6 +212,15 @@ class PricingController extends Controller
             if (isset($validated['image_path'])) {
                 Storage::disk('public')->delete($validated['image_path']);
             }
+
+            // Log the full error for debugging
+            \Log::error('Pricing item creation failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => auth()->id(),
+                'company_id' => auth()->user()->company_id ?? null,
+                'validated_data' => $validated
+            ]);
 
             return redirect()->back()
                 ->withErrors(['error' => 'Failed to create pricing item: ' . $e->getMessage()])

@@ -305,13 +305,6 @@
                     'icon' => 'pricing',
                     'visible' => ['type' => 'canany', 'abilities' => ['view pricing', 'manage pricing']],
                 ],
-                [
-                    'label' => 'Customer Segments',
-                    'route' => 'pricing.segments',
-                    'patterns' => ['pricing.segments*'],
-                    'icon' => 'pricing',
-                    'visible' => ['type' => 'canany', 'abilities' => ['view pricing', 'manage pricing']],
-                ],
             ],
         ],
         [

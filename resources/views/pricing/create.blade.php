@@ -26,6 +26,32 @@
 @section('content')
 <div class="py-6" x-data="pricingForm">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Display validation errors -->
+        @if ($errors->any())
+            <div class="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">
+                            There were {{ $errors->count() }} error(s) with your submission:
+                        </h3>
+                        <div class="mt-2 text-sm text-red-700">
+                            <ul class="list-disc list-inside space-y-1">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('pricing.store') }}" enctype="multipart/form-data">
             @csrf
 
@@ -66,13 +92,16 @@
                             <div class="mt-1 flex">
                                 <select id="category_id"
                                         name="category_id"
+                                        required
                                         class="flex-1 rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                     <option value="">-- Select Category --</option>
-                                    @foreach($categories as $category)
+                                    @forelse($categories as $category)
                                         <option value="{{ $category->id }}" {{ old('category_id', request('category_id')) == $category->id ? 'selected' : '' }}>
                                             {{ $category->name }}
                                         </option>
-                                    @endforeach
+                                    @empty
+                                        <option value="" disabled>No categories available - create one first</option>
+                                    @endforelse
                                 </select>
                                 @can('create', App\Models\PricingCategory::class)
                                     <button type="button"
