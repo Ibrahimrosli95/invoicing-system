@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Builder;
 use App\Services\WebhookEventService;
 
@@ -94,8 +95,12 @@ class Customer extends Model
 
     /**
      * Get quotations for this customer.
-     * Note: Quotations may still use individual fields instead of customer_id
+     * Since quotations don't have customer_id, we get quotations through the lead relationship.
      */
+    public function quotations(): HasManyThrough
+    {
+        return $this->hasManyThrough(Quotation::class, Lead::class);
+    }
 
     public function createdBy(): BelongsTo
     {
