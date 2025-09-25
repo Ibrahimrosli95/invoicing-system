@@ -84,8 +84,18 @@ class Customer extends Model
         return $this->belongsTo(CustomerSegment::class);
     }
 
-    // Note: Invoices and Quotations store customer data as individual fields, not foreign keys
-    // These relationships cannot be used until the database schema is updated to include customer_id columns
+    /**
+     * Get invoices for this customer.
+     */
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    /**
+     * Get quotations for this customer.
+     * Note: Quotations may still use individual fields instead of customer_id
+     */
 
     public function createdBy(): BelongsTo
     {
