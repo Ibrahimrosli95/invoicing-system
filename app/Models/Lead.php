@@ -171,6 +171,14 @@ class Lead extends Model
         return $this->hasMany(Assessment::class);
     }
 
+    /**
+     * Get the customer converted from this lead.
+     */
+    public function customer(): HasMany
+    {
+        return $this->hasMany(Customer::class);
+    }
+
     public function proofs()
     {
         return $this->morphMany(Proof::class, 'scope')->active()->published()->notExpired();
