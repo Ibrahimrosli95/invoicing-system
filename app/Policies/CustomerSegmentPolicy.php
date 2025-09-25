@@ -13,13 +13,7 @@ class CustomerSegmentPolicy
      */
     public function viewAny(User $user): bool
     {
-        // Finance managers and above can view segments
-        return $user->hasAnyRole([
-            'superadmin',
-            'company_manager', 
-            'finance_manager',
-            'sales_manager'
-        ]);
+        return $user->can('view customer segments');
     }
 
     /**
@@ -32,13 +26,7 @@ class CustomerSegmentPolicy
             return false;
         }
 
-        return $user->hasAnyRole([
-            'superadmin',
-            'company_manager',
-            'finance_manager', 
-            'sales_manager',
-            'sales_coordinator'
-        ]);
+        return $user->can('view customer segments');
     }
 
     /**
@@ -46,12 +34,7 @@ class CustomerSegmentPolicy
      */
     public function create(User $user): bool
     {
-        // Only managers and above can create segments
-        return $user->hasAnyRole([
-            'superadmin',
-            'company_manager',
-            'finance_manager'
-        ]);
+        return $user->can('create customer segments');
     }
 
     /**
@@ -64,11 +47,7 @@ class CustomerSegmentPolicy
             return false;
         }
 
-        return $user->hasAnyRole([
-            'superadmin',
-            'company_manager',
-            'finance_manager'
-        ]);
+        return $user->can('edit customer segments');
     }
 
     /**
@@ -81,10 +60,6 @@ class CustomerSegmentPolicy
             return false;
         }
 
-        // Only company managers and above can delete
-        return $user->hasAnyRole([
-            'superadmin',
-            'company_manager'
-        ]);
+        return $user->can('delete customer segments');
     }
 }

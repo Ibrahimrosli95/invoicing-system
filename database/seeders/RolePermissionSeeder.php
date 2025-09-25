@@ -72,6 +72,13 @@ class RolePermissionSeeder extends Seeder
             'view pricing',
             'edit pricing',
 
+            // Customer segment management
+            'manage customer segments',
+            'view customer segments',
+            'create customer segments',
+            'edit customer segments',
+            'delete customer segments',
+
             // Settings
             'manage settings',
             'view settings',
@@ -141,6 +148,11 @@ class RolePermissionSeeder extends Seeder
             'manage pricing',
             'view pricing',
             'edit pricing',
+            'manage customer segments',
+            'view customer segments',
+            'create customer segments',
+            'edit customer segments',
+            'delete customer segments',
             'view settings',
             'view reports',
             'export reports',
@@ -175,6 +187,8 @@ class RolePermissionSeeder extends Seeder
             'send quotations',
             'view invoices',
             'view pricing',
+            'view customer segments',
+            'edit customer segments',
             'view reports',
             'export reports',
         ]);
@@ -196,6 +210,7 @@ class RolePermissionSeeder extends Seeder
             'view quotations',
             'view invoices',
             'view pricing',
+            'view customer segments',
             'view reports',
         ]);
 
@@ -214,6 +229,7 @@ class RolePermissionSeeder extends Seeder
             'view quotations',
             'edit quotations',
             'view pricing',
+            'view customer segments',
         ]);
     }
 }
