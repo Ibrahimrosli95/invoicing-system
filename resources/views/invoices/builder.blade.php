@@ -29,41 +29,43 @@
     <div>
         <!-- Document Preview Area -->
         <div class="flex-1 min-h-screen">
-            <div class="max-w-4xl mx-auto px-10 md:px-12 lg:px-16 py-10">
+            <div class="max-w-4xl mx-auto px-16 md:px-20 lg:px-24 py-16">
                 <!-- Invoice Document -->
                 <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
-                    <!-- Document Header -->
-                    <div class="px-14 py-12 lg:px-18">
-                        <!-- Header Top Section -->
-                        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-8">
-                            <!-- Company Info - Left Column -->
-                            <div class="w-full lg:w-2/3 pr-0 lg:pr-8 space-y-3 mb-6 lg:mb-0">
-                                <h1 class="text-2xl font-bold text-blue-600 leading-tight">
+                    <!-- Row 1: Invoice Title at Top Center -->
+                    <div class="px-20 py-16">
+                        <div class="text-center mb-12">
+                            <h1 class="text-4xl font-bold text-gray-900 tracking-wide">INVOICE</h1>
+                        </div>
+
+                        <!-- Row 2: Sender Details and Company Logo -->
+                        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-12">
+                            <!-- Sender Details - Left -->
+                            <div class="w-full lg:w-2/3 pr-0 lg:pr-12 space-y-4 mb-8 lg:mb-0">
+                                <h2 class="text-2xl font-bold text-blue-600 leading-tight">
                                     {{ auth()->user()->company->name ?? 'Company Name' }}
-                                </h1>
-                                <div class="text-sm text-gray-700 space-y-1.5 leading-relaxed">
+                                </h2>
+                                <div class="text-sm text-gray-700 space-y-2 leading-relaxed">
                                     <div class="font-medium">{{ auth()->user()->company->address ?? '123 Business Street' }}</div>
                                     <div>{{ auth()->user()->company->city ?? 'City' }}, {{ auth()->user()->company->state ?? 'State' }} {{ auth()->user()->company->postal_code ?? '12345' }}</div>
-                                    <div class="pt-1 space-y-1">
+                                    <div class="pt-2 space-y-1">
                                         <div>
-                                            <span class="inline-block w-12 text-gray-500 text-xs uppercase tracking-wide">Phone:</span>
+                                            <span class="inline-block w-16 text-gray-500 text-xs uppercase tracking-wide">Phone:</span>
                                             <span class="font-medium">{{ auth()->user()->company->phone ?? '+60 12-345 6789' }}</span>
                                         </div>
                                         <div>
-                                            <span class="inline-block w-12 text-gray-500 text-xs uppercase tracking-wide">Email:</span>
+                                            <span class="inline-block w-16 text-gray-500 text-xs uppercase tracking-wide">Email:</span>
                                             <span class="font-medium">{{ auth()->user()->company->email ?? 'info@company.com' }}</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Invoice Title and Logo - Right Column -->
-                            <div class="flex flex-col items-center lg:items-end space-y-4 w-full lg:w-1/3">
-                                <h2 class="text-3xl font-bold text-gray-900">INVOICE</h2>
-
+                            <!-- Company Logo - Right -->
+                            <div class="flex flex-col items-center lg:items-end w-full lg:w-1/3">
                                 <!-- Logo Section -->
-                                <div x-show="optionalSections.show_company_logo" class="relative group">
-                                    <img :src="companyLogo" alt="Company Logo" class="h-16 cursor-pointer" @click="$refs.logoUpload.click()">
+                                <div x-show="optionalSections.show_company_logo" class="relative group mb-4">
+                                    <img :src="companyLogo" alt="Company Logo" class="h-20 cursor-pointer" @click="$refs.logoUpload.click()">
                                     <input type="file" x-ref="logoUpload" @change="handleLogoUpload" accept="image/*" class="hidden">
                                     <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded" @click="$refs.logoUpload.click()">
                                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,46 +85,14 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Invoice Metadata Section -->
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 pt-8 border-t border-gray-200">
-                            <!-- Left: Bill To Header -->
-                            <div>
-                                <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Bill To</h3>
-                            </div>
-
-                            <!-- Right: Invoice Metadata -->
-                            <div class="space-y-3">
-                                <div class="flex justify-between">
-                                    <span class="text-sm font-medium text-gray-600">Invoice #:</span>
-                                    <span class="text-sm font-mono font-semibold" x-text="invoiceNumber">INV-2025-000001</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-sm font-medium text-gray-600">Invoice Date:</span>
-                                    <input type="text" x-model="invoiceDateDisplay" @input="updateInvoiceDate"
-                                           placeholder="DD/MM/YYYY" maxlength="10"
-                                           class="text-sm font-mono font-semibold border-0 bg-transparent text-right p-0 focus:ring-0 w-24">
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-sm font-medium text-gray-600">Due Date:</span>
-                                    <input type="text" x-model="dueDateDisplay" @input="updateDueDate"
-                                           placeholder="DD/MM/YYYY" maxlength="10"
-                                           class="text-sm font-mono font-semibold border-0 bg-transparent text-right p-0 focus:ring-0 w-24">
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-sm font-medium text-gray-600">PO No:</span>
-                                    <input type="text" placeholder="Optional"
-                                           class="text-sm font-mono font-semibold border-0 bg-transparent text-right p-0 focus:ring-0 w-24">
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
-                    <!-- Customer Information -->
-                    <div class="px-16 py-10 bg-gray-50 border-t-2 border-gray-100 border-b border-gray-200">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <!-- Customer Selection -->
+                    <!-- Row 3: Customer Billing Details and Invoice Details -->
+                    <div class="px-20 py-16 bg-white border-t-2 border-gray-100 border-b border-gray-200">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                            <!-- Customer Billing Details - Left -->
                             <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-6">Bill To</h3>
                                 <!-- Customer Selection -->
                                 <div x-show="!selectedCustomer.name" class="mb-4">
                                     <div class="relative">
@@ -185,32 +155,74 @@
                                 </div>
                             </div>
 
-                            <!-- Ship To (if enabled) -->
-                            <div x-show="optionalSections.show_shipping">
-                                <div class="flex items-center justify-between mb-3">
-                                    <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Ship To</h3>
-                                    <label class="flex items-center text-xs text-gray-600">
+                            <!-- Invoice Details - Right -->
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-6">Invoice Details</h3>
+                                <div class="space-y-4">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm font-medium text-gray-600">Invoice #:</span>
+                                        <span class="text-sm font-mono font-semibold" x-text="invoiceNumber">INV-2025-000001</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm font-medium text-gray-600">Invoice Date:</span>
+                                        <input type="text" x-model="invoiceDateDisplay" @input="updateInvoiceDate"
+                                               placeholder="DD/MM/YYYY" maxlength="10"
+                                               class="text-sm font-mono font-semibold border-0 border-b border-gray-300 bg-transparent text-right p-0 focus:ring-0 focus:border-blue-500 w-28">
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm font-medium text-gray-600">Due Date:</span>
+                                        <input type="text" x-model="dueDateDisplay" @input="updateDueDate"
+                                               placeholder="DD/MM/YYYY" maxlength="10"
+                                               class="text-sm font-mono font-semibold border-0 border-b border-gray-300 bg-transparent text-right p-0 focus:ring-0 focus:border-blue-500 w-28">
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm font-medium text-gray-600">PO Number:</span>
+                                        <input type="text" placeholder="Optional"
+                                               class="text-sm font-mono font-semibold border-0 border-b border-gray-300 bg-transparent text-right p-0 focus:ring-0 focus:border-blue-500 w-28">
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm font-medium text-gray-600">Terms:</span>
+                                        <select class="text-sm font-medium border-0 border-b border-gray-300 bg-transparent text-right p-0 focus:ring-0 focus:border-blue-500">
+                                            <option>Net 30</option>
+                                            <option>Net 15</option>
+                                            <option>Due on Receipt</option>
+                                            <option>Net 60</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Shipping Details -->
+                    <div x-show="optionalSections.show_shipping" class="px-20 py-16 bg-gray-50 border-b border-gray-200">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                            <!-- Ship To - Left -->
+                            <div>
+                                <div class="flex items-center justify-between mb-6">
+                                    <h3 class="text-lg font-semibold text-gray-900">Ship To</h3>
+                                    <label class="flex items-center text-sm text-gray-600">
                                         <input type="checkbox" x-model="shippingSameAsBilling" @change="toggleShippingSameAsBilling"
-                                               class="mr-1 h-3 w-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                               class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
                                         Same as billing
                                     </label>
                                 </div>
-                                <div x-show="!shippingSameAsBilling" class="space-y-2">
+                                <div x-show="!shippingSameAsBilling" class="space-y-3">
                                     <input type="text" x-model="shippingInfo.name" placeholder="Name"
-                                           class="w-full text-sm border-0 border-b border-gray-300 bg-transparent p-0 focus:ring-0 focus:border-blue-500">
+                                           class="w-full text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
                                     <input type="text" x-model="shippingInfo.address" placeholder="Address"
-                                           class="w-full text-sm border-0 border-b border-gray-300 bg-transparent p-0 focus:ring-0 focus:border-blue-500">
-                                    <div class="grid grid-cols-3 gap-2">
+                                           class="w-full text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
+                                    <div class="grid grid-cols-3 gap-4">
                                         <input type="text" x-model="shippingInfo.city" placeholder="City"
-                                               class="text-sm border-0 border-b border-gray-300 bg-transparent p-0 focus:ring-0 focus:border-blue-500">
+                                               class="text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
                                         <input type="text" x-model="shippingInfo.state" placeholder="State"
-                                               class="text-sm border-0 border-b border-gray-300 bg-transparent p-0 focus:ring-0 focus:border-blue-500">
+                                               class="text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
                                         <input type="text" x-model="shippingInfo.postal_code" placeholder="Postal Code"
-                                               class="text-sm border-0 border-b border-gray-300 bg-transparent p-0 focus:ring-0 focus:border-blue-500">
+                                               class="text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
                                     </div>
                                 </div>
-                                <div x-show="shippingSameAsBilling" class="space-y-1 text-sm text-gray-600">
-                                    <div x-text="selectedCustomer.name"></div>
+                                <div x-show="shippingSameAsBilling" class="space-y-2 text-sm text-gray-700">
+                                    <div class="font-medium" x-text="selectedCustomer.name"></div>
                                     <div x-show="selectedCustomer.company_name" x-text="selectedCustomer.company_name"></div>
                                     <div x-show="selectedCustomer.address" x-text="selectedCustomer.address"></div>
                                     <div x-show="selectedCustomer.city">
@@ -219,11 +231,32 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Shipping Instructions - Right -->
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-6">Shipping Instructions</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 mb-2">Delivery Method</label>
+                                        <select class="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option>Standard Shipping</option>
+                                            <option>Express Delivery</option>
+                                            <option>Next Day</option>
+                                            <option>Pickup</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 mb-2">Special Instructions</label>
+                                        <textarea rows="3" placeholder="Enter any special delivery instructions..."
+                                                  class="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"></textarea>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Line Items Table - Desktop -->
-                    <div class="hidden md:block px-16 py-10">
+                    <div class="hidden md:block px-20 py-16">
                         <div class="overflow-hidden rounded-xl border border-gray-200">
                             <table class="w-full">
                                 <thead class="bg-gray-50">
@@ -308,7 +341,7 @@
                     </div>
 
                     <!-- Line Items Cards - Mobile -->
-                    <div class="md:hidden px-16 py-10 space-y-4">
+                    <div class="md:hidden px-20 py-16 space-y-4">
                         <template x-for="(item, index) in lineItems" :key="index">
                             <div class="rounded-lg border border-gray-200 bg-white shadow-sm">
                                 <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
@@ -384,7 +417,7 @@
                     </div>
 
                     <!-- Totals Section -->
-                    <div class="px-16 py-10 bg-gray-50 border-t border-gray-200">
+                    <div class="px-20 py-16 bg-gray-50 border-t border-gray-200">
                         <div class="flex justify-end">
                             <div class="w-80 space-y-2">
                                 <div class="flex justify-between text-sm">
