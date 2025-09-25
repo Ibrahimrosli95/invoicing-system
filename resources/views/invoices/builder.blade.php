@@ -417,87 +417,124 @@
                     <div class="h-8 bg-gray-50"></div>
 
                     <!-- Totals Section -->
-                    <div class="px-20 py-16 bg-white border border-gray-200 rounded-lg mx-8">
-                        <div class="flex justify-end">
-                            <div class="w-80 space-y-2">
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-600">Subtotal:</span>
-                                    <span class="font-medium">RM <span x-text="subtotal.toFixed(2)">0.00</span></span>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-600">Discount:</span>
-                                    <div class="flex items-center">
-                                        <input type="number" x-model="discountPercentage" @input="calculateTotalsFromPercentage"
-                                               class="w-16 border-0 bg-transparent p-0 text-sm text-right focus:ring-0" min="0" max="100" step="0.01">
-                                        <span class="ml-1 text-gray-600">%</span>
-                                        <span class="mx-2 text-gray-400">or</span>
-                                        <span class="text-gray-600">RM</span>
-                                        <input type="number" x-model="discountAmount" @input="calculateTotalsFromAmount"
-                                               class="w-20 border-0 bg-transparent p-0 text-sm text-right focus:ring-0 ml-1" min="0" step="0.01">
+                    <div class="px-20 py-16">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12">
+                            <!-- Left side: Notes/Terms/Payment Instructions -->
+                            <div class="lg:col-span-2 space-y-6">
+                                <!-- Payment Instructions Card -->
+                                <div x-show="optionalSections.show_payment_instructions" class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                                    <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
+                                        <span class="font-medium text-gray-900">Payment Instructions</span>
+                                        <span class="text-xs text-gray-600">(Optional)</span>
+                                    </div>
+                                    <div class="px-5 py-4 space-y-1">
+                                        <div><strong>Pay Cheque to:</strong></div>
+                                        <div class="text-blue-600">{{ auth()->user()->company->name ?? 'Company Name' }}</div>
+                                        <div><strong>Send to bank:</strong></div>
+                                        <div class="text-blue-600">Maybank - Account: 1234567890</div>
+                                        <div class="text-gray-600 text-sm mt-2">Please include invoice number in payment reference.</div>
                                     </div>
                                 </div>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-600">Tax:</span>
-                                    <div class="flex items-center">
-                                        <input type="number" x-model="taxPercentage" @input="calculateTotals"
-                                               class="w-16 border-0 bg-transparent p-0 text-sm text-right focus:ring-0" min="0" max="100" step="0.01">
-                                        <span class="ml-1 text-gray-600">%</span>
-                                        <span class="ml-2 font-medium">RM <span x-text="taxAmount.toFixed(2)">0.00</span></span>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between text-lg font-semibold border-t border-gray-300 pt-2">
-                                    <span>Total:</span>
-                                    <span class="text-blue-600">RM <span x-text="total.toFixed(2)">0.00</span></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Payment Instructions (if enabled) -->
-                    <div x-show="optionalSections.show_payment_instructions" class="px-16 py-10 border-t border-gray-200">
-                        <h3 class="text-sm font-semibold text-gray-900 mb-3">Payment Instructions</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                            <div>
-                                <div class="space-y-1">
-                                    <div><strong>Bank:</strong> Maybank</div>
-                                    <div><strong>Account:</strong> 1234567890</div>
-                                    <div><strong>Account Name:</strong> {{ auth()->user()->company->name }}</div>
-                                </div>
-                            </div>
-                            <div class="text-gray-600">
-                                Please include invoice number in payment reference. Payment is due within the specified payment terms.
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Notes and Terms -->
-                    <div class="px-16 py-10 border-t border-gray-200">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div>
-                                <div class="flex items-center justify-between mb-3">
-                                    <h3 class="text-sm font-semibold text-gray-900">Notes</h3>
-                                    <div class="flex items-center space-x-2">
-                                        <select @change="loadNotesTemplate" class="text-xs border-gray-300 rounded px-2 py-1">
-                                            <option value="">Select template...</option>
-                                            <template x-for="template in notesTemplates" :key="template.id">
-                                                <option :value="template.content" x-text="template.name"></option>
-                                            </template>
-                                        </select>
-                                        <button @click="saveNotesAsTemplate" type="button"
-                                                class="text-xs text-blue-600 hover:text-blue-800 underline">
-                                            Save as Template
+                                <!-- Terms Card -->
+                                <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                                    <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
+                                        <span class="font-medium text-gray-900">Terms & Conditions</span>
+                                        <button class="bg-amber-200 border border-amber-300 rounded-full px-3 py-1 text-xs">
+                                            Saved terms
                                         </button>
                                     </div>
+                                    <div class="px-5 py-4">
+                                        <textarea x-model="terms" placeholder="Add terms and conditions..."
+                                                  class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                                  rows="4"></textarea>
+                                    </div>
                                 </div>
-                                <textarea x-model="notes" placeholder="Add any additional notes..."
-                                          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                          rows="3"></textarea>
+
+                                <!-- Notes Card -->
+                                <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                                    <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
+                                        <span class="font-medium text-gray-900">Notes</span>
+                                        <span class="text-xs text-gray-600">(Optional)</span>
+                                    </div>
+                                    <div class="px-5 py-4">
+                                        <textarea x-model="notes" placeholder="Add any additional notes..."
+                                                  class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                                  rows="4"></textarea>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <h3 class="text-sm font-semibold text-gray-900 mb-3">Terms & Conditions</h3>
-                                <textarea x-model="terms" placeholder="Add terms and conditions..."
-                                          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                          rows="3"></textarea>
+
+                            <!-- Right side: Totals Summary -->
+                            <div class="lg:col-span-1">
+                                <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 space-y-6">
+                                    <!-- Top row -->
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Subtotal:</span>
+                                        <span class="font-medium" x-text="formatCurrency(subtotal)">RM 0.00</span>
+                                    </div>
+
+                                    <!-- Buttons stack -->
+                                    <div class="space-y-2">
+                                        <button @click="showDiscountInput = !showDiscountInput" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2">
+                                            + Discount
+                                        </button>
+                                        <button @click="showTaxInput = !showTaxInput" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2">
+                                            + Tax
+                                        </button>
+                                        <button @click="showRoundOffInput = !showRoundOffInput" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2">
+                                            + Round Off
+                                        </button>
+                                    </div>
+
+                                    <!-- Discount Input (when visible) -->
+                                    <div x-show="showDiscountInput" class="space-y-2">
+                                        <div class="flex justify-between text-sm">
+                                            <span class="text-gray-600">Discount:</span>
+                                            <div class="flex items-center">
+                                                <input type="number" x-model="discountPercentage" @input="calculateTotalsFromPercentage"
+                                                       class="w-16 border border-gray-300 rounded px-2 py-1 text-sm text-right focus:ring-1 focus:ring-blue-500" min="0" max="100" step="0.01">
+                                                <span class="ml-1 text-gray-600">%</span>
+                                                <span class="mx-2 text-gray-400">or</span>
+                                                <span class="text-gray-600">RM</span>
+                                                <input type="number" x-model="discountAmount" @input="calculateTotalsFromAmount"
+                                                       class="w-20 border border-gray-300 rounded px-2 py-1 text-sm text-right focus:ring-1 focus:ring-blue-500 ml-1" min="0" step="0.01">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Tax Input (when visible) -->
+                                    <div x-show="showTaxInput" class="space-y-2">
+                                        <div class="flex justify-between text-sm">
+                                            <span class="text-gray-600">Tax:</span>
+                                            <div class="flex items-center">
+                                                <input type="number" x-model="taxPercentage" @input="calculateTotals"
+                                                       class="w-16 border border-gray-300 rounded px-2 py-1 text-sm text-right focus:ring-1 focus:ring-blue-500" min="0" max="100" step="0.01">
+                                                <span class="ml-1 text-gray-600">%</span>
+                                                <span class="ml-2 font-medium" x-text="formatCurrency(taxAmount)">RM 0.00</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Divider line -->
+                                    <div class="border-b border-gray-200"></div>
+
+                                    <!-- Totals block -->
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between text-lg font-semibold">
+                                            <span>Total:</span>
+                                            <span x-text="formatCurrency(total)">RM 0.00</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm text-gray-600">
+                                            <span>Paid:</span>
+                                            <span x-text="formatCurrency(paidAmount)">RM 0.00</span>
+                                        </div>
+                                        <div class="flex justify-between text-xl font-bold">
+                                            <span>Balance Due:</span>
+                                            <span x-text="formatCurrency(balanceDue)">RM 0.00</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -661,6 +698,12 @@ function invoiceBuilder() {
         taxPercentage: 0,
         taxAmount: 0,
         total: 0,
+        paidAmount: 0,
+
+        // UI State for Totals Section
+        showDiscountInput: false,
+        showTaxInput: false,
+        showRoundOffInput: false,
 
         // Content
         notes: 'Thank you for your business!',
@@ -1080,6 +1123,16 @@ function invoiceBuilder() {
             const afterDiscount = this.subtotal - (parseFloat(this.discountAmount) || 0);
             this.taxAmount = (afterDiscount * parseFloat(this.taxPercentage || 0)) / 100;
             this.total = afterDiscount + this.taxAmount;
+        },
+
+        // Currency Formatting
+        formatCurrency(amount) {
+            return 'RM ' + parseFloat(amount || 0).toFixed(2);
+        },
+
+        // Computed Properties
+        get balanceDue() {
+            return this.total - this.paidAmount;
         },
 
         // Load Invoice Settings
