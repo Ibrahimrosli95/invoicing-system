@@ -87,8 +87,11 @@
                         </div>
                     </div>
 
+                    <!-- Gap between rows -->
+                    <div class="h-8 bg-gray-50"></div>
+
                     <!-- Row 3: Customer Billing Details and Invoice Details -->
-                    <div class="px-20 py-16 bg-white border-t-2 border-gray-100 border-b border-gray-200">
+                    <div class="px-20 py-16 bg-white border border-gray-200 rounded-lg mx-8">
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                             <!-- Customer Billing Details - Left -->
                             <div>
@@ -194,8 +197,11 @@
                         </div>
                     </div>
 
+                    <!-- Gap between rows -->
+                    <div class="h-8 bg-gray-50"></div>
+
                     <!-- Row 4: Shipping Details -->
-                    <div x-show="optionalSections.show_shipping" class="px-20 py-16 bg-gray-50 border-b border-gray-200">
+                    <div x-show="optionalSections.show_shipping" class="px-20 py-16 bg-white border border-gray-200 rounded-lg mx-8">
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                             <!-- Ship To - Left -->
                             <div>
@@ -232,31 +238,22 @@
                                 </div>
                             </div>
 
-                            <!-- Shipping Instructions - Right -->
+                            <!-- Empty Right Column -->
                             <div>
-                                <h3 class="text-lg font-semibold text-gray-900 mb-6">Shipping Instructions</h3>
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-600 mb-2">Delivery Method</label>
-                                        <select class="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                            <option>Standard Shipping</option>
-                                            <option>Express Delivery</option>
-                                            <option>Next Day</option>
-                                            <option>Pickup</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-600 mb-2">Special Instructions</label>
-                                        <textarea rows="3" placeholder="Enter any special delivery instructions..."
-                                                  class="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"></textarea>
-                                    </div>
-                                </div>
+                                <!-- Blank area as requested -->
                             </div>
                         </div>
                     </div>
 
-                    <!-- Line Items Table - Desktop -->
-                    <div class="hidden md:block px-20 py-16">
+                    <!-- Gap between rows -->
+                    <div class="h-8 bg-gray-50"></div>
+
+                    <!-- Line Items Section -->
+                    <div class="px-20 py-16 bg-white border border-gray-200 rounded-lg mx-8">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6">Invoice Items</h3>
+
+                        <!-- Line Items Table - Desktop -->
+                        <div class="hidden md:block">
                         <div class="overflow-hidden rounded-xl border border-gray-200">
                             <table class="w-full">
                                 <thead class="bg-gray-50">
@@ -340,8 +337,8 @@
                         </div>
                     </div>
 
-                    <!-- Line Items Cards - Mobile -->
-                    <div class="md:hidden px-20 py-16 space-y-4">
+                        <!-- Line Items Cards - Mobile -->
+                        <div class="md:hidden space-y-4">
                         <template x-for="(item, index) in lineItems" :key="index">
                             <div class="rounded-lg border border-gray-200 bg-white shadow-sm">
                                 <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
@@ -416,8 +413,11 @@
                         </button>
                     </div>
 
+                    <!-- Gap between rows -->
+                    <div class="h-8 bg-gray-50"></div>
+
                     <!-- Totals Section -->
-                    <div class="px-20 py-16 bg-gray-50 border-t border-gray-200">
+                    <div class="px-20 py-16 bg-white border border-gray-200 rounded-lg mx-8">
                         <div class="flex justify-end">
                             <div class="w-80 space-y-2">
                                 <div class="flex justify-between text-sm">
