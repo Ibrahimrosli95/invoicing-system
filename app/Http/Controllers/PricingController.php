@@ -70,7 +70,14 @@ class PricingController extends Controller
             $query->ordered();
         }
 
-        $items = $query->paginate(24)->withQueryString();
+        // Get per-page preference (25, 50, 100, 200)
+        $perPage = $request->get('per_page', 100);
+        $allowedPerPage = [25, 50, 100, 200];
+        if (!in_array($perPage, $allowedPerPage)) {
+            $perPage = 100;
+        }
+
+        $items = $query->paginate($perPage)->withQueryString();
 
         // Get customer segments for tabs
         $segments = CustomerSegment::forCompany()
