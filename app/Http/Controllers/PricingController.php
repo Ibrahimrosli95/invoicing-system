@@ -251,7 +251,11 @@ class PricingController extends Controller
             ->limit(6)
             ->get();
 
-        return view('pricing.show', compact('pricing', 'analytics', 'relatedItems'));
+        return view('pricing.show', [
+            'pricingItem' => $pricing,
+            'analytics' => $analytics,
+            'relatedItems' => $relatedItems
+        ]);
     }
 
     /**
@@ -264,7 +268,10 @@ class PricingController extends Controller
             ->ordered()
             ->get();
 
-        return view('pricing.edit', compact('pricing', 'categories'));
+        return view('pricing.edit', [
+            'pricingItem' => $pricing,
+            'categories' => $categories,
+        ]);
     }
 
     /**
