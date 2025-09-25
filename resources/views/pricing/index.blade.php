@@ -225,11 +225,6 @@
                                                 <span class="text-sm font-medium text-gray-900">
                                                     RM {{ number_format($sellingPrice, 2) }}
                                                 </span>
-                                                @if($item->hasSegmentPricing() && isset($item->segment_selling_prices[$segment->id]))
-                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                                        Custom
-                                                    </span>
-                                                @endif
                                             </div>
                                             @if($margin['margin_percentage'] !== null)
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $margin['color'] }} {{ $margin['bg_color'] }}">
