@@ -156,167 +156,126 @@
             </div>
         </div>
 
-        <!-- Customer Segment Tabs -->
+        <!-- Pricing Table -->
         <div class="bg-white rounded-lg shadow overflow-hidden">
-            <div class="border-b border-gray-200">
-                <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
-                    @foreach($segments as $index => $segment)
-                        <button @click="activeSegment = {{ $segment->id }}"
-                                :class="{
-                                    'border-{{ $segment->color ?? 'blue' }}-500 text-{{ $segment->color ?? 'blue' }}-600': activeSegment === {{ $segment->id }},
-                                    'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeSegment !== {{ $segment->id }}
-                                }"
-                                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
-                            <div class="flex items-center space-x-2">
-                                <div class="w-3 h-3 rounded-full" style="background-color: {{ $segment->color }}"></div>
-                                <span>{{ $segment->name }}</span>
-                                <span class="ml-2 bg-gray-100 text-gray-600 py-1 px-2 rounded-full text-xs">
-                                    {{ $items->count() }}
-                                </span>
-                            </div>
-                        </button>
-                    @endforeach
-                </nav>
-            </div>
-
-            <!-- Tab Content -->
-            <div class="p-6">
-                @foreach($segments as $segment)
-                    <div x-show="activeSegment === {{ $segment->id }}" x-transition class="space-y-4">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <h3 class="text-lg font-medium text-gray-900">{{ $segment->name }} Pricing</h3>
-                                <p class="text-sm text-gray-500">{{ $segment->description }}</p>
-                            </div>
-                            <div class="flex space-x-2">
-                                <button @click="exportSegment({{ $segment->id }})"
-                                        class="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                                    Export {{ $segment->name }}
-                                </button>
-                                <button @click="bulkUpdatePrices({{ $segment->id }})"
-                                        class="text-sm text-green-600 hover:text-green-700 font-medium">
-                                    Bulk Update
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Pricing Table -->
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Product
-                                        </th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Cost Price
-                                        </th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Selling Price
-                                        </th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Margin
-                                        </th>
-                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                    @foreach($items as $item)
-                                        @php
-                                            $sellingPrice = $item->getSellingPriceForSegment($segment->id);
-                                            $margin = $item->getMarginForSegment($segment->id);
-                                        @endphp
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="flex items-center">
-                                                    @if($item->image_path)
-                                                        <img src="{{ Storage::url($item->image_path) }}"
-                                                             alt="{{ $item->name }}"
-                                                             class="w-10 h-10 rounded-lg object-cover mr-3">
-                                                    @else
-                                                        <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
-                                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                                            </svg>
-                                                        </div>
-                                                    @endif
-                                                    <div>
-                                                        <div class="text-sm font-medium text-gray-900">{{ $item->name }}</div>
-                                                        <div class="text-sm text-gray-500">{{ $item->item_code }}</div>
-                                                        @if($item->category)
-                                                            <div class="text-xs text-gray-400">{{ $item->category->name }}</div>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                @if($item->cost_price)
-                                                    <span class="font-medium">RM {{ number_format($item->cost_price, 2) }}</span>
-                                                @else
-                                                    <span class="text-gray-400">Not set</span>
-                                                @endif
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="flex items-center space-x-2">
-                                                    <span class="text-sm font-medium text-gray-900">
-                                                        RM {{ number_format($sellingPrice, 2) }}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Product
+                            </th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Cost Price
+                            </th>
+                            @foreach($segments as $segment)
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-3 h-3 rounded-full" style="background-color: {{ $segment->color }}"></div>
+                                        <span>{{ $segment->name }}</span>
+                                    </div>
+                                    <div class="text-xs font-normal text-gray-400 mt-1">Price & Margin</div>
+                                </th>
+                            @endforeach
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach($items as $item)
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        @if($item->image_path)
+                                            <img src="{{ Storage::url($item->image_path) }}"
+                                                 alt="{{ $item->name }}"
+                                                 class="w-10 h-10 rounded-lg object-cover mr-3">
+                                        @else
+                                            <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
+                                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                </svg>
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">{{ $item->name }}</div>
+                                            <div class="text-sm text-gray-500">{{ $item->item_code }}</div>
+                                            @if($item->category)
+                                                <div class="text-xs text-gray-400">{{ $item->category->name }}</div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    @if($item->cost_price)
+                                        <span class="font-medium">RM {{ number_format($item->cost_price, 2) }}</span>
+                                    @else
+                                        <span class="text-gray-400">Not set</span>
+                                    @endif
+                                </td>
+                                @foreach($segments as $segment)
+                                    @php
+                                        $sellingPrice = $item->getSellingPriceForSegment($segment->id);
+                                        $margin = $item->getMarginForSegment($segment->id);
+                                    @endphp
+                                    <td class="px-4 py-4 whitespace-nowrap">
+                                        <div class="space-y-1">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-sm font-medium text-gray-900">
+                                                    RM {{ number_format($sellingPrice, 2) }}
+                                                </span>
+                                                @if($item->hasSegmentPricing() && isset($item->segment_selling_prices[$segment->id]))
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                        Custom
                                                     </span>
-                                                    @if($item->hasSegmentPricing() && isset($item->segment_selling_prices[$segment->id]))
-                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                            Custom
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                @if($margin['margin_percentage'] !== null)
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $margin['color'] }} {{ $margin['bg_color'] }}">
-                                                        {{ $margin['margin_percentage'] }}%
-                                                    </span>
-                                                @else
-                                                    <span class="text-gray-400 text-sm">N/A</span>
                                                 @endif
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <div class="flex justify-end space-x-2">
-                                                    <button @click="editPrice({{ $item->id }}, {{ $segment->id }})"
-                                                            class="text-blue-600 hover:text-blue-900">
-                                                        Edit Price
-                                                    </button>
-                                                    <a href="{{ route('pricing.show', $item) }}"
-                                                       class="text-gray-600 hover:text-gray-900">
-                                                        View
-                                                    </a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+                                            </div>
+                                            @if($margin['margin_percentage'] !== null)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $margin['color'] }} {{ $margin['bg_color'] }}">
+                                                    {{ $margin['margin_percentage'] }}%
+                                                </span>
+                                            @else
+                                                <span class="text-gray-400 text-xs">N/A</span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                @endforeach
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex justify-end space-x-2">
+                                        <a href="{{ route('pricing.edit', $item) }}"
+                                           class="text-blue-600 hover:text-blue-900">
+                                            Edit
+                                        </a>
+                                        <a href="{{ route('pricing.show', $item) }}"
+                                           class="text-gray-600 hover:text-gray-900">
+                                            View
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
 
-                        @if($items->isEmpty())
-                            <div class="text-center py-12">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                @if($items->isEmpty())
+                    <div class="text-center py-12">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">No pricing items</h3>
+                        <p class="mt-1 text-sm text-gray-500">Get started by creating your first pricing item.</p>
+                        <div class="mt-6">
+                            <a href="{{ route('pricing.create') }}"
+                               class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                                <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                 </svg>
-                                <h3 class="mt-2 text-sm font-medium text-gray-900">No pricing items</h3>
-                                <p class="mt-1 text-sm text-gray-500">Get started by creating your first pricing item.</p>
-                                <div class="mt-6">
-                                    <a href="{{ route('pricing.create') }}"
-                                       class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
-                                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                        </svg>
-                                        Add Pricing Item
-                                    </a>
-                                </div>
-                            </div>
-                        @endif
+                                Add Pricing Item
+                            </a>
+                        </div>
                     </div>
-                @endforeach
+                @endif
             </div>
         </div>
 
@@ -332,7 +291,6 @@
 <script>
 function pricingBook() {
     return {
-        activeSegment: {{ $segments->first()->id ?? 1 }},
         search: '',
         selectedCategory: '',
         selectedSegment: '',
@@ -349,21 +307,6 @@ function pricingBook() {
             // Reload page with filters
             const url = params.toString() ? `{{ route('pricing.index') }}?${params.toString()}` : '{{ route('pricing.index') }}';
             window.location.href = url;
-        },
-
-        editPrice(itemId, segmentId) {
-            // Open modal or redirect to edit price for specific segment
-            window.location.href = `/pricing/${itemId}/edit?segment=${segmentId}`;
-        },
-
-        exportSegment(segmentId) {
-            // Export segment pricing data
-            window.location.href = `/pricing/export?segment=${segmentId}`;
-        },
-
-        bulkUpdatePrices(segmentId) {
-            // Open bulk update modal or page
-            window.location.href = `/pricing/bulk-update?segment=${segmentId}`;
         }
     }
 }
