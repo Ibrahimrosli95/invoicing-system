@@ -766,7 +766,7 @@ function invoiceBuilder() {
 
             // Set new timeout for debounced search
             this.searchTimeout = setTimeout(() => {
-                fetch(`/pricing-items/search?q=${encodeURIComponent(item.description)}`)
+                fetch(`/api/pricing-items/search?q=${encodeURIComponent(item.description)}`)
                     .then(response => response.json())
                     .then(data => {
                         this.pricingResults[index] = data.items || [];
