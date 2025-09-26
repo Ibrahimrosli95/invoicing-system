@@ -92,7 +92,7 @@
 
                     <!-- Row 3: Customer Billing Details and Invoice Details -->
                     <div class="px-4 md:px-6 lg:px-8 py-6 bg-white border border-gray-200 rounded-lg mx-2 md:mx-4 lg:mx-6">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <!-- Customer Billing Details - Left -->
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-900 mb-6">Bill To</h3>
@@ -158,6 +158,41 @@
                                 </div>
                             </div>
 
+                            <!-- Ship To - Middle -->
+                            <div x-show="optionalSections.show_shipping">
+                                <div class="flex items-center justify-between mb-6">
+                                    <h3 class="text-lg font-semibold text-gray-900">Ship To</h3>
+                                    <label class="flex items-center text-sm text-gray-600">
+                                        <input type="checkbox" x-model="shippingSameAsBilling" @change="toggleShippingSameAsBilling"
+                                               class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                        Same as billing
+                                    </label>
+                                </div>
+                                <div x-show="!shippingSameAsBilling" class="space-y-3">
+                                    <input type="text" x-model="shippingInfo.name" placeholder="Name"
+                                           class="w-full text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
+                                    <input type="text" x-model="shippingInfo.address" placeholder="Address"
+                                           class="w-full text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
+                                    <div class="grid grid-cols-1 gap-2">
+                                        <input type="text" x-model="shippingInfo.city" placeholder="City"
+                                               class="text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
+                                        <input type="text" x-model="shippingInfo.state" placeholder="State"
+                                               class="text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
+                                        <input type="text" x-model="shippingInfo.postal_code" placeholder="Postal Code"
+                                               class="text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
+                                    </div>
+                                </div>
+                                <div x-show="shippingSameAsBilling" class="space-y-2 text-sm text-gray-700">
+                                    <div class="font-medium" x-text="selectedCustomer.name"></div>
+                                    <div x-show="selectedCustomer.company_name" x-text="selectedCustomer.company_name"></div>
+                                    <div x-show="selectedCustomer.address" x-text="selectedCustomer.address"></div>
+                                    <div x-show="selectedCustomer.city">
+                                        <span x-text="selectedCustomer.city"></span><span x-show="selectedCustomer.state">, <span x-text="selectedCustomer.state"></span></span>
+                                        <span x-show="selectedCustomer.postal_code"> <span x-text="selectedCustomer.postal_code"></span></span>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Invoice Details - Right -->
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-900 mb-6">Invoice Details</h3>
@@ -200,54 +235,6 @@
                     <!-- Gap between rows -->
                     <div class="h-2 bg-gray-50"></div>
 
-                    <!-- Row 4: Shipping Details -->
-                    <div x-show="optionalSections.show_shipping" class="px-20 py-16 bg-white border border-gray-200 rounded-lg mx-8">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                            <!-- Ship To - Left -->
-                            <div>
-                                <div class="flex items-center justify-between mb-6">
-                                    <h3 class="text-lg font-semibold text-gray-900">Ship To</h3>
-                                    <label class="flex items-center text-sm text-gray-600">
-                                        <input type="checkbox" x-model="shippingSameAsBilling" @change="toggleShippingSameAsBilling"
-                                               class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                                        Same as billing
-                                    </label>
-                                </div>
-                                <div x-show="!shippingSameAsBilling" class="space-y-3">
-                                    <input type="text" x-model="shippingInfo.name" placeholder="Name"
-                                           class="w-full text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
-                                    <input type="text" x-model="shippingInfo.address" placeholder="Address"
-                                           class="w-full text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
-                                    <div class="grid grid-cols-3 gap-4">
-                                        <input type="text" x-model="shippingInfo.city" placeholder="City"
-                                               class="text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
-                                        <input type="text" x-model="shippingInfo.state" placeholder="State"
-                                               class="text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
-                                        <input type="text" x-model="shippingInfo.postal_code" placeholder="Postal Code"
-                                               class="text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
-                                    </div>
-                                </div>
-                                <div x-show="shippingSameAsBilling" class="space-y-2 text-sm text-gray-700">
-                                    <div class="font-medium" x-text="selectedCustomer.name"></div>
-                                    <div x-show="selectedCustomer.company_name" x-text="selectedCustomer.company_name"></div>
-                                    <div x-show="selectedCustomer.address" x-text="selectedCustomer.address"></div>
-                                    <div x-show="selectedCustomer.city">
-                                        <span x-text="selectedCustomer.city"></span><span x-show="selectedCustomer.state">, <span x-text="selectedCustomer.state"></span></span>
-                                        <span x-show="selectedCustomer.postal_code"> <span x-text="selectedCustomer.postal_code"></span></span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Empty Right Column -->
-                            <div>
-                                <!-- Blank area as requested -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Gap between rows -->
-                    <div class="h-2 bg-gray-50"></div>
-
                     <!-- Line Items Section -->
                     <div class="px-4 md:px-6 lg:px-8 py-6 bg-white border border-gray-200 rounded-lg mx-2 md:mx-4 lg:mx-6">
                         <h3 class="text-lg font-semibold text-gray-900 mb-6">Invoice Items</h3>
@@ -258,17 +245,17 @@
                             <table class="w-full">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-20">Qty</th>
-                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Rate</th>
-                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Total</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 30%;">Description</th>
+                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 20%;">Qty</th>
+                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 30%;">Rate</th>
+                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 20%;">Total</th>
                                         <th class="w-10"></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
                                 <template x-for="(item, index) in lineItems" :key="index">
                                     <tr>
-                                        <td class="px-6 py-4 relative">
+                                        <td class="px-6 py-4 relative" style="width: 30%;">
                                             <div class="relative">
                                                 <input type="text"
                                                        x-model="item.description"
@@ -298,15 +285,15 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 text-right">
+                                        <td class="px-6 py-4 text-right" style="width: 20%;">
                                             <input type="number" x-model="item.quantity" @input="calculateTotals"
-                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px]" min="1" step="1">
+                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px] border-b border-gray-200 focus:border-blue-500" min="1" step="1" style="min-width: 80px;">
                                         </td>
-                                        <td class="px-6 py-4 text-right">
+                                        <td class="px-6 py-4 text-right" style="width: 30%;">
                                             <input type="number" x-model="item.unit_price" @input="calculateTotals"
-                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px]" min="0" step="0.01" style="min-width: 120px;">
+                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px] border-b border-gray-200 focus:border-blue-500" min="0" step="0.01" style="min-width: 100px;">
                                         </td>
-                                        <td class="px-6 py-4 text-right text-sm font-medium">
+                                        <td class="px-6 py-4 text-right text-sm font-medium" style="width: 20%;">
                                             RM <span x-text="(item.quantity * item.unit_price).toFixed(2)">0.00</span>
                                         </td>
                                         <td class="px-6 py-4 text-center">
