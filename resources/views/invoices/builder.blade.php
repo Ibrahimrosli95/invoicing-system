@@ -416,7 +416,7 @@
                     <div class="px-4 md:px-6 lg:px-8 py-6">
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mt-4">
                             <!-- Left side: Notes/Terms/Payment Instructions -->
-                            <div class="space-y-6">
+                            <div class="space-y-6 order-2 lg:order-1">
                                 <!-- Payment Instructions Card -->
                                 <div x-show="optionalSections.show_payment_instructions" class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
                                     <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
@@ -462,7 +462,7 @@
                             </div>
 
                             <!-- Right side: Totals Summary -->
-                            <div>
+                            <div class="order-1 lg:order-2">
                                 <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 space-y-6">
                                     <!-- Top row -->
                                     <div class="flex justify-between">
