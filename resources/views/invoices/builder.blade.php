@@ -29,19 +29,19 @@
     <div>
         <!-- Document Preview Area -->
         <div class="flex-1 min-h-screen">
-            <div class="max-w-4xl mx-auto px-16 md:px-20 lg:px-24 py-16">
+            <div class="max-w-4xl mx-auto px-4 md:px-6 lg:px-8 py-6">
                 <!-- Invoice Document -->
                 <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
                     <!-- Row 1: Invoice Title at Top Center -->
-                    <div class="px-20 py-16">
-                        <div class="text-center mb-12">
-                            <h1 class="text-4xl font-bold text-gray-900 tracking-wide">INVOICE</h1>
+                    <div class="px-6 md:px-8 lg:px-12 py-6">
+                        <div class="text-center mb-6">
+                            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 tracking-wide">INVOICE</h1>
                         </div>
 
                         <!-- Row 2: Sender Details and Company Logo -->
-                        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-12">
+                        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-6">
                             <!-- Sender Details - Left -->
-                            <div class="w-full lg:w-2/3 pr-0 lg:pr-12 space-y-4 mb-8 lg:mb-0">
+                            <div class="w-full lg:w-2/3 pr-0 lg:pr-12 space-y-4 mb-4 lg:mb-0">
                                 <h2 class="text-2xl font-bold text-blue-600 leading-tight">
                                     {{ auth()->user()->company->name ?? 'Company Name' }}
                                 </h2>
@@ -88,10 +88,10 @@
                     </div>
 
                     <!-- Gap between rows -->
-                    <div class="h-8 bg-gray-50"></div>
+                    <div class="h-2 bg-gray-50"></div>
 
                     <!-- Row 3: Customer Billing Details and Invoice Details -->
-                    <div class="px-20 py-16 bg-white border border-gray-200 rounded-lg mx-8">
+                    <div class="px-4 md:px-6 lg:px-8 py-6 bg-white border border-gray-200 rounded-lg mx-2 md:mx-4 lg:mx-6">
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                             <!-- Customer Billing Details - Left -->
                             <div>
@@ -198,7 +198,7 @@
                     </div>
 
                     <!-- Gap between rows -->
-                    <div class="h-8 bg-gray-50"></div>
+                    <div class="h-2 bg-gray-50"></div>
 
                     <!-- Row 4: Shipping Details -->
                     <div x-show="optionalSections.show_shipping" class="px-20 py-16 bg-white border border-gray-200 rounded-lg mx-8">
@@ -246,10 +246,10 @@
                     </div>
 
                     <!-- Gap between rows -->
-                    <div class="h-8 bg-gray-50"></div>
+                    <div class="h-2 bg-gray-50"></div>
 
                     <!-- Line Items Section -->
-                    <div class="px-20 py-16 bg-white border border-gray-200 rounded-lg mx-8">
+                    <div class="px-4 md:px-6 lg:px-8 py-6 bg-white border border-gray-200 rounded-lg mx-2 md:mx-4 lg:mx-6">
                         <h3 class="text-lg font-semibold text-gray-900 mb-6">Invoice Items</h3>
 
                         <!-- Line Items Table - Desktop -->
@@ -414,11 +414,11 @@
                     </div>
 
                     <!-- Gap between rows -->
-                    <div class="h-8 bg-gray-50"></div>
+                    <div class="h-2 bg-gray-50"></div>
 
                     <!-- Totals Section -->
-                    <div class="px-20 py-16">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
+                    <div class="px-4 md:px-6 lg:px-8 py-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mt-4">
                             <!-- Left side: Notes/Terms/Payment Instructions -->
                             <div class="space-y-6">
                                 <!-- Payment Instructions Card -->
@@ -533,17 +533,17 @@
                     </div>
 
                     <!-- Signatures (if enabled) -->
-                    <div x-show="optionalSections.show_signatures" class="px-16 py-10 border-t border-gray-200">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div x-show="optionalSections.show_signatures" class="px-4 md:px-6 lg:px-8 py-6 border-t border-gray-200">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                             <div>
-                                <div class="h-20 border-t border-gray-400 mt-8">
+                                <div class="h-16 border-t border-gray-400 mt-4">
                                     <div class="mt-2 text-sm text-gray-900 text-center font-medium" x-text="representativeName">{{ auth()->user()->name }}</div>
                                     <div class="mt-1 text-sm text-gray-600 text-center" x-text="representativeTitle">Sales Representative</div>
                                     <div class="mt-1 text-xs text-gray-500 text-center">{{ auth()->user()->company->name }}</div>
                                 </div>
                             </div>
                             <div>
-                                <div class="h-20 border-t border-gray-400 mt-8">
+                                <div class="h-16 border-t border-gray-400 mt-4">
                                     <div class="mt-2 text-sm text-gray-600 text-center">Customer Acceptance</div>
                                     <div class="mt-1 text-sm text-gray-500 text-center">Date: _______________</div>
                                 </div>
