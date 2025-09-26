@@ -476,44 +476,37 @@
 
                                     <!-- Buttons stack -->
                                     <div class="space-y-2">
-                                        <button @click="showDiscountInput = !showDiscountInput" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg py-2">
+                                        <button type="button" @click="openDiscountModal()"
+                                                aria-controls="discount-modal" :aria-expanded="modals.discount"
+                                                class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2">
                                             + Discount
                                         </button>
-                                        <button @click="showTaxInput = !showTaxInput" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg py-2">
+                                        <button type="button" @click="openTaxModal()"
+                                                aria-controls="tax-modal" :aria-expanded="modals.tax"
+                                                class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2">
                                             + Tax
                                         </button>
-                                        <button @click="showRoundOffInput = !showRoundOffInput" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg py-2">
+                                        <button type="button" @click="openRoundModal()"
+                                                aria-controls="round-modal" :aria-expanded="modals.round"
+                                                class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2">
                                             + Round Off
                                         </button>
                                     </div>
 
-                                    <!-- Discount Input (when visible) -->
-                                    <div x-show="showDiscountInput" class="space-y-2">
-                                        <div class="flex justify-between text-sm">
-                                            <span class="text-gray-600">Discount:</span>
-                                            <div class="flex items-center">
-                                                <input type="number" x-model="discountPercentage" @input="calculateTotalsFromPercentage"
-                                                       class="w-16 border border-gray-300 rounded px-2 py-1 text-sm text-right focus:ring-1 focus:ring-blue-500" min="0" max="100" step="0.01">
-                                                <span class="ml-1 text-gray-600">%</span>
-                                                <span class="mx-2 text-gray-400">or</span>
-                                                <span class="text-gray-600">RM</span>
-                                                <input type="number" x-model="discountAmount" @input="calculateTotalsFromAmount"
-                                                       class="w-20 border border-gray-300 rounded px-2 py-1 text-sm text-right focus:ring-1 focus:ring-blue-500 ml-1" min="0" step="0.01">
-                                            </div>
-                                        </div>
+                                    <!-- Summary lines for applied discounts/taxes -->
+                                    <div x-show="discountAmount > 0" class="flex justify-between text-sm text-gray-600">
+                                        <span>Discount:</span>
+                                        <span x-text="formatCurrency(discountAmount)">RM 0.00</span>
                                     </div>
 
-                                    <!-- Tax Input (when visible) -->
-                                    <div x-show="showTaxInput" class="space-y-2">
-                                        <div class="flex justify-between text-sm">
-                                            <span class="text-gray-600">Tax:</span>
-                                            <div class="flex items-center">
-                                                <input type="number" x-model="taxPercentage" @input="calculateTotals"
-                                                       class="w-16 border border-gray-300 rounded px-2 py-1 text-sm text-right focus:ring-1 focus:ring-blue-500" min="0" max="100" step="0.01">
-                                                <span class="ml-1 text-gray-600">%</span>
-                                                <span class="ml-2 font-medium" x-text="formatCurrency(taxAmount)">RM 0.00</span>
-                                            </div>
-                                        </div>
+                                    <div x-show="taxAmount > 0" class="flex justify-between text-sm text-gray-600">
+                                        <span>Tax:</span>
+                                        <span x-text="formatCurrency(taxAmount)">RM 0.00</span>
+                                    </div>
+
+                                    <div x-show="roundSettings.amount != 0" class="flex justify-between text-sm text-gray-600">
+                                        <span>Round Off:</span>
+                                        <span x-text="formatCurrency(roundSettings.amount)">RM 0.00</span>
                                     </div>
 
                                     <!-- Divider line -->
@@ -705,6 +698,36 @@ function invoiceBuilder() {
         showTaxInput: false,
         showRoundOffInput: false,
 
+        // Modal State
+        modals: {
+            discount: false,
+            tax: false,
+            round: false
+        },
+
+        // Modal Settings
+        discountSettings: {
+            type: 'percentage', // 'percentage' or 'amount'
+            percentage: 0,
+            amount: 0,
+            reason: ''
+        },
+
+        taxSettings: {
+            type: 'sst', // 'sst', 'gst', 'vat', 'custom'
+            percentage: 6, // Default SST rate
+            customRate: 0,
+            label: 'SST (6%)',
+            customLabel: 'Tax'
+        },
+
+        roundSettings: {
+            enabled: false,
+            method: 'nearest', // 'up', 'down', 'nearest'
+            precision: 0.05, // Round to nearest 5 cents
+            amount: 0
+        },
+
         // Content
         notes: 'Thank you for your business!',
         terms: 'Payment is due within 30 days. Late payments may incur additional charges.',
@@ -742,6 +765,169 @@ function invoiceBuilder() {
 
             // Load saved notes templates
             this.loadSavedTemplates();
+        },
+
+        // Modal Methods
+        openDiscountModal() {
+            this.closeAllModals();
+            // Seed current values
+            this.discountSettings.percentage = this.discountPercentage || 0;
+            this.discountSettings.amount = this.discountAmount || 0;
+            this.discountSettings.type = this.discountPercentage > 0 ? 'percentage' : 'amount';
+            this.modals.discount = true;
+            document.body.style.overflow = 'hidden';
+            // Focus management
+            this.$nextTick(() => {
+                const firstInput = document.querySelector('#discount-modal input, #discount-modal select, #discount-modal button');
+                if (firstInput) firstInput.focus();
+            });
+        },
+
+        openTaxModal() {
+            this.closeAllModals();
+            // Seed current values
+            this.taxSettings.percentage = this.taxPercentage || 6;
+            if (this.taxSettings.percentage === 6) {
+                this.taxSettings.type = 'sst';
+                this.taxSettings.label = 'SST (6%)';
+            } else if (this.taxSettings.percentage === 10) {
+                this.taxSettings.type = 'gst';
+                this.taxSettings.label = 'GST (10%)';
+            } else {
+                this.taxSettings.type = 'custom';
+                this.taxSettings.customRate = this.taxSettings.percentage;
+            }
+            this.modals.tax = true;
+            document.body.style.overflow = 'hidden';
+            // Focus management
+            this.$nextTick(() => {
+                const firstInput = document.querySelector('#tax-modal input, #tax-modal select, #tax-modal button');
+                if (firstInput) firstInput.focus();
+            });
+        },
+
+        openRoundModal() {
+            this.closeAllModals();
+            // Seed current values
+            this.roundSettings.enabled = Math.abs(this.total - Math.round(this.total * 20) / 20) < 0.01;
+            this.modals.round = true;
+            document.body.style.overflow = 'hidden';
+            // Focus management
+            this.$nextTick(() => {
+                const firstInput = document.querySelector('#round-modal input, #round-modal select, #round-modal button');
+                if (firstInput) firstInput.focus();
+            });
+        },
+
+        closeAllModals() {
+            this.modals.discount = false;
+            this.modals.tax = false;
+            this.modals.round = false;
+            document.body.style.overflow = '';
+            // Return focus to trigger button
+            this.$nextTick(() => {
+                const lastFocusedButton = document.activeElement;
+                if (lastFocusedButton && lastFocusedButton.tagName === 'BUTTON') {
+                    lastFocusedButton.blur();
+                }
+            });
+        },
+
+        // Modal Apply Methods
+        applyDiscountSettings() {
+            if (this.discountSettings.type === 'percentage') {
+                this.discountPercentage = parseFloat(this.discountSettings.percentage) || 0;
+                this.discountAmount = (this.subtotal * this.discountPercentage) / 100;
+            } else {
+                this.discountAmount = parseFloat(this.discountSettings.amount) || 0;
+                this.discountPercentage = this.subtotal > 0 ? (this.discountAmount / this.subtotal) * 100 : 0;
+            }
+            this.calculateTotals();
+            this.closeAllModals();
+        },
+
+        applyTaxSettings() {
+            if (this.taxSettings.type === 'sst') {
+                this.taxPercentage = 6;
+            } else if (this.taxSettings.type === 'gst') {
+                this.taxPercentage = 10;
+            } else if (this.taxSettings.type === 'vat') {
+                this.taxPercentage = 5;
+            } else {
+                this.taxPercentage = parseFloat(this.taxSettings.customRate) || 0;
+            }
+            this.calculateTotals();
+            this.closeAllModals();
+        },
+
+        applyRoundSettings() {
+            if (this.roundSettings.enabled) {
+                const precision = parseFloat(this.roundSettings.precision) || 0.05;
+                let roundedTotal = this.total;
+
+                if (this.roundSettings.method === 'up') {
+                    roundedTotal = Math.ceil(this.total / precision) * precision;
+                } else if (this.roundSettings.method === 'down') {
+                    roundedTotal = Math.floor(this.total / precision) * precision;
+                } else {
+                    roundedTotal = Math.round(this.total / precision) * precision;
+                }
+
+                this.roundSettings.amount = roundedTotal - this.total;
+                this.total = roundedTotal;
+            } else {
+                this.roundSettings.amount = 0;
+                this.calculateTotals(); // Recalculate without rounding
+            }
+            this.closeAllModals();
+        },
+
+        updateDiscountType() {
+            // Reset values when type changes
+            if (this.discountSettings.type === 'percentage') {
+                this.discountSettings.amount = 0;
+            } else {
+                this.discountSettings.percentage = 0;
+            }
+        },
+
+        updateTaxType() {
+            this.updateTaxLabel();
+        },
+
+        updateTaxLabel() {
+            if (this.taxSettings.type === 'sst') {
+                this.taxSettings.label = 'SST (6%)';
+                this.taxSettings.percentage = 6;
+            } else if (this.taxSettings.type === 'gst') {
+                this.taxSettings.label = 'GST (10%)';
+                this.taxSettings.percentage = 10;
+            } else if (this.taxSettings.type === 'vat') {
+                this.taxSettings.label = 'VAT (5%)';
+                this.taxSettings.percentage = 5;
+            } else {
+                this.taxSettings.label = this.taxSettings.customLabel || 'Tax';
+                this.taxSettings.percentage = this.taxSettings.customRate;
+            }
+        },
+
+        updateRoundingPreview() {
+            if (this.roundSettings.enabled) {
+                const precision = parseFloat(this.roundSettings.precision) || 0.05;
+                let roundedTotal = this.total;
+
+                if (this.roundSettings.method === 'up') {
+                    roundedTotal = Math.ceil(this.total / precision) * precision;
+                } else if (this.roundSettings.method === 'down') {
+                    roundedTotal = Math.floor(this.total / precision) * precision;
+                } else {
+                    roundedTotal = Math.round(this.total / precision) * precision;
+                }
+
+                this.roundSettings.amount = roundedTotal - this.total;
+            } else {
+                this.roundSettings.amount = 0;
+            }
         },
 
         // Date Formatting Methods
@@ -1283,5 +1469,241 @@ function invoiceBuilder() {
         }
     };
 }
+
+    <!-- Discount Modal -->
+    <div id="discount-modal" x-show="modals.discount" x-cloak
+         @keydown.escape.prevent="closeAllModals"
+         x-trap="modals.discount"
+         class="fixed inset-0 bg-slate-900/60 backdrop-blur flex items-center justify-center min-h-screen px-4 z-50"
+         role="dialog" aria-modal="true" aria-labelledby="discount-modal-title" aria-describedby="discount-modal-description">
+        <div @click.self="closeAllModals" class="fixed inset-0" aria-hidden="true"></div>
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-6 relative z-10">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 id="discount-modal-title" class="text-lg font-semibold text-gray-900">Edit Discounts</h2>
+                    <p id="discount-modal-description" class="text-sm text-gray-500 mt-1">Configure discount settings for this invoice</p>
+                </div>
+                <button @click="closeAllModals"
+                        class="text-slate-400 hover:text-slate-600 text-sm font-medium uppercase"
+                        aria-label="Close discount modal">
+                    close ×
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Discount Type</label>
+                    <select x-model="discountSettings.type" @change="updateDiscountType"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="none">None</option>
+                        <option value="subtotal">Discount on subtotal</option>
+                        <option value="per_item">Discount per item</option>
+                    </select>
+                </div>
+
+                <!-- Subtotal Discount Inputs -->
+                <div x-show="discountSettings.type === 'subtotal'" class="space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Percentage</label>
+                            <div class="relative">
+                                <input type="number" x-model="discountSettings.percentage"
+                                       class="w-full border border-gray-300 rounded px-3 py-2 pr-8 text-sm"
+                                       placeholder="0" min="0" max="100" step="0.01">
+                                <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">%</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Amount</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">RM</span>
+                                <input type="number" x-model="discountSettings.amount"
+                                       class="w-full border border-gray-300 rounded pl-12 pr-3 py-2 text-sm"
+                                       placeholder="0.00" min="0" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Per Item Instructions -->
+                <div x-show="discountSettings.type === 'per_item'" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p class="text-sm text-blue-800">
+                        Per-item discounts can be set individually for each line item in the invoice items section above.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button @click="closeAllModals"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg">
+                    Cancel
+                </button>
+                <button @click="applyDiscountSettings"
+                        class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg">
+                    Apply
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tax Modal -->
+    <div id="tax-modal" x-show="modals.tax" x-cloak
+         @keydown.escape.prevent="closeAllModals"
+         x-trap="modals.tax"
+         class="fixed inset-0 bg-slate-900/60 backdrop-blur flex items-center justify-center min-h-screen px-4 z-50"
+         role="dialog" aria-modal="true" aria-labelledby="tax-modal-title" aria-describedby="tax-modal-description">
+        <div @click.self="closeAllModals" class="fixed inset-0" aria-hidden="true"></div>
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-6 relative z-10">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 id="tax-modal-title" class="text-lg font-semibold text-gray-900">Edit Taxes</h2>
+                    <p id="tax-modal-description" class="text-sm text-gray-500 mt-1">Configure tax settings for this invoice</p>
+                </div>
+                <button @click="closeAllModals"
+                        class="text-slate-400 hover:text-slate-600 text-sm font-medium uppercase"
+                        aria-label="Close tax modal">
+                    close ×
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tax Type</label>
+                    <select x-model="taxSettings.type" @change="updateTaxType"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="none">None</option>
+                        <option value="subtotal">Tax after subtotal</option>
+                        <option value="per_item">Tax per item</option>
+                    </select>
+                </div>
+
+                <!-- Subtotal Tax Input -->
+                <div x-show="taxSettings.type === 'subtotal'" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Tax Percentage</label>
+                        <div class="relative">
+                            <input type="number" x-model="taxSettings.percentage"
+                                   class="w-full border border-gray-300 rounded px-3 py-2 pr-8 text-sm"
+                                   placeholder="0" min="0" max="100" step="0.01">
+                            <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Per Item Instructions -->
+                <div x-show="taxSettings.type === 'per_item'" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p class="text-sm text-blue-800">
+                        Per-item taxes will be calculated individually for each line item. This is useful for items with different tax rates.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button @click="closeAllModals"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg">
+                    Cancel
+                </button>
+                <button @click="applyTaxSettings"
+                        class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg">
+                    Apply
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Round Off Modal -->
+    <div id="round-modal" x-show="modals.round" x-cloak
+         @keydown.escape.prevent="closeAllModals"
+         x-trap="modals.round"
+         class="fixed inset-0 bg-slate-900/60 backdrop-blur flex items-center justify-center min-h-screen px-4 z-50"
+         role="dialog" aria-modal="true" aria-labelledby="round-modal-title" aria-describedby="round-modal-description">
+        <div @click.self="closeAllModals" class="fixed inset-0" aria-hidden="true"></div>
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-6 relative z-10">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 id="round-modal-title" class="text-lg font-semibold text-gray-900">Round Off</h2>
+                    <p id="round-modal-description" class="text-sm text-gray-500 mt-1">Configure rounding settings for the invoice total</p>
+                </div>
+                <button @click="closeAllModals"
+                        class="text-slate-400 hover:text-slate-600 text-sm font-medium uppercase"
+                        aria-label="Close round off modal">
+                    close ×
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="space-y-4">
+                <!-- Toggle Switch -->
+                <div class="flex items-center justify-between">
+                    <label class="text-sm font-medium text-gray-700">Enable Round Off</label>
+                    <button @click="roundSettings.enabled = !roundSettings.enabled" type="button"
+                            :class="roundSettings.enabled ? 'bg-blue-600' : 'bg-gray-200'"
+                            class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        <span :class="roundSettings.enabled ? 'translate-x-6' : 'translate-x-1'"
+                              class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"></span>
+                    </button>
+                </div>
+
+                <!-- Round Off Details -->
+                <div x-show="roundSettings.enabled" class="space-y-3">
+                    <!-- Summary Rows -->
+                    <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Total Before:</span>
+                            <span class="font-medium" x-text="formatCurrency(total)">RM 0.00</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Round Off:</span>
+                            <div class="flex items-center space-x-2">
+                                <span class="bg-slate-100 rounded-full px-4 py-1 text-xs">Applied</span>
+                                <span class="font-medium" x-text="formatCurrency(roundSettings.amount)">RM 0.00</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between text-sm font-semibold border-t border-gray-200 pt-2">
+                            <span>Total After:</span>
+                            <span x-text="formatCurrency(total + roundSettings.amount)">RM 0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Manual Adjustment -->
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Manual Round Off Adjustment</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">RM</span>
+                            <input type="number" x-model="roundSettings.amount"
+                                   class="w-full border border-gray-300 rounded pl-12 pr-3 py-2 text-sm"
+                                   placeholder="0.00" step="0.01">
+                        </div>
+                    </div>
+
+                    <!-- Save as Default -->
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" x-model="roundSettings.saveAsDefault" id="save-default"
+                               class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <label for="save-default" class="text-sm text-gray-700">Save as default (For future invoices)</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button @click="closeAllModals"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg">
+                    Cancel
+                </button>
+                <button @click="applyRoundSettings"
+                        class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg">
+                    Apply
+                </button>
+            </div>
+        </div>
+    </div>
 </script>
 @endsection
