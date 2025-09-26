@@ -245,17 +245,17 @@
                             <table class="w-full">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 30%;">Description</th>
-                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 20%;">Qty</th>
-                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 30%;">Rate</th>
-                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 20%;">Total</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 60%;">Description</th>
+                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 5%;">Qty</th>
+                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 20%;">Rate</th>
+                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 15%;">Total</th>
                                         <th class="w-10"></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
                                 <template x-for="(item, index) in lineItems" :key="index">
                                     <tr>
-                                        <td class="px-6 py-4 relative" style="width: 30%;">
+                                        <td class="px-6 py-4 relative" style="width: 60%;">
                                             <div class="relative">
                                                 <input type="text"
                                                        x-model="item.description"
@@ -285,15 +285,15 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 text-right" style="width: 20%;">
+                                        <td class="px-6 py-4 text-right" style="width: 5%;">
                                             <input type="number" x-model="item.quantity" @input="calculateTotals"
-                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px] border-b border-gray-200 focus:border-blue-500" min="1" step="1" style="min-width: 80px;">
+                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px] border-b border-gray-200 focus:border-blue-500" min="1" step="1" style="min-width: 50px;">
                                         </td>
-                                        <td class="px-6 py-4 text-right" style="width: 30%;">
+                                        <td class="px-6 py-4 text-right" style="width: 20%;">
                                             <input type="number" x-model="item.unit_price" @input="calculateTotals"
-                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px] border-b border-gray-200 focus:border-blue-500" min="0" step="0.01" style="min-width: 100px;">
+                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px] border-b border-gray-200 focus:border-blue-500" min="0" step="0.01" style="min-width: 80px;">
                                         </td>
-                                        <td class="px-6 py-4 text-right text-sm font-medium" style="width: 20%;">
+                                        <td class="px-6 py-4 text-right text-sm font-medium" style="width: 15%;">
                                             RM <span x-text="(item.quantity * item.unit_price).toFixed(2)">0.00</span>
                                         </td>
                                         <td class="px-6 py-4 text-center">
