@@ -412,11 +412,58 @@
                     <!-- Gap between rows -->
                     <div class="h-2 bg-gray-50"></div>
 
-                    <!-- Financial Details Section -->
-                    <div class="px-4 md:px-6 lg:px-8 py-6 bg-white border border-gray-200 rounded-lg mx-2 md:mx-4 lg:mx-6">
-                        <div class="flex justify-center md:justify-end">
-                            <div class="w-full md:max-w-sm">
-                                <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 md:p-6 space-y-4 md:space-y-6">
+                    <!-- Totals Section -->
+                    <div class="px-4 md:px-6 lg:px-8 py-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mt-4">
+                            <!-- Left side: Notes/Terms/Payment Instructions -->
+                            <div class="space-y-6">
+                                <!-- Payment Instructions Card -->
+                                <div x-show="optionalSections.show_payment_instructions" class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                                    <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
+                                        <span class="font-medium text-gray-900">Payment Instructions</span>
+                                        <span class="text-xs text-gray-600">(Optional)</span>
+                                    </div>
+                                    <div class="px-5 py-4 space-y-1">
+                                        <div><strong>Pay Cheque to:</strong></div>
+                                        <div class="text-blue-600">{{ auth()->user()->company->name ?? 'Company Name' }}</div>
+                                        <div><strong>Send to bank:</strong></div>
+                                        <div class="text-blue-600">Maybank - Account: 1234567890</div>
+                                        <div class="text-gray-600 text-sm mt-2">Please include invoice number in payment reference.</div>
+                                    </div>
+                                </div>
+
+                                <!-- Terms Card -->
+                                <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                                    <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
+                                        <span class="font-medium text-gray-900">Terms & Conditions</span>
+                                        <button class="bg-amber-200 border border-amber-300 rounded-full px-3 py-1 text-xs">
+                                            Saved terms
+                                        </button>
+                                    </div>
+                                    <div class="px-5 py-4">
+                                        <textarea x-model="terms" placeholder="Add terms and conditions..."
+                                                  class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                                  rows="4"></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Notes Card -->
+                                <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                                    <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
+                                        <span class="font-medium text-gray-900">Notes</span>
+                                        <span class="text-xs text-gray-600">(Optional)</span>
+                                    </div>
+                                    <div class="px-5 py-4">
+                                        <textarea x-model="notes" placeholder="Add any additional notes..."
+                                                  class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                                  rows="4"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right side: Totals Summary -->
+                            <div>
+                                <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 space-y-6">
                                     <!-- Top row -->
                                     <div class="flex justify-between">
                                         <span class="text-gray-600">Subtotal:</span>
@@ -427,17 +474,17 @@
                                     <div class="space-y-2">
                                         <button type="button" @click="openDiscountModal()"
                                                 aria-controls="discount-modal" :aria-expanded="modals.discount"
-                                                class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2 px-3 text-sm md:text-base">
+                                                class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2">
                                             + Discount
                                         </button>
                                         <button type="button" @click="openTaxModal()"
                                                 aria-controls="tax-modal" :aria-expanded="modals.tax"
-                                                class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2 px-3 text-sm md:text-base">
+                                                class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2">
                                             + Tax
                                         </button>
                                         <button type="button" @click="openRoundModal()"
                                                 aria-controls="round-modal" :aria-expanded="modals.round"
-                                                class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2 px-3 text-sm md:text-base">
+                                                class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2">
                                             + Round Off
                                         </button>
                                     </div>
@@ -476,57 +523,6 @@
                                             <span x-text="formatCurrency(balanceDue)">RM 0.00</span>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Gap between rows -->
-                    <div class="h-2 bg-gray-50"></div>
-
-                    <!-- Payment Terms and Notes Section -->
-                    <div class="px-4 md:px-6 lg:px-8 py-6 bg-white border border-gray-200 rounded-lg mx-2 md:mx-4 lg:mx-6">
-                        <div class="space-y-6">
-                            <!-- Payment Instructions Card -->
-                            <div x-show="optionalSections.show_payment_instructions" class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
-                                <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
-                                    <span class="font-medium text-gray-900">Payment Instructions</span>
-                                    <span class="text-xs text-gray-600">(Optional)</span>
-                                </div>
-                                <div class="px-5 py-4 space-y-1">
-                                    <div><strong>Pay Cheque to:</strong></div>
-                                    <div class="text-blue-600">{{ auth()->user()->company->name ?? 'Company Name' }}</div>
-                                    <div><strong>Send to bank:</strong></div>
-                                    <div class="text-blue-600">Maybank - Account: 1234567890</div>
-                                    <div class="text-gray-600 text-sm mt-2">Please include invoice number in payment reference.</div>
-                                </div>
-                            </div>
-
-                            <!-- Terms Card -->
-                            <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
-                                <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
-                                    <span class="font-medium text-gray-900">Terms & Conditions</span>
-                                    <button class="bg-amber-200 border border-amber-300 rounded-full px-3 py-1 text-xs">
-                                        Saved terms
-                                    </button>
-                                </div>
-                                <div class="px-5 py-4">
-                                    <textarea x-model="terms" placeholder="Add terms and conditions..."
-                                              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                                              rows="4"></textarea>
-                                </div>
-                            </div>
-
-                            <!-- Notes Card -->
-                            <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
-                                <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
-                                    <span class="font-medium text-gray-900">Notes</span>
-                                    <span class="text-xs text-gray-600">(Optional)</span>
-                                </div>
-                                <div class="px-5 py-4">
-                                    <textarea x-model="notes" placeholder="Add any additional notes..."
-                                              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                                              rows="4"></textarea>
                                 </div>
                             </div>
                         </div>
