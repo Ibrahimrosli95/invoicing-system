@@ -626,6 +626,244 @@
             </div>
         </div>
     </div>
+
+    <!-- Discount Modal -->
+    <div id="discount-modal" x-show="modals.discount" x-cloak
+         @keydown.escape.prevent="closeAllModals"
+         x-trap="modals.discount"
+         class="fixed inset-0 bg-slate-900/60 backdrop-blur flex items-center justify-center min-h-screen px-4 z-50"
+         role="dialog" aria-modal="true" aria-labelledby="discount-modal-title" aria-describedby="discount-modal-description">
+        <div @click.self="closeAllModals" class="fixed inset-0" aria-hidden="true"></div>
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-6 relative z-10">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 id="discount-modal-title" class="text-lg font-semibold text-gray-900">Edit Discounts</h2>
+                    <p id="discount-modal-description" class="text-sm text-gray-500 mt-1">Configure discount settings for this invoice</p>
+                </div>
+                <button @click="closeAllModals"
+                        class="text-slate-400 hover:text-slate-600 text-sm font-medium uppercase"
+                        aria-label="Close discount modal">
+                    close ×
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="space-y-4">
+                <!-- Discount Type Selection -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-2">Discount Type</label>
+                    <select x-model="discountSettings.type" @change="updateDiscountType"
+                            class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+                        <option value="percentage">Percentage (%)</option>
+                        <option value="amount">Fixed Amount (RM)</option>
+                    </select>
+                </div>
+
+                <!-- Percentage Input -->
+                <div x-show="discountSettings.type === 'percentage'" class="space-y-2">
+                    <label class="block text-xs font-medium text-gray-600">Percentage</label>
+                    <div class="relative">
+                        <input type="number" x-model="discountSettings.percentage"
+                               class="w-full border border-gray-300 rounded px-3 py-2 pr-8 text-sm"
+                               placeholder="0" min="0" max="100" step="0.01">
+                        <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">%</span>
+                    </div>
+                </div>
+
+                <!-- Amount Input -->
+                <div x-show="discountSettings.type === 'amount'" class="space-y-2">
+                    <label class="block text-xs font-medium text-gray-600">Amount</label>
+                    <div class="relative">
+                        <input type="number" x-model="discountSettings.amount"
+                               class="w-full border border-gray-300 rounded px-3 py-2 pl-8 text-sm"
+                               placeholder="0.00" min="0" step="0.01">
+                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">RM</span>
+                    </div>
+                </div>
+
+                <!-- Reason (Optional) -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-2">Reason (Optional)</label>
+                    <input type="text" x-model="discountSettings.reason"
+                           class="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                           placeholder="e.g., Volume discount, Early payment">
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button @click="closeAllModals"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg">
+                    Cancel
+                </button>
+                <button @click="applyDiscountSettings"
+                        class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg">
+                    Apply
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tax Modal -->
+    <div id="tax-modal" x-show="modals.tax" x-cloak
+         @keydown.escape.prevent="closeAllModals"
+         x-trap="modals.tax"
+         class="fixed inset-0 bg-slate-900/60 backdrop-blur flex items-center justify-center min-h-screen px-4 z-50"
+         role="dialog" aria-modal="true" aria-labelledby="tax-modal-title" aria-describedby="tax-modal-description">
+        <div @click.self="closeAllModals" class="fixed inset-0" aria-hidden="true"></div>
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-6 relative z-10">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 id="tax-modal-title" class="text-lg font-semibold text-gray-900">Edit Taxes</h2>
+                    <p id="tax-modal-description" class="text-sm text-gray-500 mt-1">Configure tax settings for this invoice</p>
+                </div>
+                <button @click="closeAllModals"
+                        class="text-slate-400 hover:text-slate-600 text-sm font-medium uppercase"
+                        aria-label="Close tax modal">
+                    close ×
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="space-y-4">
+                <!-- Tax Type Selection -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-2">Tax Type</label>
+                    <select x-model="taxSettings.type" @change="updateTaxType"
+                            class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+                        <option value="sst">SST (6%)</option>
+                        <option value="gst">GST (10%)</option>
+                        <option value="vat">VAT (5%)</option>
+                        <option value="custom">Custom Rate</option>
+                    </select>
+                </div>
+
+                <!-- Custom Tax Input -->
+                <div x-show="taxSettings.type === 'custom'" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Tax Percentage</label>
+                        <div class="relative">
+                            <input type="number" x-model="taxSettings.percentage"
+                                   class="w-full border border-gray-300 rounded px-3 py-2 pr-8 text-sm"
+                                   placeholder="0" min="0" max="100" step="0.01">
+                            <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tax Information -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p class="text-sm text-blue-800" x-text="taxSettings.label || 'Custom Tax'"></p>
+                    <p class="text-xs text-blue-600 mt-1">Tax will be applied to the subtotal after discount.</p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button @click="closeAllModals"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg">
+                    Cancel
+                </button>
+                <button @click="applyTaxSettings"
+                        class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg">
+                    Apply
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Round Off Modal -->
+    <div id="round-modal" x-show="modals.round" x-cloak
+         @keydown.escape.prevent="closeAllModals"
+         x-trap="modals.round"
+         class="fixed inset-0 bg-slate-900/60 backdrop-blur flex items-center justify-center min-h-screen px-4 z-50"
+         role="dialog" aria-modal="true" aria-labelledby="round-modal-title" aria-describedby="round-modal-description">
+        <div @click.self="closeAllModals" class="fixed inset-0" aria-hidden="true"></div>
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-6 relative z-10">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 id="round-modal-title" class="text-lg font-semibold text-gray-900">Round Off</h2>
+                    <p id="round-modal-description" class="text-sm text-gray-500 mt-1">Configure rounding settings for the invoice total</p>
+                </div>
+                <button @click="closeAllModals"
+                        class="text-slate-400 hover:text-slate-600 text-sm font-medium uppercase"
+                        aria-label="Close round off modal">
+                    close ×
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="space-y-4">
+                <!-- Enable Toggle -->
+                <div class="flex items-center justify-between">
+                    <label class="text-sm font-medium text-gray-900">Enable Rounding</label>
+                    <button @click="roundSettings.enabled = !roundSettings.enabled; updateRoundingPreview()"
+                            :class="roundSettings.enabled ? 'bg-emerald-600' : 'bg-gray-300'"
+                            class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">
+                        <span :class="roundSettings.enabled ? 'translate-x-6' : 'translate-x-1'"
+                              class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"></span>
+                    </button>
+                </div>
+
+                <!-- Rounding Settings -->
+                <div x-show="roundSettings.enabled" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-2">Rounding Method</label>
+                        <select x-model="roundSettings.method" @change="updateRoundingPreview"
+                                class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+                            <option value="nearest">Round to Nearest</option>
+                            <option value="up">Round Up</option>
+                            <option value="down">Round Down</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-2">Precision</label>
+                        <select x-model="roundSettings.precision" @change="updateRoundingPreview"
+                                class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
+                            <option value="1">Whole Number (RM 1)</option>
+                            <option value="0.50">50 Cents (RM 0.50)</option>
+                            <option value="0.10">10 Cents (RM 0.10)</option>
+                            <option value="0.05">5 Cents (RM 0.05)</option>
+                            <option value="0.01">1 Cent (RM 0.01)</option>
+                        </select>
+                    </div>
+
+                    <!-- Preview -->
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                        <div class="text-xs font-medium text-gray-600 mb-1">Preview</div>
+                        <div class="flex justify-between text-sm">
+                            <span>Current Total:</span>
+                            <span x-text="formatCurrency(total)">RM 0.00</span>
+                        </div>
+                        <div class="flex justify-between text-sm font-medium">
+                            <span>Rounded Total:</span>
+                            <span x-text="formatCurrency(total + (roundSettings.amount || 0))">RM 0.00</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-600">
+                            <span>Adjustment:</span>
+                            <span x-text="formatCurrency(roundSettings.amount || 0)">RM 0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button @click="closeAllModals"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg">
+                    Cancel
+                </button>
+                <button @click="applyRoundSettings"
+                        class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg">
+                    Apply
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -1469,241 +1707,5 @@ function invoiceBuilder() {
         }
     };
 }
-
-    <!-- Discount Modal -->
-    <div id="discount-modal" x-show="modals.discount" x-cloak
-         @keydown.escape.prevent="closeAllModals"
-         x-trap="modals.discount"
-         class="fixed inset-0 bg-slate-900/60 backdrop-blur flex items-center justify-center min-h-screen px-4 z-50"
-         role="dialog" aria-modal="true" aria-labelledby="discount-modal-title" aria-describedby="discount-modal-description">
-        <div @click.self="closeAllModals" class="fixed inset-0" aria-hidden="true"></div>
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-6 relative z-10">
-            <!-- Header -->
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 id="discount-modal-title" class="text-lg font-semibold text-gray-900">Edit Discounts</h2>
-                    <p id="discount-modal-description" class="text-sm text-gray-500 mt-1">Configure discount settings for this invoice</p>
-                </div>
-                <button @click="closeAllModals"
-                        class="text-slate-400 hover:text-slate-600 text-sm font-medium uppercase"
-                        aria-label="Close discount modal">
-                    close ×
-                </button>
-            </div>
-
-            <!-- Content -->
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Discount Type</label>
-                    <select x-model="discountSettings.type" @change="updateDiscountType"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="none">None</option>
-                        <option value="subtotal">Discount on subtotal</option>
-                        <option value="per_item">Discount per item</option>
-                    </select>
-                </div>
-
-                <!-- Subtotal Discount Inputs -->
-                <div x-show="discountSettings.type === 'subtotal'" class="space-y-3">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Percentage</label>
-                            <div class="relative">
-                                <input type="number" x-model="discountSettings.percentage"
-                                       class="w-full border border-gray-300 rounded px-3 py-2 pr-8 text-sm"
-                                       placeholder="0" min="0" max="100" step="0.01">
-                                <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">%</span>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Amount</label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">RM</span>
-                                <input type="number" x-model="discountSettings.amount"
-                                       class="w-full border border-gray-300 rounded pl-12 pr-3 py-2 text-sm"
-                                       placeholder="0.00" min="0" step="0.01">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Per Item Instructions -->
-                <div x-show="discountSettings.type === 'per_item'" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p class="text-sm text-blue-800">
-                        Per-item discounts can be set individually for each line item in the invoice items section above.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
-                <button @click="closeAllModals"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg">
-                    Cancel
-                </button>
-                <button @click="applyDiscountSettings"
-                        class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg">
-                    Apply
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tax Modal -->
-    <div id="tax-modal" x-show="modals.tax" x-cloak
-         @keydown.escape.prevent="closeAllModals"
-         x-trap="modals.tax"
-         class="fixed inset-0 bg-slate-900/60 backdrop-blur flex items-center justify-center min-h-screen px-4 z-50"
-         role="dialog" aria-modal="true" aria-labelledby="tax-modal-title" aria-describedby="tax-modal-description">
-        <div @click.self="closeAllModals" class="fixed inset-0" aria-hidden="true"></div>
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-6 relative z-10">
-            <!-- Header -->
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 id="tax-modal-title" class="text-lg font-semibold text-gray-900">Edit Taxes</h2>
-                    <p id="tax-modal-description" class="text-sm text-gray-500 mt-1">Configure tax settings for this invoice</p>
-                </div>
-                <button @click="closeAllModals"
-                        class="text-slate-400 hover:text-slate-600 text-sm font-medium uppercase"
-                        aria-label="Close tax modal">
-                    close ×
-                </button>
-            </div>
-
-            <!-- Content -->
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tax Type</label>
-                    <select x-model="taxSettings.type" @change="updateTaxType"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="none">None</option>
-                        <option value="subtotal">Tax after subtotal</option>
-                        <option value="per_item">Tax per item</option>
-                    </select>
-                </div>
-
-                <!-- Subtotal Tax Input -->
-                <div x-show="taxSettings.type === 'subtotal'" class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Tax Percentage</label>
-                        <div class="relative">
-                            <input type="number" x-model="taxSettings.percentage"
-                                   class="w-full border border-gray-300 rounded px-3 py-2 pr-8 text-sm"
-                                   placeholder="0" min="0" max="100" step="0.01">
-                            <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Per Item Instructions -->
-                <div x-show="taxSettings.type === 'per_item'" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p class="text-sm text-blue-800">
-                        Per-item taxes will be calculated individually for each line item. This is useful for items with different tax rates.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
-                <button @click="closeAllModals"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg">
-                    Cancel
-                </button>
-                <button @click="applyTaxSettings"
-                        class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg">
-                    Apply
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Round Off Modal -->
-    <div id="round-modal" x-show="modals.round" x-cloak
-         @keydown.escape.prevent="closeAllModals"
-         x-trap="modals.round"
-         class="fixed inset-0 bg-slate-900/60 backdrop-blur flex items-center justify-center min-h-screen px-4 z-50"
-         role="dialog" aria-modal="true" aria-labelledby="round-modal-title" aria-describedby="round-modal-description">
-        <div @click.self="closeAllModals" class="fixed inset-0" aria-hidden="true"></div>
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-6 relative z-10">
-            <!-- Header -->
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 id="round-modal-title" class="text-lg font-semibold text-gray-900">Round Off</h2>
-                    <p id="round-modal-description" class="text-sm text-gray-500 mt-1">Configure rounding settings for the invoice total</p>
-                </div>
-                <button @click="closeAllModals"
-                        class="text-slate-400 hover:text-slate-600 text-sm font-medium uppercase"
-                        aria-label="Close round off modal">
-                    close ×
-                </button>
-            </div>
-
-            <!-- Content -->
-            <div class="space-y-4">
-                <!-- Toggle Switch -->
-                <div class="flex items-center justify-between">
-                    <label class="text-sm font-medium text-gray-700">Enable Round Off</label>
-                    <button @click="roundSettings.enabled = !roundSettings.enabled" type="button"
-                            :class="roundSettings.enabled ? 'bg-blue-600' : 'bg-gray-200'"
-                            class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                        <span :class="roundSettings.enabled ? 'translate-x-6' : 'translate-x-1'"
-                              class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"></span>
-                    </button>
-                </div>
-
-                <!-- Round Off Details -->
-                <div x-show="roundSettings.enabled" class="space-y-3">
-                    <!-- Summary Rows -->
-                    <div class="bg-gray-50 rounded-lg p-4 space-y-2">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">Total Before:</span>
-                            <span class="font-medium" x-text="formatCurrency(total)">RM 0.00</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">Round Off:</span>
-                            <div class="flex items-center space-x-2">
-                                <span class="bg-slate-100 rounded-full px-4 py-1 text-xs">Applied</span>
-                                <span class="font-medium" x-text="formatCurrency(roundSettings.amount)">RM 0.00</span>
-                            </div>
-                        </div>
-                        <div class="flex justify-between text-sm font-semibold border-t border-gray-200 pt-2">
-                            <span>Total After:</span>
-                            <span x-text="formatCurrency(total + roundSettings.amount)">RM 0.00</span>
-                        </div>
-                    </div>
-
-                    <!-- Manual Adjustment -->
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 mb-1">Manual Round Off Adjustment</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">RM</span>
-                            <input type="number" x-model="roundSettings.amount"
-                                   class="w-full border border-gray-300 rounded pl-12 pr-3 py-2 text-sm"
-                                   placeholder="0.00" step="0.01">
-                        </div>
-                    </div>
-
-                    <!-- Save as Default -->
-                    <div class="flex items-center space-x-2">
-                        <input type="checkbox" x-model="roundSettings.saveAsDefault" id="save-default"
-                               class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <label for="save-default" class="text-sm text-gray-700">Save as default (For future invoices)</label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
-                <button @click="closeAllModals"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg">
-                    Cancel
-                </button>
-                <button @click="applyRoundSettings"
-                        class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg">
-                    Apply
-                </button>
-            </div>
-        </div>
-    </div>
 </script>
 @endsection
