@@ -41,7 +41,7 @@
                         <!-- Row 2: Sender Details and Company Logo -->
                         <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-6">
                             <!-- Sender Details - Left -->
-                            <div class="w-full lg:w-2/3 pr-0 lg:pr-12 space-y-4 mb-4 lg:mb-0">
+                            <div class="w-full lg:w-2/3 pr-0 lg:pr-12 space-y-4 mb-4 lg:mb-0 order-2 lg:order-1">
                                 <h2 class="text-2xl font-bold text-blue-600 leading-tight">
                                     {{ auth()->user()->company->name ?? 'Company Name' }}
                                 </h2>
@@ -62,7 +62,7 @@
                             </div>
 
                             <!-- Company Logo - Right -->
-                            <div class="flex flex-col items-center lg:items-end w-full lg:w-1/3">
+                            <div class="flex flex-col items-center lg:items-end w-full lg:w-1/3 order-1 lg:order-2">
                                 <!-- Logo Section -->
                                 <div x-show="optionalSections.show_company_logo" class="relative group mb-4">
                                     <img :src="companyLogo" alt="Company Logo" class="h-20 cursor-pointer" @click="$refs.logoUpload.click()">
@@ -414,7 +414,7 @@
 
                     <!-- Totals Section -->
                     <div class="px-4 md:px-6 lg:px-8 py-6">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mt-4">
+                        <div class="flex flex-col lg:grid lg:grid-cols-2 gap-4 md:gap-6 mt-4">
                             <!-- Left side: Notes/Terms/Payment Instructions -->
                             <div class="space-y-6 order-2 lg:order-1">
                                 <!-- Payment Instructions Card -->
