@@ -626,7 +626,6 @@
     <!-- Discount Modal -->
     <div id="discount-modal" x-show="modals.discount" x-cloak
          @keydown.escape.prevent="closeAllModals"
-         x-trap="modals.discount"
          class="fixed inset-0 bg-slate-900/60 backdrop-blur flex items-center justify-center min-h-screen px-4 z-50"
          role="dialog" aria-modal="true" aria-labelledby="discount-modal-title" aria-describedby="discount-modal-description">
         <div @click.self="closeAllModals" class="fixed inset-0" aria-hidden="true"></div>
@@ -704,7 +703,6 @@
     <!-- Tax Modal -->
     <div id="tax-modal" x-show="modals.tax" x-cloak
          @keydown.escape.prevent="closeAllModals"
-         x-trap="modals.tax"
          class="fixed inset-0 bg-slate-900/60 backdrop-blur flex items-center justify-center min-h-screen px-4 z-50"
          role="dialog" aria-modal="true" aria-labelledby="tax-modal-title" aria-describedby="tax-modal-description">
         <div @click.self="closeAllModals" class="fixed inset-0" aria-hidden="true"></div>
@@ -773,7 +771,6 @@
     <!-- Round Off Modal -->
     <div id="round-modal" x-show="modals.round" x-cloak
          @keydown.escape.prevent="closeAllModals"
-         x-trap="modals.round"
          class="fixed inset-0 bg-slate-900/60 backdrop-blur flex items-center justify-center min-h-screen px-4 z-50"
          role="dialog" aria-modal="true" aria-labelledby="round-modal-title" aria-describedby="round-modal-description">
         <div @click.self="closeAllModals" class="fixed inset-0" aria-hidden="true"></div>
