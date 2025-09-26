@@ -344,17 +344,26 @@
                                     <div class="relative">
                                         <label class="block text-xs font-medium text-gray-700 mb-1">Description</label>
                                         <input type="text" x-model="item.description"
+                                               @input="searchPricingItems(index)"
+                                               @focus="showPricingDropdown[index] = true"
                                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-                                               placeholder="Item description">
-                                        <div x-show="showPricingDropdown === index" x-transition
-                                             class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                            <template x-for="(suggestion, suggestionIndex) in pricingSuggestions" :key="suggestionIndex">
-                                                <div @click="selectPricingItem(index, suggestion)"
-                                                     class="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0">
-                                                    <div class="font-medium text-sm text-gray-900" x-text="suggestion.name"></div>
-                                                    <div class="text-xs text-gray-500">
-                                                        <span x-text="suggestion.item_code"></span> •
-                                                        <span x-text="'RM ' + parseFloat(suggestion.unit_price).toFixed(2)"></span>
+                                               placeholder="Search pricing book or enter custom description...">
+
+                                        <!-- Pricing Items Dropdown -->
+                                        <div x-show="showPricingDropdown[index] && pricingResults[index] && pricingResults[index].length > 0"
+                                             x-transition:enter="transition ease-out duration-100"
+                                             x-transition:enter-start="transform opacity-0 scale-95"
+                                             x-transition:enter-end="transform opacity-100 scale-100"
+                                             @click.outside="showPricingDropdown[index] = false"
+                                             class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                            <template x-for="pricingItem in pricingResults[index]" :key="pricingItem.id">
+                                                <div @click="selectPricingItem(index, pricingItem)"
+                                                     class="px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0">
+                                                    <div class="text-sm font-medium text-gray-900" x-text="pricingItem.name"></div>
+                                                    <div class="text-xs text-gray-500" x-text="pricingItem.description"></div>
+                                                    <div class="flex items-center justify-between mt-1">
+                                                        <span class="text-xs text-gray-600" x-text="pricingItem.item_code"></span>
+                                                        <span class="text-sm font-medium text-green-600">RM <span x-text="pricingItem.unit_price"></span></span>
                                                     </div>
                                                 </div>
                                             </template>
@@ -403,58 +412,11 @@
                     <!-- Gap between rows -->
                     <div class="h-2 bg-gray-50"></div>
 
-                    <!-- Totals Section -->
-                    <div class="px-4 md:px-6 lg:px-8 py-6">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mt-4">
-                            <!-- Left side: Notes/Terms/Payment Instructions -->
-                            <div class="space-y-6">
-                                <!-- Payment Instructions Card -->
-                                <div x-show="optionalSections.show_payment_instructions" class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
-                                    <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
-                                        <span class="font-medium text-gray-900">Payment Instructions</span>
-                                        <span class="text-xs text-gray-600">(Optional)</span>
-                                    </div>
-                                    <div class="px-5 py-4 space-y-1">
-                                        <div><strong>Pay Cheque to:</strong></div>
-                                        <div class="text-blue-600">{{ auth()->user()->company->name ?? 'Company Name' }}</div>
-                                        <div><strong>Send to bank:</strong></div>
-                                        <div class="text-blue-600">Maybank - Account: 1234567890</div>
-                                        <div class="text-gray-600 text-sm mt-2">Please include invoice number in payment reference.</div>
-                                    </div>
-                                </div>
-
-                                <!-- Terms Card -->
-                                <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
-                                    <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
-                                        <span class="font-medium text-gray-900">Terms & Conditions</span>
-                                        <button class="bg-amber-200 border border-amber-300 rounded-full px-3 py-1 text-xs">
-                                            Saved terms
-                                        </button>
-                                    </div>
-                                    <div class="px-5 py-4">
-                                        <textarea x-model="terms" placeholder="Add terms and conditions..."
-                                                  class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                                                  rows="4"></textarea>
-                                    </div>
-                                </div>
-
-                                <!-- Notes Card -->
-                                <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
-                                    <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
-                                        <span class="font-medium text-gray-900">Notes</span>
-                                        <span class="text-xs text-gray-600">(Optional)</span>
-                                    </div>
-                                    <div class="px-5 py-4">
-                                        <textarea x-model="notes" placeholder="Add any additional notes..."
-                                                  class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                                                  rows="4"></textarea>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Right side: Totals Summary -->
-                            <div>
-                                <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 space-y-6">
+                    <!-- Financial Details Section -->
+                    <div class="px-4 md:px-6 lg:px-8 py-6 bg-white border border-gray-200 rounded-lg mx-2 md:mx-4 lg:mx-6">
+                        <div class="flex justify-center md:justify-end">
+                            <div class="w-full md:max-w-sm">
+                                <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 md:p-6 space-y-4 md:space-y-6">
                                     <!-- Top row -->
                                     <div class="flex justify-between">
                                         <span class="text-gray-600">Subtotal:</span>
@@ -465,17 +427,17 @@
                                     <div class="space-y-2">
                                         <button type="button" @click="openDiscountModal()"
                                                 aria-controls="discount-modal" :aria-expanded="modals.discount"
-                                                class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2">
+                                                class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2 px-3 text-sm md:text-base">
                                             + Discount
                                         </button>
                                         <button type="button" @click="openTaxModal()"
                                                 aria-controls="tax-modal" :aria-expanded="modals.tax"
-                                                class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2">
+                                                class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2 px-3 text-sm md:text-base">
                                             + Tax
                                         </button>
                                         <button type="button" @click="openRoundModal()"
                                                 aria-controls="round-modal" :aria-expanded="modals.round"
-                                                class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2">
+                                                class="w-full bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg py-2 px-3 text-sm md:text-base">
                                             + Round Off
                                         </button>
                                     </div>
@@ -514,6 +476,57 @@
                                             <span x-text="formatCurrency(balanceDue)">RM 0.00</span>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gap between rows -->
+                    <div class="h-2 bg-gray-50"></div>
+
+                    <!-- Payment Terms and Notes Section -->
+                    <div class="px-4 md:px-6 lg:px-8 py-6 bg-white border border-gray-200 rounded-lg mx-2 md:mx-4 lg:mx-6">
+                        <div class="space-y-6">
+                            <!-- Payment Instructions Card -->
+                            <div x-show="optionalSections.show_payment_instructions" class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                                <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
+                                    <span class="font-medium text-gray-900">Payment Instructions</span>
+                                    <span class="text-xs text-gray-600">(Optional)</span>
+                                </div>
+                                <div class="px-5 py-4 space-y-1">
+                                    <div><strong>Pay Cheque to:</strong></div>
+                                    <div class="text-blue-600">{{ auth()->user()->company->name ?? 'Company Name' }}</div>
+                                    <div><strong>Send to bank:</strong></div>
+                                    <div class="text-blue-600">Maybank - Account: 1234567890</div>
+                                    <div class="text-gray-600 text-sm mt-2">Please include invoice number in payment reference.</div>
+                                </div>
+                            </div>
+
+                            <!-- Terms Card -->
+                            <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                                <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
+                                    <span class="font-medium text-gray-900">Terms & Conditions</span>
+                                    <button class="bg-amber-200 border border-amber-300 rounded-full px-3 py-1 text-xs">
+                                        Saved terms
+                                    </button>
+                                </div>
+                                <div class="px-5 py-4">
+                                    <textarea x-model="terms" placeholder="Add terms and conditions..."
+                                              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                              rows="4"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Notes Card -->
+                            <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
+                                <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
+                                    <span class="font-medium text-gray-900">Notes</span>
+                                    <span class="text-xs text-gray-600">(Optional)</span>
+                                </div>
+                                <div class="px-5 py-4">
+                                    <textarea x-model="notes" placeholder="Add any additional notes..."
+                                              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                              rows="4"></textarea>
                                 </div>
                             </div>
                         </div>
