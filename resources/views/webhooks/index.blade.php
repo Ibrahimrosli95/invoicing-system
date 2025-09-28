@@ -184,7 +184,7 @@
                                         <a href="{{ $endpoint->url }}" target="_blank" rel="noopener"
                                            class="text-sm text-blue-600 hover:text-blue-800">{{ $endpoint->url }}</a>
                                         @if($endpoint->description)
-                                            <p class="text-xs text-gray-500">{{ \\Illuminate\\Support\\Str::limit($endpoint->description, 120) }}</p>
+                                            <p class="text-xs text-gray-500">{{ \Illuminate\Support\Str::limit($endpoint->description, 120) }}</p>
                                         @endif
                                         <p class="text-xs text-gray-400">{{ __('Created') }} {{ $endpoint->created_at->diffForHumans() }}</p>
                                     </div>
