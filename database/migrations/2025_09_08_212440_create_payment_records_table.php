@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -20,7 +21,7 @@ return new class extends Migration
             // Payment details
             $table->decimal('amount', 12, 2); // Payment amount
             $table->date('payment_date'); // Date payment was received
-            $table->date('recorded_date')->default(now()); // Date payment was recorded in system
+            $table->date('recorded_date')->default(DB::raw('CURDATE()')); // Date payment was recorded in system
             
             // Payment method and details
             $table->enum('payment_method', ['CASH', 'CHEQUE', 'BANK_TRANSFER', 'CREDIT_CARD', 'ONLINE_BANKING', 'OTHER']);
