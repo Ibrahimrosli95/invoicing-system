@@ -146,8 +146,8 @@
                                     </div>
                                     <div x-show="selectedCustomer.company_name" x-text="selectedCustomer.company_name" class="text-gray-600"></div>
                                     <div x-show="selectedCustomer.address" x-text="selectedCustomer.address" class="text-gray-600"></div>
-                                    <div x-show="selectedCustomer.city" class="text-gray-600">
-                                        <span x-text="selectedCustomer.city"></span><span x-show="selectedCustomer.state">, <span x-text="selectedCustomer.state"></span></span>
+                                    <div x-show="selectedCustomer.city || selectedCustomer.state || selectedCustomer.postal_code" class="text-gray-600">
+                                        <span x-show="selectedCustomer.city" x-text="selectedCustomer.city"></span><span x-show="selectedCustomer.city && (selectedCustomer.state || selectedCustomer.postal_code)">, </span><span x-show="selectedCustomer.state" x-text="selectedCustomer.state"></span>
                                         <span x-show="selectedCustomer.postal_code"> <span x-text="selectedCustomer.postal_code"></span></span>
                                     </div>
                                     <div x-show="selectedCustomer.phone || selectedCustomer.email" class="text-gray-600">
@@ -186,8 +186,8 @@
                                     <div class="font-medium" x-text="selectedCustomer.name"></div>
                                     <div x-show="selectedCustomer.company_name" x-text="selectedCustomer.company_name"></div>
                                     <div x-show="selectedCustomer.address" x-text="selectedCustomer.address"></div>
-                                    <div x-show="selectedCustomer.city">
-                                        <span x-text="selectedCustomer.city"></span><span x-show="selectedCustomer.state">, <span x-text="selectedCustomer.state"></span></span>
+                                    <div x-show="selectedCustomer.city || selectedCustomer.state || selectedCustomer.postal_code">
+                                        <span x-show="selectedCustomer.city" x-text="selectedCustomer.city"></span><span x-show="selectedCustomer.city && (selectedCustomer.state || selectedCustomer.postal_code)">, </span><span x-show="selectedCustomer.state" x-text="selectedCustomer.state"></span>
                                         <span x-show="selectedCustomer.postal_code"> <span x-text="selectedCustomer.postal_code"></span></span>
                                     </div>
                                 </div>
