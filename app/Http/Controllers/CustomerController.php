@@ -76,7 +76,14 @@ class CustomerController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'company_name' => 'nullable|string|max:150',
-            'phone' => 'required|string|max:20',
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique('customers', 'phone')->where(function ($query) {
+                    return $query->where('company_id', auth()->user()->company_id);
+                })
+            ],
             'email' => 'nullable|email|max:100',
             'address' => 'nullable|string',
             'city' => 'nullable|string|max:100',

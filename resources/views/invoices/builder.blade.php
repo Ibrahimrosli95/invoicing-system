@@ -1409,7 +1409,14 @@ function invoiceBuilder() {
                 },
                 body: JSON.stringify(this.newCustomer)
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'Failed to create customer');
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     this.selectCustomer(data.customer);
@@ -1424,7 +1431,12 @@ function invoiceBuilder() {
             })
             .catch(error => {
                 console.error('Create customer error:', error);
-                this.$dispatch('notify', { type: 'error', message: 'Failed to create customer' });
+                // Handle validation errors specifically
+                if (error.message.includes('phone')) {
+                    this.$dispatch('notify', { type: 'error', message: 'This phone number is already registered with another customer in your company.' });
+                } else {
+                    this.$dispatch('notify', { type: 'error', message: error.message || 'Failed to create customer' });
+                }
             });
         },
 
