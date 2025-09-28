@@ -564,57 +564,107 @@
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
             <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showNewCustomerModal = false"></div>
 
-            <div class="relative inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+            <div class="relative inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
                 <form @submit.prevent="createCustomer">
-                    <div class="mb-4">
+                    <div class="mb-6">
                         <h3 class="text-lg font-medium text-gray-900">Create New Customer</h3>
-                        <p class="mt-1 text-sm text-gray-500">Add a new customer to your database.</p>
+                        <p class="mt-1 text-sm text-gray-500">Add a new customer to your database</p>
                     </div>
 
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Name *</label>
-                            <input type="text" x-model="newCustomer.name" required
-                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    <div class="space-y-6">
+                        <!-- Basic Information -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Name *</label>
+                                <input type="text" x-model="newCustomer.name" required
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Company Name</label>
+                                <input type="text" x-model="newCustomer.company_name"
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <!-- Contact Information -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Phone *</label>
+                                <input type="text" x-model="newCustomer.phone" required
+                                       @input="formatPhoneNumber"
+                                       placeholder="e.g., 012-345-6789"
+                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Email</label>
                                 <input type="email" x-model="newCustomer.email"
                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                             </div>
+                        </div>
+
+                        <!-- Address Information -->
+                        <div class="space-y-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700">Phone</label>
-                                <input type="text" x-model="newCustomer.phone"
-                                       @input="formatPhoneNumber"
-                                       placeholder="e.g., 012-345-6789"
-                                       maxlength="15"
-                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                                <p class="mt-1 text-xs text-gray-500">Malaysian format: 01X-XXX-XXXX or +60X-XXX-XXXX</p>
+                                <label class="block text-sm font-medium text-gray-700">Address</label>
+                                <textarea x-model="newCustomer.address" rows="2"
+                                          class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">City</label>
+                                    <input type="text" x-model="newCustomer.city"
+                                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">State</label>
+                                    <input type="text" x-model="newCustomer.state"
+                                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Postal Code</label>
+                                    <input type="text" x-model="newCustomer.postal_code"
+                                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                </div>
                             </div>
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Company</label>
-                            <input type="text" x-model="newCustomer.company"
-                                   class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        <!-- Business Information -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Customer Segment</label>
+                                <select x-model="newCustomer.customer_segment_id"
+                                        class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    <option value="">Select a segment</option>
+                                    <option value="1">Dealer</option>
+                                    <option value="2">Contractor</option>
+                                    <option value="3">End User</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" x-model="newCustomer.is_new_customer" id="is_new_customer_modal"
+                                       class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                <label for="is_new_customer_modal" class="ml-2 block text-sm text-gray-900">
+                                    Mark as new customer
+                                </label>
+                            </div>
                         </div>
 
+                        <!-- Notes -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Address</label>
-                            <textarea x-model="newCustomer.address" rows="2"
+                            <label class="block text-sm font-medium text-gray-700">Notes</label>
+                            <textarea x-model="newCustomer.notes" rows="3"
                                       class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
                         </div>
                     </div>
 
-                    <div class="mt-6 flex justify-end space-x-3">
+                    <div class="mt-6 flex justify-end space-x-3 pt-6 border-t border-gray-200">
                         <button type="button" @click="showNewCustomerModal = false"
-                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
                             Cancel
                         </button>
                         <button type="submit"
-                                class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700">
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
                             Create Customer
                         </button>
                     </div>
@@ -879,10 +929,16 @@ function invoiceBuilder() {
         // New Customer Form
         newCustomer: {
             name: '',
-            email: '',
+            company_name: '',
             phone: '',
-            company: '',
-            address: ''
+            email: '',
+            address: '',
+            city: '',
+            state: '',
+            postal_code: '',
+            customer_segment_id: '',
+            is_new_customer: false,
+            notes: ''
         },
 
         // Invoice Data
@@ -1333,10 +1389,7 @@ function invoiceBuilder() {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
-                body: JSON.stringify({
-                    ...this.newCustomer,
-                    company_name: this.newCustomer.company // Map company to company_name
-                })
+                body: JSON.stringify(this.newCustomer)
             })
             .then(response => response.json())
             .then(data => {
@@ -1360,10 +1413,16 @@ function invoiceBuilder() {
         resetNewCustomerForm() {
             this.newCustomer = {
                 name: '',
-                email: '',
+                company_name: '',
                 phone: '',
-                company: '',
-                address: ''
+                email: '',
+                address: '',
+                city: '',
+                state: '',
+                postal_code: '',
+                customer_segment_id: '',
+                is_new_customer: false,
+                notes: ''
             };
         },
 
