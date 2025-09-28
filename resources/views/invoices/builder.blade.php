@@ -1374,8 +1374,25 @@ function invoiceBuilder() {
 
         // Create New Customer
         createCustomer() {
-            // Validate phone number if provided
-            if (this.newCustomer.phone && !this.validatePhoneNumber(this.newCustomer.phone)) {
+            // Validate required fields
+            if (!this.newCustomer.name || !this.newCustomer.name.trim()) {
+                this.$dispatch('notify', {
+                    type: 'error',
+                    message: 'Please enter a customer name'
+                });
+                return;
+            }
+
+            if (!this.newCustomer.phone || !this.newCustomer.phone.trim()) {
+                this.$dispatch('notify', {
+                    type: 'error',
+                    message: 'Please enter a phone number'
+                });
+                return;
+            }
+
+            // Validate phone number format
+            if (!this.validatePhoneNumber(this.newCustomer.phone)) {
                 this.$dispatch('notify', {
                     type: 'error',
                     message: 'Please enter a valid Malaysian phone number (e.g., 012-345-6789 or +601-234-5678)'
