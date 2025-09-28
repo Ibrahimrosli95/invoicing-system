@@ -57,6 +57,9 @@ class Customer extends Model
             if (!$customer->created_by && auth()->check()) {
                 $customer->created_by = auth()->id();
             }
+
+            // Automatically mark all new customers as "new" until they have payment history
+            $customer->is_new_customer = true;
         });
 
         static::updating(function ($customer) {
@@ -224,6 +227,25 @@ class Customer extends Model
     public function markAsReturning(): void
     {
         $this->update(['is_new_customer' => false]);
+    }
+
+    /**
+     * Check and automatically update customer status based on business logic
+     */
+    public function updateCustomerStatus(): void
+    {
+        // If customer is currently marked as new, check if they should be returning
+        if ($this->is_new_customer) {
+            // Mark as returning if they have any paid invoices
+            $hasPaidInvoices = \App\Models\Invoice::forCompany()
+                ->where('customer_phone', $this->phone)
+                ->where('status', 'PAID')
+                ->exists();
+
+            if ($hasPaidInvoices) {
+                $this->markAsReturning();
+            }
+        }
     }
 
     /**

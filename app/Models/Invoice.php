@@ -498,6 +498,14 @@ class Invoice extends Model
 
         // Lock all invoice items
         $this->items()->update(['is_locked' => true]);
+
+        // Update customer status - mark as returning customer if this is their first payment
+        if ($this->customer_phone) {
+            $customer = Customer::forCompany()->where('phone', $this->customer_phone)->first();
+            if ($customer) {
+                $customer->updateCustomerStatus();
+            }
+        }
     }
 
     public function cancel(string $reason = null): void

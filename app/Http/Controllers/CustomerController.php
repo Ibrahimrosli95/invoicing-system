@@ -90,7 +90,6 @@ class CustomerController extends Controller
             'state' => 'nullable|string|max:100',
             'postal_code' => 'nullable|string|max:20',
             'customer_segment_id' => 'nullable|exists:customer_segments,id',
-            'is_new_customer' => 'boolean',
             'notes' => 'nullable|string',
             'lead_id' => 'nullable|exists:leads,id',
         ]);
