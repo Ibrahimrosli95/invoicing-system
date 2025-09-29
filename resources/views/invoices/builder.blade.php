@@ -421,14 +421,17 @@
                                 <div x-show="optionalSections.show_payment_instructions" class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
                                     <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
                                         <span class="font-medium text-gray-900">Payment Instructions</span>
-                                        <span class="text-xs text-gray-600">(Optional)</span>
+                                        <div class="flex items-center space-x-2">
+                                            <button @click="loadPaymentInstructionTemplates()" class="bg-blue-100 hover:bg-blue-200 border border-blue-300 rounded-full px-3 py-1 text-xs text-blue-700 transition-colors">
+                                                Templates
+                                            </button>
+                                            <span class="text-xs text-gray-600">(Optional)</span>
+                                        </div>
                                     </div>
-                                    <div class="px-5 py-4 space-y-1">
-                                        <div><strong>Pay Cheque to:</strong></div>
-                                        <div class="text-blue-600">{{ auth()->user()->company->name ?? 'Company Name' }}</div>
-                                        <div><strong>Send to bank:</strong></div>
-                                        <div class="text-blue-600">Maybank - Account: 1234567890</div>
-                                        <div class="text-gray-600 text-sm mt-2">Please include invoice number in payment reference.</div>
+                                    <div class="px-5 py-4">
+                                        <textarea x-model="paymentInstructions" placeholder="Add payment instructions..."
+                                                  class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                                                  rows="4"></textarea>
                                     </div>
                                 </div>
 
@@ -436,8 +439,8 @@
                                 <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
                                     <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
                                         <span class="font-medium text-gray-900">Terms & Conditions</span>
-                                        <button class="bg-amber-200 border border-amber-300 rounded-full px-3 py-1 text-xs">
-                                            Saved terms
+                                        <button @click="loadTermsTemplates()" class="bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-full px-3 py-1 text-xs text-amber-700 transition-colors">
+                                            Templates
                                         </button>
                                     </div>
                                     <div class="px-5 py-4">
@@ -451,7 +454,12 @@
                                 <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
                                     <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
                                         <span class="font-medium text-gray-900">Notes</span>
-                                        <span class="text-xs text-gray-600">(Optional)</span>
+                                        <div class="flex items-center space-x-2">
+                                            <button @click="loadNotesTemplates()" class="bg-green-100 hover:bg-green-200 border border-green-300 rounded-full px-3 py-1 text-xs text-green-700 transition-colors">
+                                                Templates
+                                            </button>
+                                            <span class="text-xs text-gray-600">(Optional)</span>
+                                        </div>
                                     </div>
                                     <div class="px-5 py-4">
                                         <textarea x-model="notes" placeholder="Add any additional notes..."
@@ -908,6 +916,81 @@
             </div>
         </div>
     </div>
+
+    <!-- Template Selection Modal -->
+    <div x-show="showTemplateModal"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center min-h-screen px-4 z-50"
+         style="display: none;">
+        <div @click.away="showTemplateModal = false"
+             class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+            <!-- Header -->
+            <div class="flex items-center justify-between bg-gray-50 px-6 py-4 border-b">
+                <h2 class="text-lg font-semibold text-gray-900" x-text="templateModal.title">Select Template</h2>
+                <button @click="showTemplateModal = false"
+                        class="text-gray-500 hover:text-gray-700 text-xl font-semibold">
+                    &times;
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="p-6 max-h-96 overflow-y-auto">
+                <!-- Loading State -->
+                <div x-show="templateModal.loading" class="flex items-center justify-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span class="ml-2 text-gray-600">Loading templates...</span>
+                </div>
+
+                <!-- Templates List -->
+                <div x-show="!templateModal.loading && templateModal.templates.length > 0" class="space-y-3">
+                    <template x-for="template in templateModal.templates" :key="template.id">
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+                             @click="selectTemplate(template)">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-medium text-gray-900" x-text="template.name"></h3>
+                                <span x-show="template.is_default"
+                                      class="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">Default</span>
+                            </div>
+                            <p class="text-sm text-gray-600 line-clamp-3" x-text="template.content"></p>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Empty State -->
+                <div x-show="!templateModal.loading && templateModal.templates.length === 0"
+                     class="text-center py-8">
+                    <div class="text-gray-400 mb-2">
+                        <svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No templates found</h3>
+                    <p class="text-gray-600 mb-4">Create your first template to get started.</p>
+                    <a :href="'/invoice-note-templates/create?type=' + templateModal.type"
+                       class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+                        Create Template
+                    </a>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex items-center justify-between bg-gray-50 px-6 py-4 border-t">
+                <a :href="'/invoice-note-templates?type=' + templateModal.type"
+                   class="text-sm text-blue-600 hover:text-blue-800">
+                    Manage Templates
+                </a>
+                <button @click="showTemplateModal = false"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -916,6 +999,7 @@ function invoiceBuilder() {
         // UI State
         showCustomerDropdown: false,
         showNewCustomerModal: false,
+        showTemplateModal: false,
 
         // Customer Management
         customerSearch: '',
@@ -1016,8 +1100,9 @@ function invoiceBuilder() {
         },
 
         // Content
-        notes: 'Thank you for your business!',
-        terms: 'Payment is due within 30 days. Late payments may incur additional charges.',
+        notes: @json($defaultTemplates['notes']->content ?? 'Thank you for your business!'),
+        terms: @json($defaultTemplates['terms']->content ?? 'Payment is due within 30 days. Late payments may incur additional charges.'),
+        paymentInstructions: @json($defaultTemplates['payment_instructions']->content ?? 'Please make payments to:\n\nCompany: {{ auth()->user()->company->name ?? "Your Company Name" }}\nBank: Maybank\nAccount: 1234567890\n\nPlease include invoice number in payment reference.'),
 
         // Logo Management
         companyLogo: '{{ auth()->user()->company->logo ?? "/images/logo-placeholder.png" }}',
@@ -1029,6 +1114,14 @@ function invoiceBuilder() {
             { id: 3, name: 'Warranty Info', content: 'This invoice includes warranty coverage as per our standard terms and conditions.' },
             { id: 4, name: 'Custom Service', content: 'Services provided as per custom specifications discussed.' }
         ],
+
+        // Template Modal Data
+        templateModal: {
+            title: 'Select Template',
+            type: '',
+            templates: [],
+            loading: false
+        },
 
         // Representative Information
         representativeName: '{{ auth()->user()->name }}',
@@ -1750,6 +1843,7 @@ function invoiceBuilder() {
                 total: this.total,
                 notes: this.notes,
                 terms_conditions: this.terms,
+                payment_instructions: this.paymentInstructions,
 
                 // Shipping information
                 shipping_info: this.shippingSameAsBilling ? {
@@ -1785,6 +1879,90 @@ function invoiceBuilder() {
         applyTemplate() {
             // TODO: Implement template application
             this.$dispatch('notify', { type: 'info', message: 'Template feature coming soon!' });
+        },
+
+        // Template Management Methods
+        async loadNotesTemplates() {
+            await this.loadTemplates('notes', 'Select Notes Template');
+        },
+
+        async loadTermsTemplates() {
+            await this.loadTemplates('terms', 'Select Terms & Conditions Template');
+        },
+
+        async loadPaymentInstructionTemplates() {
+            await this.loadTemplates('payment_instructions', 'Select Payment Instructions Template');
+        },
+
+        async loadTemplates(type, title) {
+            this.templateModal.type = type;
+            this.templateModal.title = title;
+            this.templateModal.loading = true;
+            this.templateModal.templates = [];
+            this.showTemplateModal = true;
+
+            try {
+                const response = await fetch('/api/invoice-note-templates/by-type?type=' + type, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    this.templateModal.templates = data.templates;
+
+                    // Auto-select default template if available and current field is empty
+                    if (data.default && this.isFieldEmpty(type)) {
+                        this.selectTemplate(data.default);
+                        this.showTemplateModal = false;
+                    }
+                } else {
+                    throw new Error('Failed to load templates');
+                }
+            } catch (error) {
+                console.error('Error loading templates:', error);
+                this.$dispatch('notify', {
+                    type: 'error',
+                    message: 'Failed to load templates. Please try again.'
+                });
+            } finally {
+                this.templateModal.loading = false;
+            }
+        },
+
+        selectTemplate(template) {
+            switch (this.templateModal.type) {
+                case 'notes':
+                    this.notes = template.content;
+                    break;
+                case 'terms':
+                    this.terms = template.content;
+                    break;
+                case 'payment_instructions':
+                    this.paymentInstructions = template.content;
+                    break;
+            }
+            this.showTemplateModal = false;
+            this.$dispatch('notify', {
+                type: 'success',
+                message: 'Template applied successfully!'
+            });
+        },
+
+        isFieldEmpty(type) {
+            switch (type) {
+                case 'notes':
+                    return !this.notes || this.notes.trim() === '' || this.notes === 'Thank you for your business!';
+                case 'terms':
+                    return !this.terms || this.terms.trim() === '' || this.terms === 'Payment is due within 30 days. Late payments may incur additional charges.';
+                case 'payment_instructions':
+                    return !this.paymentInstructions || this.paymentInstructions.trim() === '';
+                default:
+                    return true;
+            }
         }
     };
 }

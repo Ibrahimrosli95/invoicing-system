@@ -66,6 +66,7 @@ class Invoice extends Model
         'description',
         'terms_conditions',
         'notes',
+        'payment_instructions',
         'optional_sections',
         'subtotal',
         'discount_percentage',

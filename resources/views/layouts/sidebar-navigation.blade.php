@@ -27,6 +27,8 @@
                 'company' => '<path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />',
                 'numbering' => '<path stroke-linecap="round" stroke-linejoin="round" d="M5.25 9h13.5m-15 6h13.5M9 3.75L7.5 20.25M16.5 3.75L15 20.25" />',
                 'documents' => '<path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.75h6a1.5 1.5 0 011.5 1.5v12a1.5 1.5 0 01-1.5 1.5H9.75a1.5 1.5 0 01-1.5-1.5v-12a1.5 1.5 0 011.5-1.5z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h-1.5a1.5 1.5 0 00-1.5 1.5v11.25a1.5 1.5 0 001.5 1.5h8.25" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 9.75h3M12 12.75h3M12 15.75h3" />',
+                'templates' => '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />',
+                'invoice-settings' => '<path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />',
                 'system' => '<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 6.75h4.5m3 0h7.5M4.5 12h9m3 0h3M4.5 17.25h3m3 0h9" /><circle cx="9.75" cy="6.75" r="1.5" /><circle cx="15.75" cy="12" r="1.5" /><circle cx="9.75" cy="17.25" r="1.5" />',
                 'webhook' => '<circle cx="12" cy="7.5" r="2.25" /><circle cx="7.5" cy="17.25" r="2.25" /><circle cx="16.5" cy="17.25" r="2.25" /><path stroke-linecap="round" stroke-linejoin="round" d="M10.44 9.36l-2.1 4.89m5.22-4.89l2.1 4.89" />',
                 default => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />',
@@ -416,6 +418,13 @@
                     'route' => 'invoice-settings.index',
                     'patterns' => ['invoice-settings.*'],
                     'icon' => 'invoice-settings',
+                    'visible' => ['type' => 'can', 'ability' => 'manage', 'arguments' => \App\Models\Company::class],
+                ],
+                [
+                    'label' => 'Note Templates',
+                    'route' => 'invoice-note-templates.index',
+                    'patterns' => ['invoice-note-templates.*'],
+                    'icon' => 'templates',
                     'visible' => ['type' => 'can', 'ability' => 'manage', 'arguments' => \App\Models\Company::class],
                 ],
                 [

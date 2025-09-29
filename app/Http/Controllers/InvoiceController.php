@@ -167,7 +167,14 @@ class InvoiceController extends Controller
     {
         $this->authorize('create', Invoice::class);
 
-        return view('invoices.builder');
+        // Load default templates
+        $defaultTemplates = [
+            'notes' => \App\Models\InvoiceNoteTemplate::getDefaultForType('notes'),
+            'terms' => \App\Models\InvoiceNoteTemplate::getDefaultForType('terms'),
+            'payment_instructions' => \App\Models\InvoiceNoteTemplate::getDefaultForType('payment_instructions'),
+        ];
+
+        return view('invoices.builder', compact('defaultTemplates'));
     }
 
     /**
@@ -325,6 +332,7 @@ class InvoiceController extends Controller
                 'description' => 'nullable|string',
                 'terms_conditions' => 'nullable|string',
                 'notes' => 'nullable|string',
+                'payment_instructions' => 'nullable|string',
                 'invoice_date' => 'required|date',
                 'due_date' => 'required|date|after_or_equal:invoice_date',
                 'payment_terms_days' => 'nullable|integer|min:0|max:365',
