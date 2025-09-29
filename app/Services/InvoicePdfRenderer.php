@@ -80,11 +80,19 @@ class InvoicePdfRenderer
      */
     protected function buildViewData(Invoice $invoice, array $options = []): array
     {
+        $currency = $this->settingsService->getSetting('defaults.currency', 'RM', $invoice->company_id);
+
         return [
             'invoice' => $invoice,
             'sections' => $this->resolveSections($invoice),
             'palette' => $this->resolvePalette($invoice, $options),
-            'currency' => $this->settingsService->getSetting('defaults.currency', 'RM', $invoice->company_id),
+            'currency' => $currency,
+            'currencyHelper' => function($amount) use ($currency) {
+                return $currency . ' ' . number_format($amount, 2);
+            },
+            'dateHelper' => function($date) {
+                return $date ? $date->format('d M, Y') : '';
+            },
         ];
     }
 
@@ -126,6 +134,31 @@ class InvoicePdfRenderer
             'table_header_text' => '#ffffff',
             'table_row_even' => '#f8fafc',
         ], $appearance, $options['palette'] ?? []);
+    }
+
+    /**
+     * Calculate invoice totals for PDF display
+     */
+    public function calculateTotals(Invoice $invoice): array
+    {
+        $itemsTotal = $invoice->items->sum('total_price');
+        $subtotal = $itemsTotal;
+        $discountAmount = ($subtotal * ($invoice->discount_percentage ?? 0)) / 100;
+        $subtotalAfterDiscount = $subtotal - $discountAmount;
+        $taxAmount = ($subtotalAfterDiscount * ($invoice->tax_rate ?? 0)) / 100;
+        $total = $subtotalAfterDiscount + $taxAmount;
+        $totalPaid = $invoice->paymentRecords->where('status', 'CLEARED')->sum('amount');
+        $balance = $total - $totalPaid;
+
+        return [
+            'subtotal' => $subtotal,
+            'discount' => $discountAmount,
+            'subtotal_after_discount' => $subtotalAfterDiscount,
+            'tax' => $taxAmount,
+            'total' => $total,
+            'total_paid' => $totalPaid,
+            'balance' => $balance,
+        ];
     }
 
     protected function makeDompdf(array $options = []): Dompdf
