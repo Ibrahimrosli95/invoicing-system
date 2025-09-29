@@ -21,7 +21,6 @@ class InvoicePdfRenderer
     {
         $invoice->loadMissing([
             'company',
-            'company.invoiceSettings',
             'items',
             'createdBy',
             'paymentRecords' => fn ($query) => $query->orderBy('payment_date'),
