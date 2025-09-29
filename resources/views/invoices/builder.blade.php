@@ -15,10 +15,10 @@
                 <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">DRAFT</span>
             </div>
             <div class="flex items-center space-x-3 relative z-50">
-                <button type="button" @click="previewPDF" onclick="console.log('Preview PDF button clicked')" class="relative z-50 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
+                <button type="button" @click="previewPDF" class="relative z-50 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
                     Preview PDF
                 </button>
-                <button type="button" @click="saveInvoice" onclick="console.log('Save Invoice button clicked')" class="relative z-50 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
+                <button type="button" @click="saveInvoice" class="relative z-50 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
                     Save Invoice
                 </button>
             </div>
@@ -1752,7 +1752,6 @@ function invoiceBuilder() {
 
         // Actions
         previewPDF() {
-            console.log('previewPDF method called'); // Debug log
             if (!this.selectedCustomer.id) {
                 this.$dispatch('notify', { type: 'error', message: 'Please select a customer first' });
                 return;
@@ -1792,7 +1791,6 @@ function invoiceBuilder() {
         },
 
         saveInvoice() {
-            console.log('saveInvoice method called'); // Debug log
             const invoiceData = this.getInvoiceData();
 
             fetch('/api/invoices', {
@@ -1835,6 +1833,7 @@ function invoiceBuilder() {
                 customer_segment_id: this.selectedCustomer.customer_segment_id || null,
 
                 // Invoice details
+                title: `Invoice for ${this.selectedCustomer.name || 'Customer'}`,
                 invoice_date: this.invoiceDate,
                 due_date: this.dueDate,
                 subtotal: this.subtotal,
