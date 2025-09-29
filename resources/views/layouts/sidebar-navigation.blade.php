@@ -638,3 +638,6 @@
     </div>
 </div>
 
+<!-- Additional Scripts -->
+@stack('scripts')
+
