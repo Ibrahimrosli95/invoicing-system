@@ -537,10 +537,10 @@ class Invoice extends Model
     public function updatePaymentStatus(): void
     {
         $totalPaid = $this->paymentRecords()->where('status', 'CLEARED')->sum('amount');
-        $amountDue = $this->total_amount - $totalPaid;
+        $amountDue = $this->total - $totalPaid;
 
         $status = $this->status;
-        if ($totalPaid >= $this->total_amount) {
+        if ($totalPaid >= $this->total) {
             $status = self::STATUS_PAID;
             $this->paid_at = now();
         } elseif ($totalPaid > 0) {
@@ -568,13 +568,13 @@ class Invoice extends Model
     public function calculateTotals(): void
     {
         $itemsTotal = $this->items->sum('total_price');
-        
-        $this->subtotal_amount = $itemsTotal;
-        $this->discount_amount = ($this->subtotal_amount * $this->discount_percentage) / 100;
-        $afterDiscount = $this->subtotal_amount - $this->discount_amount;
+
+        $this->subtotal = $itemsTotal;
+        $this->discount_amount = ($this->subtotal * $this->discount_percentage) / 100;
+        $afterDiscount = $this->subtotal - $this->discount_amount;
         $this->tax_amount = ($afterDiscount * $this->tax_percentage) / 100;
-        $this->total_amount = $afterDiscount + $this->tax_amount;
-        $this->amount_due = $this->total_amount - $this->amount_paid;
+        $this->total = $afterDiscount + $this->tax_amount;
+        $this->amount_due = $this->total - $this->amount_paid;
 
         $this->saveQuietly(); // Save without firing events
     }
@@ -676,12 +676,12 @@ class Invoice extends Model
             'description' => $quotation->description,
             'terms_conditions' => $quotation->terms_conditions,
             'notes' => $quotation->notes,
-            'subtotal' => $quotation->subtotal_amount,
+            'subtotal' => $quotation->subtotal,
             'discount_percentage' => $quotation->discount_percentage,
             'discount_amount' => $quotation->discount_amount,
             'tax_percentage' => $quotation->tax_percentage,
             'tax_amount' => $quotation->tax_amount,
-            'total' => $quotation->total_amount,
+            'total' => $quotation->total,
             'due_date' => now()->addDays(30),
             'payment_terms' => 30,
         ]);
