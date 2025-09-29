@@ -134,8 +134,8 @@ class Invoice extends Model
                 $invoice->due_date = now()->addDays($invoice->payment_terms)->toDateString();
             }
 
-            // Set amount_due equal to total initially
-            $invoice->amount_due = $invoice->total;
+            // Set amount_due equal to total initially (with fallback to 0)
+            $invoice->amount_due = $invoice->total ?? 0;
 
             // Set company_id from auth user if not set
             if (!$invoice->company_id && auth()->check()) {

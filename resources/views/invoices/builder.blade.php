@@ -1842,6 +1842,7 @@ function invoiceBuilder() {
                 tax_percentage: this.taxPercentage,
                 tax_amount: this.taxAmount,
                 total: this.total,
+                amount_due: this.total, // Initially equal to total
                 notes: this.notes,
                 terms_conditions: this.terms,
                 payment_instructions: this.paymentInstructions,
