@@ -5,15 +5,15 @@
     <title>Invoice {{ $invoice->number }}</title>
     <style>
         :root {
-            --accent-color: {{ $palette['accent_color'] ?? '#0b57d0' }};
-            --accent-contrast: {{ $palette['accent_text_color'] ?? '#ffffff' }};
-            --text-color: {{ $palette['text_color'] ?? '#202124' }};
-            --muted-color: {{ $palette['muted_text_color'] ?? '#5f6368' }};
-            --heading-color: {{ $palette['heading_color'] ?? '#111827' }};
-            --border-color: {{ $palette['border_color'] ?? '#d0d5dd' }};
-            --table-header-bg: {{ $palette['table_header_background'] ?? '#0b57d0' }};
+            --primary-blue: {{ $palette['accent_color'] ?? '#1e40af' }};
+            --white: {{ $palette['accent_text_color'] ?? '#ffffff' }};
+            --text-black: {{ $palette['text_color'] ?? '#000000' }};
+            --text-grey: {{ $palette['muted_text_color'] ?? '#6b7280' }};
+            --heading-color: {{ $palette['heading_color'] ?? '#000000' }};
+            --border-color: {{ $palette['border_color'] ?? '#d1d5db' }};
+            --table-header-bg: {{ $palette['table_header_background'] ?? '#1e40af' }};
             --table-header-text: {{ $palette['table_header_text'] ?? '#ffffff' }};
-            --table-row-even: {{ $palette['table_row_even'] ?? '#f3f6fb' }};
+            --balance-due-color: #dc2626;
         }
 
         * {
@@ -24,7 +24,7 @@
             margin: 0;
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             font-size: 12px;
-            color: var(--text-color);
+            color: var(--text-black);
             line-height: 1.55;
             background: #ffffff;
         }
@@ -63,13 +63,13 @@
         .company-name {
             font-size: 15px;
             font-weight: 700;
-            color: var(--accent-color);
+            color: var(--primary-blue);
             margin-bottom: 4px;
         }
 
         .company-line {
             font-size: 12px;
-            color: var(--muted-color);
+            color: var(--text-grey);
         }
 
         .logo {
@@ -80,7 +80,7 @@
 
         .top-divider {
             border: none;
-            border-top: 2px solid var(--accent-color);
+            border-top: 2px solid var(--primary-blue);
             margin: 12mm 0 10mm;
         }
 
@@ -117,7 +117,7 @@
         }
 
         .meta-label {
-            color: var(--muted-color);
+            color: var(--text-grey);
             padding-right: 12px;
             white-space: nowrap;
         }
@@ -186,7 +186,7 @@
             border-radius: 6px;
             padding: 10px 12px;
             font-size: 12px;
-            color: var(--text-color);
+            color: var(--text-black);
             white-space: pre-line;
         }
 
@@ -205,7 +205,7 @@
         }
 
         .totals-table td:first-child {
-            color: var(--muted-color);
+            color: var(--text-grey);
             padding-right: 12px;
         }
 
@@ -239,7 +239,7 @@
             margin-top: 20mm;
             text-align: center;
             font-size: 10px;
-            color: var(--muted-color);
+            color: var(--text-grey);
         }
     </style>
 </head>
