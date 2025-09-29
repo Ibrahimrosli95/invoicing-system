@@ -53,7 +53,22 @@ class PDFService
         $chromePath = $this->getChromePath();
         if ($chromePath !== null) {
             $browsershot->setChromePath($chromePath);
+        } else {
+            // If no Chrome found, try to use Node.js with Puppeteer
+            $browsershot->setNodeBinary('node')
+                      ->setNpmBinary('npm');
         }
+
+        // Add additional debugging and error handling
+        $browsershot->setOption('args', [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-gpu',
+            '--disable-dev-shm-usage',
+            '--disable-web-security',
+            '--font-render-hinting=none'
+        ]);
+
         return $browsershot;
     }
 
@@ -139,21 +154,63 @@ class PDFService
      */
     public function generateInvoicePDF(Invoice $invoice): string
     {
+        // Log the start of PDF generation
+        \Log::info('Starting PDF generation for invoice', [
+            'invoice_id' => $invoice->id,
+            'invoice_number' => $invoice->number
+        ]);
+
         // Load invoice with all necessary relationships including proofs
         $invoice->load(['items', 'quotation', 'company', 'team', 'paymentRecords', 'proofs.assets']);
-        
-        // Render the HTML view for the PDF
-        $html = view('pdf.invoice', compact('invoice'))->render();
-        
-        // Generate PDF using Browsershot
-        $browsershot = Browsershot::html($html)
-            ->format('A4')
-            ->margins(15, 15, 15, 15)  // top, right, bottom, left (in mm)
-            ->showBackground()
-            ->waitUntilNetworkIdle()
-            ->timeout(60);
 
-        $pdf = $this->configureBrowsershot($browsershot)->pdf();
+        try {
+            // Render the HTML view for the PDF
+            $html = view('pdf.invoice', compact('invoice'))->render();
+            \Log::info('HTML template rendered successfully for invoice ' . $invoice->id);
+        } catch (\Exception $e) {
+            \Log::error('Failed to render HTML template for invoice ' . $invoice->id, [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
+
+        // Check Chrome path
+        $chromePath = $this->getChromePath();
+        \Log::info('Chrome path detected', ['path' => $chromePath]);
+
+        try {
+            // Generate PDF using Browsershot
+            $browsershot = Browsershot::html($html)
+                ->format('A4')
+                ->margins(15, 15, 15, 15)  // top, right, bottom, left (in mm)
+                ->showBackground()
+                ->waitUntilNetworkIdle()
+                ->timeout(60);
+
+            \Log::info('Browsershot configured, attempting PDF generation for invoice ' . $invoice->id);
+            $pdf = $this->configureBrowsershot($browsershot)->pdf();
+            \Log::info('PDF generated successfully for invoice ' . $invoice->id);
+        } catch (\Exception $e) {
+            \Log::error('Browsershot PDF generation failed for invoice ' . $invoice->id, [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'chrome_path' => $chromePath
+            ]);
+
+            // Fallback to DomPDF
+            \Log::info('Attempting PDF generation using DomPDF fallback for invoice ' . $invoice->id);
+            try {
+                $pdf = $this->generatePDFWithDomPDF($html);
+                \Log::info('PDF generated successfully using DomPDF fallback for invoice ' . $invoice->id);
+            } catch (\Exception $fallbackException) {
+                \Log::error('DomPDF fallback also failed for invoice ' . $invoice->id, [
+                    'error' => $fallbackException->getMessage(),
+                    'trace' => $fallbackException->getTraceAsString()
+                ]);
+                throw $e; // Throw the original Browsershot exception
+            }
+        }
 
         // Store the PDF
         $filename = $this->generateInvoicePDFFilename($invoice);
@@ -775,7 +832,7 @@ class PDFService
         }
 
         $averageQuality = $qualityScores->avg();
-        
+
         return match (true) {
             $averageQuality >= 4.5 => 'excellent',
             $averageQuality >= 3.5 => 'good',
@@ -783,5 +840,34 @@ class PDFService
             $averageQuality >= 1.5 => 'poor',
             default => 'critical'
         };
+    }
+
+    /**
+     * Generate PDF using DomPDF as fallback when Browsershot fails
+     */
+    protected function generatePDFWithDomPDF(string $html): string
+    {
+        // Import DomPDF
+        $dompdf = new \Dompdf\Dompdf();
+
+        // Set options for better rendering
+        $options = new \Dompdf\Options();
+        $options->set('defaultFont', 'Arial');
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultPaperSize', 'A4');
+        $dompdf->setOptions($options);
+
+        // Load HTML content
+        $dompdf->loadHtml($html);
+
+        // Set paper size and orientation
+        $dompdf->setPaper('A4', 'portrait');
+
+        // Render the PDF
+        $dompdf->render();
+
+        // Return the PDF content as string
+        return $dompdf->output();
     }
 }

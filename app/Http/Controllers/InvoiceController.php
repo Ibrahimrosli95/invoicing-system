@@ -629,6 +629,16 @@ class InvoiceController extends Controller
         try {
             return $pdfService->downloadPDF($invoice, 'invoice');
         } catch (\Exception $e) {
+            // Log the full exception for debugging
+            \Log::error('PDF generation failed for invoice ' . $invoice->id, [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->number,
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+
             return redirect()->route('invoices.show', $invoice)
                 ->with('error', 'Failed to generate PDF: ' . $e->getMessage());
         }
@@ -644,6 +654,16 @@ class InvoiceController extends Controller
         try {
             return $pdfService->streamPDF($invoice, 'invoice');
         } catch (\Exception $e) {
+            // Log the full exception for debugging
+            \Log::error('PDF preview generation failed for invoice ' . $invoice->id, [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->number,
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+
             return redirect()->route('invoices.show', $invoice)
                 ->with('error', 'Failed to generate PDF: ' . $e->getMessage());
         }
