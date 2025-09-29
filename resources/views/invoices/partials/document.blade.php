@@ -94,7 +94,9 @@
                     <h3 class="text-lg font-semibold text-gray-900">Ship To</h3>
                 </div>
                 <div class="space-y-1 text-sm">
-                    @php $shipping = is_array($invoice->shipping_info) ? $invoice->shipping_info : json_decode($invoice->shipping_info, true) ?? [] @endphp
+                    @php
+                        $shipping = is_array($invoice->shipping_info) ? $invoice->shipping_info : json_decode($invoice->shipping_info, true) ?? [];
+                    @endphp
                     @if(($shipping['same_as_billing'] ?? false))
                         <div class="text-gray-600 italic">Same as billing address</div>
                     @else
