@@ -644,9 +644,9 @@
                                 <select x-model="newCustomer.customer_segment_id"
                                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                                     <option value="">Select a segment</option>
-                                    <option value="1">Dealer</option>
-                                    <option value="2">Contractor</option>
-                                    <option value="3">End User</option>
+                                    @foreach($customerSegments as $segment)
+                                        <option value="{{ $segment->id }}">{{ $segment->name }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                             <div class="text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-3">

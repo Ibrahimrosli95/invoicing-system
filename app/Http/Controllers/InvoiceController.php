@@ -883,7 +883,8 @@ class InvoiceController extends Controller
                   ->orWhere('customer_email', 'LIKE', "%{$query}%")
                   ->orWhere('customer_phone', 'LIKE', "%{$query}%");
             })
-            ->select('customer_name', 'customer_email', 'customer_phone', 'customer_address')
+            ->with('customerSegment')
+            ->select('customer_name', 'customer_email', 'customer_phone', 'customer_address', 'customer_segment_id')
             ->whereNotNull('customer_name')
             ->orderBy('created_at', 'desc')
             ->limit(10)
@@ -894,6 +895,8 @@ class InvoiceController extends Controller
                     'email' => $quotation->customer_email,
                     'phone' => $quotation->customer_phone,
                     'address' => $quotation->customer_address,
+                    'customer_segment_id' => $quotation->customer_segment_id,
+                    'customer_segment_name' => $quotation->customerSegment ? $quotation->customerSegment->name : null,
                     'source' => 'quotation'
                 ];
             });
@@ -916,6 +919,8 @@ class InvoiceController extends Controller
                     'email' => $lead->email,
                     'phone' => $lead->phone,
                     'address' => $lead->address,
+                    'customer_segment_id' => null, // Leads don't have segments assigned yet
+                    'customer_segment_name' => null,
                     'source' => 'lead'
                 ];
             });
