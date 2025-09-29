@@ -7,13 +7,13 @@
         :root {
             --accent-color: {{ $palette['accent_color'] ?? '#0b57d0' }};
             --accent-text: {{ $palette['accent_text_color'] ?? '#ffffff' }};
-            --heading-color: {{ $palette['heading_color'] ?? '#111111' }};
-            --text-color: {{ $palette['text_color'] ?? '#111111' }};
-            --muted-color: {{ $palette['muted_text_color'] ?? '#555555' }};
-            --border-color: {{ $palette['border_color'] ?? '#d1d5db' }};
+            --heading-color: {{ $palette['heading_color'] ?? '#0b0b0b' }};
+            --text-color: {{ $palette['text_color'] ?? '#1f1f1f' }};
+            --muted-color: {{ $palette['muted_text_color'] ?? '#5f6368' }};
+            --border-color: {{ $palette['border_color'] ?? '#d9d9d9' }};
             --table-header-bg: {{ $palette['table_header_background'] ?? '#0b57d0' }};
             --table-header-text: {{ $palette['table_header_text'] ?? '#ffffff' }};
-            --table-row-even: {{ $palette['table_row_even'] ?? '#f6f6f6' }};
+            --table-row-even: {{ $palette['table_row_even'] ?? '#f3f6fb' }};
         }
 
         * { box-sizing: border-box; }
@@ -29,93 +29,98 @@
         .page {
             width: 210mm;
             min-height: 297mm;
-            padding: 22mm 20mm;
+            padding: 16mm 18mm 14mm;
             margin: 0 auto;
-            background: #fff;
+            background: #ffffff;
+            position: relative;
         }
 
-        h1, h2, h3, h4 {
-            font-weight: 600;
-            color: var(--heading-color);
-        }
+        h1, h2, h3, h4 { color: var(--heading-color); font-weight: 600; }
 
-        .center-title {
+        .title {
             text-align: center;
-            letter-spacing: 2px;
-            font-size: 24px;
-            margin-bottom: 18px;
+            font-size: 26px;
+            letter-spacing: 3px;
+            margin: 6mm 0 10mm;
         }
 
-        .flex-row {
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            gap: 18px;
+            gap: 12mm;
+            margin-bottom: 6mm;
         }
 
-        .company-block {
-            flex: 1;
-        }
-
-        .company-block h2 {
+        .company-details h2 {
             font-size: 16px;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
-        .company-block .line { color: var(--muted-color); font-size: 12px; }
+        .company-details .line {
+            font-size: 11.5px;
+            color: var(--muted-color);
+        }
 
         .logo {
-            max-width: 140px;
+            max-width: 150px;
             max-height: 70px;
         }
 
-        .info-card {
-            border: 1px solid var(--border-color);
-            padding: 14px 16px;
-            border-radius: 6px;
+        .divider {
+            border: none;
+            border-top: 2px solid var(--accent-color);
+            margin: 4mm 0 8mm;
+        }
+
+        .info-grid {
+            display: flex;
+            gap: 8mm;
+            margin-bottom: 10mm;
+        }
+
+        .info-box {
             flex: 1;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px 12px;
+            background: #fff;
         }
 
-        .info-card h3 {
-            font-size: 13px;
-            margin-bottom: 8px;
+        .info-box h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
         }
 
-        .info-card .label { display: inline-block; width: 90px; color: var(--muted-color); }
-
-        .meta-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .meta-table td {
-            padding: 3px 0;
+        .info-box .row {
             font-size: 12px;
         }
 
-        .meta-table td:first-child {
-            font-weight: 600;
-            color: var(--heading-color);
-            padding-right: 8px;
-            white-space: nowrap;
+        .info-box .label {
+            display: inline-block;
+            min-width: 90px;
+            color: var(--muted-color);
         }
 
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 24px;
+            margin-bottom: 10mm;
+            font-size: 12px;
         }
 
-        .items-table th {
+        .items-table thead th {
             background: var(--table-header-bg);
             color: var(--table-header-text);
-            font-size: 12px;
-            padding: 8px;
+            padding: 8px 10px;
             text-align: left;
+            font-weight: 600;
         }
 
-        .items-table td {
-            padding: 8px;
+        .items-table tbody td {
+            padding: 8px 10px;
             border-bottom: 1px solid var(--border-color);
         }
 
@@ -123,78 +128,103 @@
             background: var(--table-row-even);
         }
 
-        .totals-row {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 12px;
+        .items-table td.qty,
+        .items-table td.rate,
+        .items-table td.amount {
+            text-align: right;
+            white-space: nowrap;
         }
 
-        .totals-table {
-            min-width: 220px;
+        .totals-wrapper {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .totals {
+            min-width: 240px;
+        }
+
+        .totals tr td {
+            padding: 2px 0;
             font-size: 12px;
         }
 
-        .totals-table td { padding: 3px 0; }
-        .totals-table td:first-child { color: var(--muted-color); padding-right: 12px; }
-        .totals-table tr.total td { font-weight: 600; color: var(--heading-color); border-top: 1px solid var(--border-color); padding-top: 6px; }
+        .totals tr td:first-child {
+            color: var(--muted-color);
+            padding-right: 10px;
+        }
+
+        .totals tr.total td {
+            padding-top: 6px;
+            border-top: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--heading-color);
+        }
 
         .section-title {
-            font-size: 13px;
-            font-weight: 600;
-            margin-top: 20px;
-            margin-bottom: 6px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
         }
 
         .payment-block {
             border: 1px solid var(--border-color);
-            padding: 12px 14px;
             border-radius: 6px;
-            width: 60%;
+            padding: 10px 12px;
+            max-width: 65%;
+            font-size: 12px;
         }
 
-        .payment-block p { margin: 4px 0; }
+        .terms, .notes {
+            font-size: 12px;
+            max-width: 65%;
+            margin-top: 6px;
+        }
 
         .signatures {
             display: flex;
             justify-content: space-between;
-            margin-top: 50px;
-            gap: 40px;
+            gap: 30mm;
+            margin-top: 24mm;
         }
 
-        .signature {
+        .signature-block {
             flex: 1;
             text-align: center;
+            font-size: 12px;
         }
 
-        .signature .line {
-            margin-top: 40px;
+        .signature-block .line {
             border-top: 1px solid var(--border-color);
-            padding-top: 6px;
+            margin-top: 24mm;
+            padding-top: 4px;
         }
 
         .footer {
-            margin-top: 60px;
+            text-align: center;
             font-size: 10px;
             color: var(--muted-color);
-            text-align: center;
+            margin-top: 18mm;
         }
 
         .watermark {
             position: absolute;
-            top: 40mm;
+            top: 45mm;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translate(-50%, -50%);
             font-size: 60px;
-            color: rgba(226, 232, 240, 0.3);
+            color: rgba(200, 206, 214, 0.15);
             font-weight: 700;
-            letter-spacing: 8px;
+            letter-spacing: 12px;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
 @php
     $currency = $currency ?? ($invoice->company->invoice_settings['defaults']['currency'] ?? 'RM');
-    $formatMoney = fn($value) => trim(($currency ? $currency . ' ' : '') . number_format((float) $value, 2));
+    $money = fn($value) => trim(($currency ? $currency . ' ' : '') . number_format((float) $value, 2));
     $subtotal = $invoice->subtotal ?? $invoice->items->sum(fn($item) => $item->total_price ?? ($item->quantity * $item->unit_price));
     $discount = $invoice->discount_amount ?? 0;
     $tax = $invoice->tax_amount ?? 0;
@@ -203,26 +233,25 @@
     $balance = max(0, $total - $paid);
     $logoPath = null;
     if (!empty($invoice->company?->logo)) {
-        $logoPath = public_path('storage/' . ltrim($invoice->company->logo, '/'));
+        $path = public_path('storage/' . ltrim($invoice->company->logo, '/'));
+        if (file_exists($path)) {
+            $logoPath = 'file://' . str_replace('\\\\', '/', $path);
+        }
     }
-    if ($logoPath && file_exists($logoPath)) {
-        $logoPath = 'file://' . str_replace('\\\\', '/', $logoPath);
-    } else {
-        $logoPath = null;
-    }
+    $billAddress = array_filter([
+        $invoice->customer_address,
+        trim(collect([$invoice->customer_postal_code, $invoice->customer_city])->filter()->implode(' ')),
+        $invoice->customer_state,
+    ]);
 @endphp
 
 <div class="page">
-    @if($invoice->status === 'DRAFT')
-        <div class="watermark">DRAFT</div>
-    @elseif($invoice->status === 'OVERDUE')
-        <div class="watermark">OVERDUE</div>
+    @if(in_array($invoice->status, ['DRAFT','OVERDUE']))
+        <div class="watermark">{{ $invoice->status }}</div>
     @endif
 
-    <h1 class="center-title">INVOICE</h1>
-
-    <div class="flex-row" style="margin-bottom: 24px;">
-        <div class="company-block">
+    <div class="header">
+        <div class="company-details">
             <h2>{{ $invoice->company->name ?? 'Company Name' }}</h2>
             @foreach([
                 $invoice->company->address,
@@ -237,54 +266,46 @@
             @endforeach
         </div>
         @if(($sections['show_company_logo'] ?? true) && $logoPath)
-            <div>
-                <img src="{{ $logoPath }}" alt="Company Logo" class="logo">
-            </div>
+            <img src="{{ $logoPath }}" alt="Company Logo" class="logo">
         @endif
     </div>
 
-    <div class="flex-row">
-        <div class="info-card">
+    <h1 class="title">INVOICE</h1>
+    <hr class="divider">
+
+    <div class="info-grid">
+        <div class="info-box">
             <h3>Bill To</h3>
-            <div>{{ $invoice->customer_name ?? 'Customer Name' }}</div>
+            <div class="row">{{ $invoice->customer_name ?? 'Customer Name' }}</div>
             @if($invoice->customer_company)
-                <div>{{ $invoice->customer_company }}</div>
+                <div class="row">{{ $invoice->customer_company }}</div>
             @endif
-            <div style="margin: 6px 0;">
-                @php
-                    $addressLines = array_filter([
-                        $invoice->customer_address,
-                        trim(collect([$invoice->customer_postal_code, $invoice->customer_city])->filter()->implode(' ')),
-                        $invoice->customer_state,
-                    ]);
-                @endphp
-                @foreach($addressLines as $line)
-                    <div>{{ $line }}</div>
-                @endforeach
-            </div>
+            @foreach($billAddress as $line)
+                <div class="row">{{ $line }}</div>
+            @endforeach
             @if($invoice->customer_email)
-                <div>Email: {{ $invoice->customer_email }}</div>
+                <div class="row">Email: {{ $invoice->customer_email }}</div>
             @endif
             @if($invoice->customer_phone)
-                <div>Phone: {{ $invoice->customer_phone }}</div>
+                <div class="row">Phone: {{ $invoice->customer_phone }}</div>
             @endif
         </div>
-        <div class="info-card">
-            <table class="meta-table">
+        <div class="info-box">
+            <table class="meta-table" style="width:100%;">
                 <tr>
-                    <td>Invoice No :</td>
+                    <td class="label">Invoice No :</td>
                     <td>{{ $invoice->number }}</td>
                 </tr>
                 <tr>
-                    <td>Invoice Date :</td>
+                    <td class="label">Invoice Date :</td>
                     <td>{{ optional($invoice->issued_date)->format('d M, Y') ?? now()->format('d M, Y') }}</td>
                 </tr>
                 <tr>
-                    <td>Due Date :</td>
+                    <td class="label">Due Date :</td>
                     <td>{{ optional($invoice->due_date)->format('d M, Y') ?? '—' }}</td>
                 </tr>
                 <tr>
-                    <td>Payment Terms :</td>
+                    <td class="label">Payment Terms :</td>
                     <td>{{ $invoice->payment_terms ? $invoice->payment_terms . ' days' : '—' }}</td>
                 </tr>
             </table>
@@ -294,88 +315,86 @@
     <table class="items-table">
         <thead>
             <tr>
-                <th style="width: 8%;">Sl.</th>
+                <th style="width: 8%; text-align:center;">Sl.</th>
                 <th>Description</th>
-                <th style="width: 12%; text-align: center;">Qty</th>
-                <th style="width: 18%; text-align: right;">Rate</th>
-                <th style="width: 18%; text-align: right;">Amount</th>
+                <th style="width: 12%; text-align:center;">Qty</th>
+                <th style="width: 18%; text-align:right;">Rate</th>
+                <th style="width: 18%; text-align:right;">Amount</th>
             </tr>
         </thead>
         <tbody>
             @foreach($invoice->items as $index => $item)
                 <tr>
-                    <td style="text-align: center;">{{ $index + 1 }}</td>
+                    <td style="text-align:center;">{{ $index + 1 }}</td>
                     <td>
                         {{ $item->description }}
                         @if($item->specifications)
                             <div style="color: var(--muted-color); font-size: 11px;">{{ $item->specifications }}</div>
                         @endif
                     </td>
-                    <td style="text-align: center;">{{ rtrim(rtrim(number_format((float) $item->quantity, 2), '0'), '.') }}</td>
-                    <td style="text-align: right;">{{ $formatMoney($item->unit_price) }}</td>
-                    <td style="text-align: right;">{{ $formatMoney($item->total_price ?? ($item->quantity * $item->unit_price)) }}</td>
+                    <td class="qty">{{ rtrim(rtrim(number_format((float) $item->quantity, 2), '0'), '.') }}</td>
+                    <td class="rate">{{ $money($item->unit_price) }}</td>
+                    <td class="amount">{{ $money($item->total_price ?? ($item->quantity * $item->unit_price)) }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
-    <div class="totals-row">
-        <table class="totals-table">
+    <div class="totals-wrapper">
+        <table class="totals">
             <tr>
                 <td>Subtotal</td>
-                <td>{{ $formatMoney($subtotal) }}</td>
+                <td>{{ $money($subtotal) }}</td>
             </tr>
             @if($discount > 0)
                 <tr>
                     <td>Discount</td>
-                    <td>-{{ $formatMoney($discount) }}</td>
+                    <td>-{{ $money($discount) }}</td>
                 </tr>
             @endif
             @if($tax > 0)
                 <tr>
                     <td>Tax</td>
-                    <td>{{ $formatMoney($tax) }}</td>
+                    <td>{{ $money($tax) }}</td>
                 </tr>
             @endif
             <tr class="total">
                 <td>Total</td>
-                <td>{{ $formatMoney($total) }}</td>
+                <td>{{ $money($total) }}</td>
             </tr>
             <tr>
                 <td>Paid</td>
-                <td>{{ $formatMoney($paid) }}</td>
+                <td>{{ $money($paid) }}</td>
             </tr>
             <tr>
                 <td>Balance Due</td>
-                <td>{{ $formatMoney($balance) }}</td>
+                <td>{{ $money($balance) }}</td>
             </tr>
         </table>
     </div>
 
-    @if($sections['show_payment_instructions'] && !empty($invoice->payment_instructions))
-        <div class="section-title">Payment Instructions</div>
-        <div class="payment-block">
-            {!! nl2br(e($invoice->payment_instructions)) !!}
-        </div>
+    @if($sections['show_payment_instructions'] && $invoice->payment_instructions)
+        <div class="section-title" style="margin-top: 8mm;">Payment Instructions</div>
+        <div class="payment-block">{!! nl2br(e($invoice->payment_instructions)) !!}</div>
     @endif
 
     @if($sections['show_terms_conditions'] && $invoice->terms_conditions)
-        <div class="section-title">Terms &amp; Conditions</div>
-        <div style="max-width: 70%;">{!! nl2br(e($invoice->terms_conditions)) !!}</div>
+        <div class="section-title" style="margin-top: 8mm;">Terms &amp; Conditions</div>
+        <div class="terms">{!! nl2br(e($invoice->terms_conditions)) !!}</div>
     @endif
 
     @if($sections['show_additional_notes'] && $invoice->notes)
-        <div class="section-title">Notes</div>
-        <div style="max-width: 70%;">{!! nl2br(e($invoice->notes)) !!}</div>
+        <div class="section-title" style="margin-top: 6mm;">Notes</div>
+        <div class="notes">{!! nl2br(e($invoice->notes)) !!}</div>
     @endif
 
     @if($sections['show_signatures'])
         <div class="signatures">
-            <div class="signature">
+            <div class="signature-block">
                 <div class="line">Authorized Representative</div>
                 <div>{{ $invoice->company->name }}</div>
             </div>
-            <div class="signature">
+            <div class="signature-block">
                 <div class="line">Customer Acceptance</div>
                 <div>{{ $invoice->customer_name }}</div>
             </div>
@@ -388,7 +407,3 @@
 </div>
 </body>
 </html>
-
-
-
-
