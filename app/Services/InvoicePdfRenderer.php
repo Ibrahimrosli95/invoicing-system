@@ -163,6 +163,10 @@ class InvoicePdfRenderer
 
     protected function makeDompdf(array $options = []): Dompdf
     {
+        if (!class_exists('Dompdf\Dompdf') || !class_exists('Dompdf\Options')) {
+            throw new \Exception('Dompdf package is not installed. Please run "composer install" to install required dependencies.');
+        }
+
         $domPdfOptions = new Options();
         $domPdfOptions->set('isHtml5ParserEnabled', true);
         $domPdfOptions->set('isRemoteEnabled', true);
