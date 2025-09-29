@@ -143,7 +143,7 @@ class PDFService
         $invoice->load(['items', 'quotation', 'company', 'team', 'paymentRecords', 'proofs.assets']);
         
         // Render the HTML view for the PDF
-        $html = view('pdf.invoice-enhanced', compact('invoice'))->render();
+        $html = view('pdf.invoice', compact('invoice'))->render();
         
         // Generate PDF using Browsershot
         $browsershot = Browsershot::html($html)
