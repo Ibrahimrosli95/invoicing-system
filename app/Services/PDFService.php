@@ -154,74 +154,33 @@ class PDFService
      */
     public function generateInvoicePDF(Invoice $invoice): string
     {
-        // Log the start of PDF generation
-        \Log::info('Starting PDF generation for invoice', [
-            'invoice_id' => $invoice->id,
-            'invoice_number' => $invoice->number
-        ]);
-
-        // Load invoice with all necessary relationships including proofs
-        $invoice->load(['items', 'quotation', 'company', 'team', 'paymentRecords', 'proofs.assets']);
+        // Use the new InvoicePdfRenderer
+        $renderer = app(InvoicePdfRenderer::class);
 
         try {
-            // Render the HTML view for the PDF
-            $html = view('pdf.invoice', compact('invoice'))->render();
-            \Log::info('HTML template rendered successfully for invoice ' . $invoice->id);
+            $pdf = $renderer->generate($invoice);
+
+            // Store the PDF
+            $filename = $this->generateInvoicePDFFilename($invoice);
+            $path = "pdfs/invoices/{$invoice->company_id}/{$filename}";
+
+            Storage::put($path, $pdf);
+
+            // Update invoice with PDF path and generation timestamp
+            $invoice->update([
+                'pdf_path' => $path,
+                'pdf_generated_at' => now()
+            ]);
+
+            return $path;
         } catch (\Exception $e) {
-            \Log::error('Failed to render HTML template for invoice ' . $invoice->id, [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+            \Log::error('Invoice PDF generation failed', [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->number,
+                'error' => $e->getMessage()
             ]);
             throw $e;
         }
-
-        // Check Chrome path
-        $chromePath = $this->getChromePath();
-        \Log::info('Chrome path detected', ['path' => $chromePath]);
-
-        try {
-            // Generate PDF using Browsershot
-            $browsershot = Browsershot::html($html)
-                ->format('A4')
-                ->margins(15, 15, 15, 15)  // top, right, bottom, left (in mm)
-                ->showBackground()
-                ->waitUntilNetworkIdle()
-                ->timeout(60);
-
-            \Log::info('Browsershot configured, attempting PDF generation for invoice ' . $invoice->id);
-            $pdf = $this->configureBrowsershot($browsershot)->pdf();
-            \Log::info('PDF generated successfully for invoice ' . $invoice->id);
-        } catch (\Exception $e) {
-            \Log::error('Browsershot PDF generation failed for invoice ' . $invoice->id, [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'chrome_path' => $chromePath
-            ]);
-
-            // Fallback to DomPDF
-            \Log::info('Attempting PDF generation using DomPDF fallback for invoice ' . $invoice->id);
-            try {
-                $pdf = $this->generatePDFWithDomPDF($html);
-                \Log::info('PDF generated successfully using DomPDF fallback for invoice ' . $invoice->id);
-            } catch (\Exception $fallbackException) {
-                \Log::error('DomPDF fallback also failed for invoice ' . $invoice->id, [
-                    'error' => $fallbackException->getMessage(),
-                    'trace' => $fallbackException->getTraceAsString()
-                ]);
-                throw $e; // Throw the original Browsershot exception
-            }
-        }
-
-        // Store the PDF
-        $filename = $this->generateInvoicePDFFilename($invoice);
-        $path = "pdfs/invoices/{$invoice->company_id}/{$filename}";
-        
-        Storage::put($path, $pdf);
-        
-        // Update invoice with PDF path
-        $invoice->update(['pdf_path' => $path]);
-        
-        return $path;
     }
     
     /**

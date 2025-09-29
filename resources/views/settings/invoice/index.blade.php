@@ -104,6 +104,193 @@
                 </div>
             </div>
 
+            <!-- Invoice Color Theme -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-6">Invoice Color Theme</h2>
+                <p class="text-sm text-gray-600 mb-6">Customize the color palette used in your PDF invoices to match your brand identity.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Background & Structure Colors -->
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-medium text-gray-900 border-b border-gray-200 pb-2">Background & Structure</h3>
+
+                        <div class="space-y-3">
+                            <div class="flex items-center space-x-3">
+                                <label class="block text-xs font-medium text-gray-700 w-24">Background:</label>
+                                <input type="color"
+                                       x-model="settings.appearance.background_color"
+                                       @change="normalizeColor('background_color')"
+                                       class="w-12 h-8 border border-gray-300 rounded cursor-pointer">
+                                <input type="text"
+                                       x-model="settings.appearance.background_color"
+                                       @input="normalizeColor('background_color')"
+                                       class="w-20 text-xs border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+                                       placeholder="#ffffff">
+                            </div>
+
+                            <div class="flex items-center space-x-3">
+                                <label class="block text-xs font-medium text-gray-700 w-24">Borders:</label>
+                                <input type="color"
+                                       x-model="settings.appearance.border_color"
+                                       @change="normalizeColor('border_color')"
+                                       class="w-12 h-8 border border-gray-300 rounded cursor-pointer">
+                                <input type="text"
+                                       x-model="settings.appearance.border_color"
+                                       @input="normalizeColor('border_color')"
+                                       class="w-20 text-xs border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+                                       placeholder="#e5e7eb">
+                            </div>
+
+                            <div class="flex items-center space-x-3">
+                                <label class="block text-xs font-medium text-gray-700 w-24">Alt Rows:</label>
+                                <input type="color"
+                                       x-model="settings.appearance.table_row_even"
+                                       @change="normalizeColor('table_row_even')"
+                                       class="w-12 h-8 border border-gray-300 rounded cursor-pointer">
+                                <input type="text"
+                                       x-model="settings.appearance.table_row_even"
+                                       @input="normalizeColor('table_row_even')"
+                                       class="w-20 text-xs border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+                                       placeholder="#f8fafc">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Text Colors -->
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-medium text-gray-900 border-b border-gray-200 pb-2">Text Colors</h3>
+
+                        <div class="space-y-3">
+                            <div class="flex items-center space-x-3">
+                                <label class="block text-xs font-medium text-gray-700 w-24">Headings:</label>
+                                <input type="color"
+                                       x-model="settings.appearance.heading_color"
+                                       @change="normalizeColor('heading_color')"
+                                       class="w-12 h-8 border border-gray-300 rounded cursor-pointer">
+                                <input type="text"
+                                       x-model="settings.appearance.heading_color"
+                                       @input="normalizeColor('heading_color')"
+                                       class="w-20 text-xs border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+                                       placeholder="#111827">
+                            </div>
+
+                            <div class="flex items-center space-x-3">
+                                <label class="block text-xs font-medium text-gray-700 w-24">Subheadings:</label>
+                                <input type="color"
+                                       x-model="settings.appearance.subheading_color"
+                                       @change="normalizeColor('subheading_color')"
+                                       class="w-12 h-8 border border-gray-300 rounded cursor-pointer">
+                                <input type="text"
+                                       x-model="settings.appearance.subheading_color"
+                                       @input="normalizeColor('subheading_color')"
+                                       class="w-20 text-xs border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+                                       placeholder="#1f2937">
+                            </div>
+
+                            <div class="flex items-center space-x-3">
+                                <label class="block text-xs font-medium text-gray-700 w-24">Body Text:</label>
+                                <input type="color"
+                                       x-model="settings.appearance.text_color"
+                                       @change="normalizeColor('text_color')"
+                                       class="w-12 h-8 border border-gray-300 rounded cursor-pointer">
+                                <input type="text"
+                                       x-model="settings.appearance.text_color"
+                                       @input="normalizeColor('text_color')"
+                                       class="w-20 text-xs border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+                                       placeholder="#111827">
+                            </div>
+
+                            <div class="flex items-center space-x-3">
+                                <label class="block text-xs font-medium text-gray-700 w-24">Muted Text:</label>
+                                <input type="color"
+                                       x-model="settings.appearance.muted_text_color"
+                                       @change="normalizeColor('muted_text_color')"
+                                       class="w-12 h-8 border border-gray-300 rounded cursor-pointer">
+                                <input type="text"
+                                       x-model="settings.appearance.muted_text_color"
+                                       @input="normalizeColor('muted_text_color')"
+                                       class="w-20 text-xs border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+                                       placeholder="#6b7280">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Accent Colors -->
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-medium text-gray-900 border-b border-gray-200 pb-2">Accent & Branding</h3>
+
+                        <div class="space-y-3">
+                            <div class="flex items-center space-x-3">
+                                <label class="block text-xs font-medium text-gray-700 w-24">Primary:</label>
+                                <input type="color"
+                                       x-model="settings.appearance.accent_color"
+                                       @change="normalizeColor('accent_color')"
+                                       class="w-12 h-8 border border-gray-300 rounded cursor-pointer">
+                                <input type="text"
+                                       x-model="settings.appearance.accent_color"
+                                       @input="normalizeColor('accent_color')"
+                                       class="w-20 text-xs border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+                                       placeholder="#1d4ed8">
+                            </div>
+
+                            <div class="flex items-center space-x-3">
+                                <label class="block text-xs font-medium text-gray-700 w-24">On Primary:</label>
+                                <input type="color"
+                                       x-model="settings.appearance.accent_text_color"
+                                       @change="normalizeColor('accent_text_color')"
+                                       class="w-12 h-8 border border-gray-300 rounded cursor-pointer">
+                                <input type="text"
+                                       x-model="settings.appearance.accent_text_color"
+                                       @input="normalizeColor('accent_text_color')"
+                                       class="w-20 text-xs border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+                                       placeholder="#ffffff">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Table Colors -->
+                    <div class="space-y-4">
+                        <h3 class="text-sm font-medium text-gray-900 border-b border-gray-200 pb-2">Table Headers</h3>
+
+                        <div class="space-y-3">
+                            <div class="flex items-center space-x-3">
+                                <label class="block text-xs font-medium text-gray-700 w-24">Header BG:</label>
+                                <input type="color"
+                                       x-model="settings.appearance.table_header_background"
+                                       @change="normalizeColor('table_header_background')"
+                                       class="w-12 h-8 border border-gray-300 rounded cursor-pointer">
+                                <input type="text"
+                                       x-model="settings.appearance.table_header_background"
+                                       @input="normalizeColor('table_header_background')"
+                                       class="w-20 text-xs border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+                                       placeholder="#1d4ed8">
+                            </div>
+
+                            <div class="flex items-center space-x-3">
+                                <label class="block text-xs font-medium text-gray-700 w-24">Header Text:</label>
+                                <input type="color"
+                                       x-model="settings.appearance.table_header_text"
+                                       @change="normalizeColor('table_header_text')"
+                                       class="w-12 h-8 border border-gray-300 rounded cursor-pointer">
+                                <input type="text"
+                                       x-model="settings.appearance.table_header_text"
+                                       @input="normalizeColor('table_header_text')"
+                                       class="w-20 text-xs border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+                                       placeholder="#ffffff">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Color Reset Button -->
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <button @click="resetColors"
+                            class="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        Reset Colors to Default
+                    </button>
+                </div>
+            </div>
+
             <!-- Default Settings -->
             <div class="bg-white rounded-lg shadow p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-6">Default Values</h2>
@@ -308,6 +495,19 @@ function invoiceSettings() {
                 logo_position: 'left',
                 logo_size: 'medium'
             },
+            appearance: {
+                background_color: '#ffffff',
+                border_color: '#e5e7eb',
+                heading_color: '#111827',
+                subheading_color: '#1f2937',
+                text_color: '#111827',
+                muted_text_color: '#6b7280',
+                accent_color: '#1d4ed8',
+                accent_text_color: '#ffffff',
+                table_header_background: '#1d4ed8',
+                table_header_text: '#ffffff',
+                table_row_even: '#f8fafc'
+            },
             defaults: {
                 payment_terms: 30,
                 late_fee_percentage: 1.5,
@@ -344,13 +544,60 @@ function invoiceSettings() {
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.settings) {
-                        this.settings = { ...this.settings, ...data.settings };
+                        // Deep merge to ensure all appearance settings are loaded
+                        this.settings.sections = { ...this.settings.sections, ...data.settings.optional_sections };
+                        this.settings.logo = { ...this.settings.logo, ...data.settings.logo_settings };
+                        this.settings.appearance = { ...this.settings.appearance, ...data.settings.appearance };
+                        this.settings.defaults = { ...this.settings.defaults, ...data.settings.defaults };
+                        this.settings.content = {
+                            ...this.settings.content,
+                            default_terms: data.settings.default_terms,
+                            default_notes: data.settings.default_notes,
+                            payment_instructions: { ...this.settings.content.payment_instructions, ...data.settings.payment_instructions }
+                        };
                     }
                 })
                 .catch(error => {
                     console.error('Failed to load settings:', error);
                     this.showMessage('error', 'Failed to load settings');
                 });
+        },
+
+        normalizeColor(colorKey) {
+            let color = this.settings.appearance[colorKey];
+
+            // Convert to uppercase and ensure it starts with #
+            if (color && !color.startsWith('#')) {
+                color = '#' + color;
+            }
+
+            // Validate hex format and normalize to #RRGGBB
+            if (color && /^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$/.test(color)) {
+                if (color.length === 4) {
+                    // Convert #RGB to #RRGGBB
+                    color = '#' + color[1] + color[1] + color[2] + color[2] + color[3] + color[3];
+                }
+                this.settings.appearance[colorKey] = color.toUpperCase();
+            }
+        },
+
+        resetColors() {
+            if (confirm('Reset all colors to default values?')) {
+                this.settings.appearance = {
+                    background_color: '#FFFFFF',
+                    border_color: '#E5E7EB',
+                    heading_color: '#111827',
+                    subheading_color: '#1F2937',
+                    text_color: '#111827',
+                    muted_text_color: '#6B7280',
+                    accent_color: '#1D4ED8',
+                    accent_text_color: '#FFFFFF',
+                    table_header_background: '#1D4ED8',
+                    table_header_text: '#FFFFFF',
+                    table_row_even: '#F8FAFC'
+                };
+                this.showMessage('success', 'Colors reset to defaults!');
+            }
         },
 
         saveSettings() {

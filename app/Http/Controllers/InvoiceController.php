@@ -622,22 +622,24 @@ class InvoiceController extends Controller
     /**
      * Download PDF for invoice.
      */
-    public function downloadPDF(Invoice $invoice, PDFService $pdfService)
+    public function downloadPDF(Invoice $invoice, \App\Services\InvoicePdfRenderer $renderer)
     {
         $this->authorize('view', $invoice);
 
         try {
-            return $pdfService->downloadPDF($invoice, 'invoice');
+            return $renderer->downloadResponse($invoice);
         } catch (\Exception $e) {
-            // Log the full exception for debugging
             \Log::error('PDF generation failed for invoice ' . $invoice->id, [
                 'invoice_id' => $invoice->id,
                 'invoice_number' => $invoice->number,
                 'exception' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
+                'trace' => $e->getTraceAsString()
             ]);
+
+            // Handle AJAX requests differently
+            if (request()->ajax()) {
+                abort(500, 'Failed to generate PDF: ' . $e->getMessage());
+            }
 
             return redirect()->route('invoices.show', $invoice)
                 ->with('error', 'Failed to generate PDF: ' . $e->getMessage());
@@ -647,22 +649,24 @@ class InvoiceController extends Controller
     /**
      * Preview PDF for invoice.
      */
-    public function previewPDF(Invoice $invoice, PDFService $pdfService)
+    public function previewPDF(Invoice $invoice, \App\Services\InvoicePdfRenderer $renderer)
     {
         $this->authorize('view', $invoice);
 
         try {
-            return $pdfService->streamPDF($invoice, 'invoice');
+            return $renderer->inlineResponse($invoice);
         } catch (\Exception $e) {
-            // Log the full exception for debugging
             \Log::error('PDF preview generation failed for invoice ' . $invoice->id, [
                 'invoice_id' => $invoice->id,
                 'invoice_number' => $invoice->number,
                 'exception' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
+                'trace' => $e->getTraceAsString()
             ]);
+
+            // Handle AJAX requests differently
+            if (request()->ajax()) {
+                abort(500, 'Failed to generate PDF: ' . $e->getMessage());
+            }
 
             return redirect()->route('invoices.show', $invoice)
                 ->with('error', 'Failed to generate PDF: ' . $e->getMessage());

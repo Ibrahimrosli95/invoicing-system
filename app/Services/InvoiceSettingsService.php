@@ -31,6 +31,19 @@ class InvoiceSettingsService
                 'font_size' => 'normal', // small, normal, large
                 'margins' => 'standard', // tight, standard, wide
             ],
+            'appearance' => [
+                'background_color' => '#ffffff',
+                'border_color' => '#e5e7eb',
+                'heading_color' => '#111827',
+                'subheading_color' => '#1f2937',
+                'text_color' => '#111827',
+                'muted_text_color' => '#6b7280',
+                'accent_color' => '#1d4ed8',
+                'accent_text_color' => '#ffffff',
+                'table_header_background' => '#1d4ed8',
+                'table_header_text' => '#ffffff',
+                'table_row_even' => '#f8fafc',
+            ],
             'defaults' => [
                 'payment_terms' => 30,
                 'late_fee_percentage' => 1.5,
@@ -206,6 +219,7 @@ class InvoiceSettingsService
             'optional_sections' => $settings['sections'],
             'logo_settings' => $settings['logo'],
             'layout' => $settings['layout'],
+            'appearance' => $settings['appearance'],
             'defaults' => $settings['defaults'],
             'payment_instructions' => $settings['content']['payment_instructions'],
             'signature_blocks' => $settings['content']['signature_blocks'],
@@ -266,6 +280,25 @@ class InvoiceSettingsService
         // Validate tax percentage
         if (isset($settings['defaults']['tax_percentage']) && (!is_numeric($settings['defaults']['tax_percentage']) || $settings['defaults']['tax_percentage'] < 0 || $settings['defaults']['tax_percentage'] > 100)) {
             $errors['defaults.tax_percentage'] = 'Tax percentage must be between 0 and 100.';
+        }
+
+        // Validate appearance colors
+        if (isset($settings['appearance'])) {
+            $colorFields = [
+                'background_color', 'border_color', 'heading_color', 'subheading_color',
+                'text_color', 'muted_text_color', 'accent_color', 'accent_text_color',
+                'table_header_background', 'table_header_text', 'table_row_even'
+            ];
+
+            foreach ($colorFields as $field) {
+                if (isset($settings['appearance'][$field])) {
+                    $color = $settings['appearance'][$field];
+                    // Validate hex color format (#RGB or #RRGGBB)
+                    if (!preg_match('/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/', $color)) {
+                        $errors["appearance.{$field}"] = 'Color must be a valid hex format (#RGB or #RRGGBB).';
+                    }
+                }
+            }
         }
 
         return $errors;
