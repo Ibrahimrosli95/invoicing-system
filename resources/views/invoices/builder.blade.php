@@ -62,9 +62,9 @@
                             </div>
 
                             <!-- Company Logo - Right -->
-                            <div class="flex flex-col items-center lg:items-end w-full lg:w-1/3 order-1 lg:order-2">
+                            <div class="flex flex-col items-center lg:items-end w-full lg:w-1/3 order-1 lg:order-2" x-show="optionalSections.show_company_logo">
                                 <!-- Logo Section -->
-                                <div x-show="optionalSections.show_company_logo" class="relative group mb-4">
+                                <div class="relative group mb-4">
                                     <img :src="companyLogo" alt="Company Logo" class="h-20 cursor-pointer" @click="$refs.logoUpload.click()">
                                     <input type="file" x-ref="logoUpload" @change="handleLogoUpload" accept="image/*" class="hidden">
                                     <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded" @click="$refs.logoUpload.click()">
@@ -75,7 +75,7 @@
                                 </div>
 
                                 <!-- Logo Action Buttons -->
-                                <div x-show="optionalSections.show_company_logo" class="flex space-x-2">
+                                <div class="flex space-x-2">
                                     <button @click="$refs.logoUpload.click()" class="px-3 py-1 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-200 rounded-full hover:bg-amber-200 transition-colors">
                                         Change Logo
                                     </button>
