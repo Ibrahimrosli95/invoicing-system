@@ -71,7 +71,9 @@
                     @endif
                     @if($invoice->customer_city || $invoice->customer_state || $invoice->customer_postal_code)
                         <div class="text-gray-600">
-                            @if($invoice->customer_city){{ $invoice->customer_city }}@endif@if($invoice->customer_city && ($invoice->customer_state || $invoice->customer_postal_code)), @endif@if($invoice->customer_state){{ $invoice->customer_state }}@endif
+                            @if($invoice->customer_city){{ $invoice->customer_city }}@endif
+                            @if($invoice->customer_city && ($invoice->customer_state || $invoice->customer_postal_code)), @endif
+                            @if($invoice->customer_state){{ $invoice->customer_state }}@endif
                             @if($invoice->customer_postal_code) {{ $invoice->customer_postal_code }}@endif
                         </div>
                     @endif
@@ -104,7 +106,9 @@
                         @endif
                         @if($shipping['city'] || $shipping['state'] || $shipping['postal_code'])
                             <div class="text-gray-600">
-                                @if($shipping['city']){{ $shipping['city'] }}@endif@if($shipping['city'] && ($shipping['state'] || $shipping['postal_code'])), @endif@if($shipping['state']){{ $shipping['state'] }}@endif
+                                @if($shipping['city']){{ $shipping['city'] }}@endif
+                                @if($shipping['city'] && ($shipping['state'] || $shipping['postal_code'])), @endif
+                                @if($shipping['state']){{ $shipping['state'] }}@endif
                                 @if($shipping['postal_code']) {{ $shipping['postal_code'] }}@endif
                             </div>
                         @endif
