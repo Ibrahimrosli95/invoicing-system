@@ -24,15 +24,15 @@ class PDFService
         $html = view('pdf.quotation', compact('quotation'))->render();
         
         // Generate PDF using Browsershot
-        $pdf = Browsershot::html($html)
+        $browsershot = Browsershot::html($html)
             ->format('A4')
             ->margins(15, 15, 15, 15)  // top, right, bottom, left (in mm)
             ->showBackground()
             ->waitUntilNetworkIdle()
-            ->timeout(60)
-            ->setChromePath($this->getChromePath())
-            ->pdf();
-        
+            ->timeout(60);
+
+        $pdf = $this->configureBrowsershot($browsershot)->pdf();
+
         // Store the PDF
         $filename = $this->generatePDFFilename($quotation);
         $path = "pdfs/quotations/{$quotation->company_id}/{$filename}";
@@ -45,6 +45,18 @@ class PDFService
         return $path;
     }
     
+    /**
+     * Configure Browsershot with Chrome path if available
+     */
+    protected function configureBrowsershot($browsershot)
+    {
+        $chromePath = $this->getChromePath();
+        if ($chromePath !== null) {
+            $browsershot->setChromePath($chromePath);
+        }
+        return $browsershot;
+    }
+
     /**
      * Get the Chrome/Chromium path for different environments
      */
@@ -134,15 +146,15 @@ class PDFService
         $html = view('pdf.invoice-enhanced', compact('invoice'))->render();
         
         // Generate PDF using Browsershot
-        $pdf = Browsershot::html($html)
+        $browsershot = Browsershot::html($html)
             ->format('A4')
             ->margins(15, 15, 15, 15)  // top, right, bottom, left (in mm)
             ->showBackground()
             ->waitUntilNetworkIdle()
-            ->timeout(60)
-            ->setChromePath($this->getChromePath())
-            ->pdf();
-        
+            ->timeout(60);
+
+        $pdf = $this->configureBrowsershot($browsershot)->pdf();
+
         // Store the PDF
         $filename = $this->generateInvoicePDFFilename($invoice);
         $path = "pdfs/invoices/{$invoice->company_id}/{$filename}";
@@ -338,15 +350,15 @@ class PDFService
         $html = view('pdf.proof-pack', compact('proofs', 'groupedProofs', 'company', 'options'))->render();
 
         // Generate PDF using Browsershot
-        $pdf = Browsershot::html($html)
+        $browsershot = Browsershot::html($html)
             ->format('A4')
             ->orientation($options['orientation'])
             ->margins(15, 15, 15, 15)
             ->showBackground()
             ->waitUntilNetworkIdle()
-            ->timeout(90) // Longer timeout for image-heavy proofs
-            ->setChromePath($this->getChromePath())
-            ->pdf();
+            ->timeout(90); // Longer timeout for image-heavy proofs
+
+        $pdf = $this->configureBrowsershot($browsershot)->pdf();
 
         // Store the PDF
         $filename = $this->generateProofPackFilename($options['title']);
@@ -464,14 +476,14 @@ class PDFService
         $html = view('pdf.assessment', compact('assessment'))->render();
 
         // Generate PDF using Browsershot with assessment-specific settings
-        $pdf = Browsershot::html($html)
+        $browsershot = Browsershot::html($html)
             ->format('A4')
             ->margins(12, 12, 12, 12)  // Slightly smaller margins for more content
             ->showBackground()
             ->waitUntilNetworkIdle()
-            ->timeout(90) // Longer timeout for image-heavy assessments
-            ->setChromePath($this->getChromePath())
-            ->pdf();
+            ->timeout(90); // Longer timeout for image-heavy assessments
+
+        $pdf = $this->configureBrowsershot($browsershot)->pdf();
 
         // Store the PDF
         $filename = $this->generateAssessmentPDFFilename($assessment);
@@ -536,14 +548,14 @@ class PDFService
         $html = view('pdf.assessment-summary', compact('assessment'))->render();
 
         // Generate PDF with summary-specific settings
-        $pdf = Browsershot::html($html)
+        $browsershot = Browsershot::html($html)
             ->format('A4')
             ->margins(15, 15, 15, 15)
             ->showBackground()
             ->waitUntilNetworkIdle()
-            ->timeout(60)
-            ->setChromePath($this->getChromePath())
-            ->pdf();
+            ->timeout(60);
+
+        $pdf = $this->configureBrowsershot($browsershot)->pdf();
 
         // Store the PDF with summary suffix
         $filename = $this->generateAssessmentSummaryFilename($assessment);
@@ -602,14 +614,14 @@ class PDFService
         $html = view($template, compact('assessment', 'options'))->render();
 
         // Generate PDF with service-specific settings
-        $pdf = Browsershot::html($html)
+        $browsershot = Browsershot::html($html)
             ->format('A4')
             ->margins(10, 10, 10, 10) // Tighter margins for service reports
             ->showBackground()
             ->waitUntilNetworkIdle()
-            ->timeout(120) // Extended timeout for complex reports
-            ->setChromePath($this->getChromePath())
-            ->pdf();
+            ->timeout(120); // Extended timeout for complex reports
+
+        $pdf = $this->configureBrowsershot($browsershot)->pdf();
 
         // Store the PDF with service-specific path
         $filename = $this->generateServiceSpecificFilename($assessment, $options['format']);
