@@ -1,13 +1,18 @@
 @php
-    // Extract palette colors
-    $primaryBlue = $palette['accent_color'] ?? '#0b57d0';
-    $primaryContrast = $palette['accent_text_color'] ?? '#ffffff';
-    $textColor = $palette['text_color'] ?? '#000000';
-    $mutedColor = $palette['muted_text_color'] ?? '#4b5563';
-    $headingColor = $palette['heading_color'] ?? '#000000';
-    $borderColor = $palette['border_color'] ?? '#d0d5dd';
-    $tableHeaderBg = $palette['table_header_background'] ?? '#0b57d0';
-    $tableHeaderText = $palette['table_header_text'] ?? '#ffffff';
+    // Extract palette colors with type safety
+    $palette = is_array($palette) ? $palette : [];
+    $primaryBlue = is_string($palette['accent_color'] ?? null) ? $palette['accent_color'] : '#0b57d0';
+    $primaryContrast = is_string($palette['accent_text_color'] ?? null) ? $palette['accent_text_color'] : '#ffffff';
+    $textColor = is_string($palette['text_color'] ?? null) ? $palette['text_color'] : '#000000';
+    $mutedColor = is_string($palette['muted_text_color'] ?? null) ? $palette['muted_text_color'] : '#4b5563';
+    $headingColor = is_string($palette['heading_color'] ?? null) ? $palette['heading_color'] : '#000000';
+    $borderColor = is_string($palette['border_color'] ?? null) ? $palette['border_color'] : '#d0d5dd';
+    $tableHeaderBg = is_string($palette['table_header_background'] ?? null) ? $palette['table_header_background'] : '#0b57d0';
+    $tableHeaderText = is_string($palette['table_header_text'] ?? null) ? $palette['table_header_text'] : '#ffffff';
+
+    // Ensure sections and currency are properly typed
+    $sections = is_array($sections) ? $sections : [];
+    $currency = is_string($currency) ? $currency : 'RM';
 
     // Calculate financial totals
     $subtotal = $invoice->subtotal ?? $invoice->items->sum(fn($item) => $item->total_price ?? ($item->quantity * $item->unit_price));
@@ -23,10 +28,24 @@
     // Payment instructions fallback
     $paymentText = trim($invoice->payment_instructions ?? '');
     if ($paymentText === '') {
-        $holder = $settings['payment_instructions']['account_holder']
-            ?? $invoice->company->name ?? '';
-        $bank = $settings['payment_instructions']['bank_name'] ?? '';
-        $account = $settings['payment_instructions']['account_number'] ?? '';
+        // Safely extract payment instructions, ensuring they're strings
+        $paymentInstructions = $settings['payment_instructions'] ?? [];
+        if (!is_array($paymentInstructions)) {
+            $paymentInstructions = [];
+        }
+
+        $holder = $paymentInstructions['account_holder'] ?? $invoice->company->name ?? '';
+        $holder = is_string($holder) ? $holder : '';
+
+        $bank = $paymentInstructions['bank_name'] ?? '';
+        $bank = is_string($bank) ? $bank : '';
+
+        $account = $paymentInstructions['account_number'] ?? '';
+        $account = is_string($account) ? $account : '';
+
+        $additionalInfo = $paymentInstructions['additional_info'] ?? 'Please include invoice number in payment reference.';
+        $additionalInfo = is_string($additionalInfo) ? $additionalInfo : 'Please include invoice number in payment reference.';
+
         $lines = [];
         if ($holder) {
             $lines[] = 'Pay Cheque to ' . $holder;
@@ -36,8 +55,7 @@
         } elseif ($bank) {
             $lines[] = 'Bank: ' . $bank;
         }
-        $lines[] = $settings['payment_instructions']['additional_info']
-            ?? 'Please include invoice number in payment reference.';
+        $lines[] = $additionalInfo;
         $paymentText = implode("\n", array_filter($lines));
     }
 
