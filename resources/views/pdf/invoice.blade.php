@@ -31,11 +31,12 @@
         }
 
         .page {
-            width: 100%;
+            width: 180mm;
             min-height: 297mm;
             margin: 0;
-            padding: 15mm;
+            padding: 10mm;
             position: relative;
+            box-sizing: border-box;
         }
 
         h1, h2, h3 {
@@ -52,14 +53,17 @@
         }
 
         .header {
-            display: flex;
-            justify-content: space-between;
-            gap: 8mm;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header td {
+            vertical-align: top;
+            padding: 0;
         }
 
         .company-block {
-            flex: 1;
-            max-width: 60%;
+            width: 70%;
         }
 
         .company-name {
@@ -87,14 +91,21 @@
         }
 
         .info-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 5mm;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .info-row td {
+            vertical-align: top;
+            padding: 0 2mm 0 0;
+        }
+
+        .info-row td:last-child {
+            padding-right: 0;
         }
 
         .card {
-            flex: 1;
-            max-width: 48%;
+            width: 100%;
             border: 1px solid var(--border-color);
             border-radius: 6px;
             padding: 12px 14px;
@@ -175,15 +186,22 @@
         }
 
         .summary-grid {
-            display: flex;
-            justify-content: space-between;
+            width: 100%;
+            border-collapse: collapse;
             margin-top: 12mm;
-            gap: 8mm;
+        }
+
+        .summary-grid td {
+            vertical-align: top;
+            padding: 0 2mm 0 0;
+        }
+
+        .summary-grid td:last-child {
+            padding-right: 0;
         }
 
         .payment-instructions {
-            flex: 1;
-            max-width: 55%;
+            width: 60%;
         }
 
         .payment-text {
@@ -196,8 +214,7 @@
         }
 
         .totals {
-            min-width: 180px;
-            max-width: 40%;
+            width: 40%;
         }
 
         .totals-table {
@@ -281,67 +298,77 @@
 <div class="page">
     <h1 class="title">INVOICE</h1>
 
-    <div class="header">
-        <div class="company-block">
-            <div class="company-name">{{ $invoice->company->name ?? 'Company Name' }}</div>
-            @foreach([
-                $invoice->company->address,
-                trim(collect([$invoice->company->postal_code, $invoice->company->city])->filter()->implode(' ')),
-                $invoice->company->state,
-                'Email: ' . ($invoice->company->email ?? '�'),
-                'Tel: ' . ($invoice->company->phone ?? '�'),
-            ] as $line)
-                @if(!empty(trim($line, ' -')))
-                    <div class="company-line">{{ $line }}</div>
+    <table class="header">
+        <tr>
+            <td class="company-block">
+                <div class="company-name">{{ $invoice->company->name ?? 'Company Name' }}</div>
+                @foreach([
+                    $invoice->company->address,
+                    trim(collect([$invoice->company->postal_code, $invoice->company->city])->filter()->implode(' ')),
+                    $invoice->company->state,
+                    'Email: ' . ($invoice->company->email ?? '�'),
+                    'Tel: ' . ($invoice->company->phone ?? '�'),
+                ] as $line)
+                    @if(!empty(trim($line, ' -')))
+                        <div class="company-line">{{ $line }}</div>
+                    @endif
+                @endforeach
+            </td>
+            <td style="width: 30%; text-align: right;">
+                @if($logoPath)
+                    <img src="{{ $logoPath }}" alt="Company Logo" class="logo">
                 @endif
-            @endforeach
-        </div>
-        @if($logoPath)
-            <img src="{{ $logoPath }}" alt="Company Logo" class="logo">
-        @endif
-    </div>
+            </td>
+        </tr>
+    </table>
 
     <hr class="top-divider">
 
-    <div class="info-row">
-        <div class="card">
-            <div class="card-title">Bill To</div>
-            <div class="bill-line">{{ $invoice->customer_name ?? 'Customer Name' }}</div>
-            @if($invoice->customer_company)
-                <div class="bill-line">{{ $invoice->customer_company }}</div>
-            @endif
-            @foreach($billAddress as $line)
-                <div class="bill-line">{{ $line }}</div>
-            @endforeach
-            @if($invoice->customer_email)
-                <div class="bill-line">Email: {{ $invoice->customer_email }}</div>
-            @endif
-            @if($invoice->customer_phone)
-                <div class="bill-line">Phone: {{ $invoice->customer_phone }}</div>
-            @endif
-        </div>
-        <div class="card" style="max-width: 220px;">
-            <div class="card-title">Invoice Info</div>
-            <table class="meta-table">
-                <tr>
-                    <td class="meta-label">Invoice No :</td>
-                    <td>{{ $invoice->number }}</td>
-                </tr>
-                <tr>
-                    <td class="meta-label">Invoice Date :</td>
-                    <td>{{ optional($invoice->issued_date)->format('d M, Y') ?? now()->format('d M, Y') }}</td>
-                </tr>
-                <tr>
-                    <td class="meta-label">Due Date :</td>
-                    <td>{{ optional($invoice->due_date)->format('d M, Y') ?? '�' }}</td>
-                </tr>
-                <tr>
-                    <td class="meta-label">Payment Terms :</td>
-                    <td>{{ $invoice->payment_terms ? $invoice->payment_terms . ' days' : '�' }}</td>
-                </tr>
-            </table>
-        </div>
-    </div>
+    <table class="info-row">
+        <tr>
+            <td style="width: 50%;">
+                <div class="card">
+                    <div class="card-title">Bill To</div>
+                    <div class="bill-line">{{ $invoice->customer_name ?? 'Customer Name' }}</div>
+                    @if($invoice->customer_company)
+                        <div class="bill-line">{{ $invoice->customer_company }}</div>
+                    @endif
+                    @foreach($billAddress as $line)
+                        <div class="bill-line">{{ $line }}</div>
+                    @endforeach
+                    @if($invoice->customer_email)
+                        <div class="bill-line">Email: {{ $invoice->customer_email }}</div>
+                    @endif
+                    @if($invoice->customer_phone)
+                        <div class="bill-line">Phone: {{ $invoice->customer_phone }}</div>
+                    @endif
+                </div>
+            </td>
+            <td style="width: 50%;">
+                <div class="card">
+                    <div class="card-title">Invoice Info</div>
+                    <table class="meta-table">
+                        <tr>
+                            <td class="meta-label">Invoice No :</td>
+                            <td>{{ $invoice->number }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Invoice Date :</td>
+                            <td>{{ optional($invoice->issued_date)->format('d M, Y') ?? now()->format('d M, Y') }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Due Date :</td>
+                            <td>{{ optional($invoice->due_date)->format('d M, Y') ?? '�' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Payment Terms :</td>
+                            <td>{{ $invoice->payment_terms ? $invoice->payment_terms . ' days' : '�' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
 
     <table class="items-table">
         <thead>
@@ -371,44 +398,46 @@
         </tbody>
     </table>
 
-    <div class="summary-grid">
-        <div class="payment-instructions">
-            <div class="card-title" style="margin-bottom: 6px;">Payment Instructions</div>
-            <div class="payment-text">{{ $paymentInstructions ? strip_tags($paymentInstructions) : 'Please include the invoice number as your payment reference.' }}</div>
-        </div>
-        <div class="totals">
-            <table class="totals-table">
-                <tr>
-                    <td>Subtotal</td>
-                    <td>{{ $money($subtotal) }}</td>
-                </tr>
-                @if($discount > 0)
+    <table class="summary-grid">
+        <tr>
+            <td class="payment-instructions">
+                <div class="card-title" style="margin-bottom: 6px;">Payment Instructions</div>
+                <div class="payment-text">{{ $paymentInstructions ? strip_tags($paymentInstructions) : 'Please include the invoice number as your payment reference.' }}</div>
+            </td>
+            <td class="totals">
+                <table class="totals-table">
                     <tr>
-                        <td>Discount</td>
-                        <td>-{{ $money($discount) }}</td>
+                        <td>Subtotal</td>
+                        <td>{{ $money($subtotal) }}</td>
                     </tr>
-                @endif
-                @if($tax > 0)
+                    @if($discount > 0)
+                        <tr>
+                            <td>Discount</td>
+                            <td>-{{ $money($discount) }}</td>
+                        </tr>
+                    @endif
+                    @if($tax > 0)
+                        <tr>
+                            <td>Tax</td>
+                            <td>{{ $money($tax) }}</td>
+                        </tr>
+                    @endif
+                    <tr class="total">
+                        <td>Total</td>
+                        <td>{{ $money($total) }}</td>
+                    </tr>
                     <tr>
-                        <td>Tax</td>
-                        <td>{{ $money($tax) }}</td>
+                        <td>Paid</td>
+                        <td>{{ $money($paid) }}</td>
                     </tr>
-                @endif
-                <tr class="total">
-                    <td>Total</td>
-                    <td>{{ $money($total) }}</td>
-                </tr>
-                <tr>
-                    <td>Paid</td>
-                    <td>{{ $money($paid) }}</td>
-                </tr>
-                <tr class="balance">
-                    <td>Balance Due</td>
-                    <td>{{ $money($balance) }}</td>
-                </tr>
-            </table>
-        </div>
-    </div>
+                    <tr class="balance">
+                        <td>Balance Due</td>
+                        <td>{{ $money($balance) }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 
     <div class="footer-signature">
         <div class="signature-line">
