@@ -196,27 +196,22 @@ class InvoiceSettingsService
     }
 
     /**
-     * Get invoice settings for API response
+     * Get invoice settings for API response (SIMPLIFIED)
      */
     public function getSettingsForAPI(?int $companyId = null): array
     {
         $settings = $this->getSettings($companyId);
 
         return [
-            'optional_sections' => $settings['sections'],
-            'logo_settings' => $settings['logo'],
-            'layout' => $settings['layout'],
-            'appearance' => $settings['appearance'],
-            'defaults' => $settings['defaults'],
-            'payment_instructions' => $settings['content']['payment_instructions'],
-            'signature_blocks' => $settings['content']['signature_blocks'],
-            'default_terms' => $settings['content']['default_terms'],
-            'default_notes' => $settings['content']['default_notes'],
+            'appearance' => $settings['appearance'] ?? $this->getDefaultSettings()['appearance'],
+            'columns' => $settings['columns'] ?? $this->getDefaultSettings()['columns'],
+            'sections' => $settings['sections'] ?? $this->getDefaultSettings()['sections'],
+            'payment_instructions' => $settings['payment_instructions'] ?? $this->getDefaultSettings()['payment_instructions'],
         ];
     }
 
     /**
-     * Apply invoice settings to an invoice instance
+     * Apply invoice settings to an invoice instance (SIMPLIFIED)
      */
     public function applySettingsToInvoice($invoice, ?int $companyId = null): void
     {
@@ -224,50 +219,19 @@ class InvoiceSettingsService
 
         // Apply default optional sections if not set
         if (!$invoice->optional_sections) {
-            $invoice->optional_sections = $settings['sections'];
+            $invoice->optional_sections = $settings['sections'] ?? $this->getDefaultSettings()['sections'];
         }
 
-        // Apply default terms and notes if not set
-        if (!$invoice->terms_conditions) {
-            $invoice->terms_conditions = $settings['content']['default_terms'];
-        }
-
-        if (!$invoice->notes) {
-            $invoice->notes = $settings['content']['default_notes'];
-        }
-
-        // Apply payment terms if not set
-        if (!$invoice->payment_terms) {
-            $invoice->payment_terms = $settings['defaults']['payment_terms'];
-        }
-
-        // Apply tax percentage if not set
-        if (!$invoice->tax_percentage) {
-            $invoice->tax_percentage = $settings['defaults']['tax_percentage'];
-        }
+        // Note: terms_conditions, notes, payment_terms, and tax_percentage are now
+        // managed at the invoice level, not in settings, so we don't apply them here
     }
 
     /**
-     * Validate settings structure
+     * Validate settings structure (SIMPLIFIED)
      */
     public function validateSettings(array $settings): array
     {
         $errors = [];
-
-        // Validate logo settings
-        if (isset($settings['logo']['logo_position']) && !in_array($settings['logo']['logo_position'], ['left', 'center', 'right'])) {
-            $errors['logo.logo_position'] = 'Logo position must be left, center, or right.';
-        }
-
-        // Validate payment terms
-        if (isset($settings['defaults']['payment_terms']) && (!is_numeric($settings['defaults']['payment_terms']) || $settings['defaults']['payment_terms'] < 0)) {
-            $errors['defaults.payment_terms'] = 'Payment terms must be a positive number.';
-        }
-
-        // Validate tax percentage
-        if (isset($settings['defaults']['tax_percentage']) && (!is_numeric($settings['defaults']['tax_percentage']) || $settings['defaults']['tax_percentage'] < 0 || $settings['defaults']['tax_percentage'] > 100)) {
-            $errors['defaults.tax_percentage'] = 'Tax percentage must be between 0 and 100.';
-        }
 
         // Validate appearance colors (SIMPLIFIED - only 6 essential colors)
         if (isset($settings['appearance'])) {
@@ -346,14 +310,6 @@ class InvoiceSettingsService
         // Validate and sort by order
         usort($columns, fn($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
         return $this->setSetting('columns', $columns, $companyId);
-    }
-
-    /**
-     * Get default content (terms, notes, etc.)
-     */
-    public function getDefaultContent(?int $companyId = null): array
-    {
-        return $this->getSetting('content', $this->getDefaultSettings()['content'], $companyId);
     }
 
     /**
