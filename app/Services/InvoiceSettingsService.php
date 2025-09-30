@@ -349,18 +349,30 @@ class InvoiceSettingsService
                 if (!isset($column['key']) || !isset($column['label'])) {
                     $errors["columns.{$index}"] = 'Each column must have a key and label.';
                 }
-                if (isset($column['label']) && strlen($column['label']) > 50) {
-                    $errors["columns.{$index}.label"] = 'Column label must be 50 characters or less.';
+                if (isset($column['label'])) {
+                    if (!is_string($column['label'])) {
+                        $errors["columns.{$index}.label"] = 'Column label must be a string.';
+                    } elseif (strlen($column['label']) > 50) {
+                        $errors["columns.{$index}.label"] = 'Column label must be 50 characters or less.';
+                    }
                 }
             }
         }
 
         // Validate content max lengths
-        if (isset($settings['content']['default_terms']) && strlen($settings['content']['default_terms']) > 2000) {
-            $errors['content.default_terms'] = 'Default terms must be 2000 characters or less.';
+        if (isset($settings['content']['default_terms'])) {
+            if (is_array($settings['content']['default_terms'])) {
+                $errors['content.default_terms'] = 'Default terms must be a string.';
+            } elseif (strlen($settings['content']['default_terms']) > 2000) {
+                $errors['content.default_terms'] = 'Default terms must be 2000 characters or less.';
+            }
         }
-        if (isset($settings['content']['default_notes']) && strlen($settings['content']['default_notes']) > 1000) {
-            $errors['content.default_notes'] = 'Default notes must be 1000 characters or less.';
+        if (isset($settings['content']['default_notes'])) {
+            if (is_array($settings['content']['default_notes'])) {
+                $errors['content.default_notes'] = 'Default notes must be a string.';
+            } elseif (strlen($settings['content']['default_notes']) > 1000) {
+                $errors['content.default_notes'] = 'Default notes must be 1000 characters or less.';
+            }
         }
 
         return $errors;
