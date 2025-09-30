@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mx-auto px-4 py-8 max-w-6xl">
+<div class="container mx-auto px-4 py-8 max-w-6xl" x-data="invoiceSettings()" x-init="init()">
     <div class="flex justify-between items-center mb-8">
         <div>
             <h1 class="text-3xl font-bold text-gray-900">Invoice Settings</h1>
@@ -30,12 +30,11 @@
     <div x-show="message.show"
          x-transition
          :class="message.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'"
-         class="mb-6 p-4 rounded-lg border"
-         x-data="{ message: { show: false, type: '', text: '' } }">
+         class="mb-6 p-4 rounded-lg border">
         <p x-text="message.text"></p>
     </div>
 
-    <div x-data="invoiceSettings()" x-init="init()">
+    <div>
 
         <!-- 1. Colors / Appearance -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
