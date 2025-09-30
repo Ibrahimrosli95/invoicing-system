@@ -682,27 +682,64 @@ function invoiceSettings() {
             }
         },
 
-        saveSettings() {
-            fetch('/invoice-settings', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify(this.settings)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    this.showMessage('success', 'Settings saved successfully!');
-                } else {
-                    this.showMessage('error', data.message || 'Failed to save settings');
+        async saveSettings() {
+            try {
+                // Save main settings
+                const mainResponse = await fetch('/invoice-settings', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(this.settings)
+                });
+
+                if (!mainResponse.ok) {
+                    throw new Error(`HTTP error! status: ${mainResponse.status}`);
                 }
-            })
-            .catch(error => {
+
+                const mainData = await mainResponse.json();
+
+                // Save columns separately
+                if (this.settings.columns) {
+                    const columnsResponse = await fetch('/invoice-settings/columns', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ columns: this.settings.columns })
+                    });
+
+                    if (!columnsResponse.ok) {
+                        throw new Error('Failed to save columns');
+                    }
+                }
+
+                // Save appearance separately
+                if (this.settings.appearance) {
+                    const appearanceResponse = await fetch('/invoice-settings/appearance', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ appearance: this.settings.appearance })
+                    });
+
+                    if (!appearanceResponse.ok) {
+                        throw new Error('Failed to save appearance');
+                    }
+                }
+
+                this.showMessage('success', 'Settings saved successfully!');
+            } catch (error) {
                 console.error('Save error:', error);
-                this.showMessage('error', 'Failed to save settings');
-            });
+                this.showMessage('error', 'Failed to save settings: ' + error.message);
+            }
         },
 
         resetToDefaults() {
