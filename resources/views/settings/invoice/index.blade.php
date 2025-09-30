@@ -696,7 +696,20 @@ function invoiceSettings() {
                 });
 
                 if (!mainResponse.ok) {
-                    throw new Error(`HTTP error! status: ${mainResponse.status}`);
+                    const errorData = await mainResponse.json();
+                    console.error('Validation errors:', errorData);
+
+                    // Extract and format validation errors
+                    let errorMessage = 'Validation failed: ';
+                    if (errorData.errors) {
+                        errorMessage += Object.values(errorData.errors).flat().join(', ');
+                    } else if (errorData.message) {
+                        errorMessage += errorData.message;
+                    } else {
+                        errorMessage += `HTTP ${mainResponse.status}`;
+                    }
+
+                    throw new Error(errorMessage);
                 }
 
                 const mainData = await mainResponse.json();
@@ -714,7 +727,9 @@ function invoiceSettings() {
                     });
 
                     if (!columnsResponse.ok) {
-                        throw new Error('Failed to save columns');
+                        const errorData = await columnsResponse.json();
+                        console.error('Column save errors:', errorData);
+                        throw new Error('Failed to save columns: ' + (errorData.message || ''));
                     }
                 }
 
@@ -731,14 +746,16 @@ function invoiceSettings() {
                     });
 
                     if (!appearanceResponse.ok) {
-                        throw new Error('Failed to save appearance');
+                        const errorData = await appearanceResponse.json();
+                        console.error('Appearance save errors:', errorData);
+                        throw new Error('Failed to save appearance: ' + (errorData.message || ''));
                     }
                 }
 
                 this.showMessage('success', 'Settings saved successfully!');
             } catch (error) {
                 console.error('Save error:', error);
-                this.showMessage('error', 'Failed to save settings: ' + error.message);
+                this.showMessage('error', error.message || 'Failed to save settings');
             }
         },
 
