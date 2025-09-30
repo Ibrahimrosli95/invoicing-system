@@ -614,10 +614,19 @@ function invoiceSettings() {
                         this.settings.logo = { ...this.settings.logo, ...data.settings.logo_settings };
                         this.settings.appearance = { ...this.settings.appearance, ...data.settings.appearance };
                         this.settings.defaults = { ...this.settings.defaults, ...data.settings.defaults };
+
+                        // Ensure default_terms and default_notes are strings
+                        const defaultTerms = typeof data.settings.default_terms === 'string'
+                            ? data.settings.default_terms
+                            : (data.settings.content?.default_terms || this.settings.content.default_terms);
+                        const defaultNotes = typeof data.settings.default_notes === 'string'
+                            ? data.settings.default_notes
+                            : (data.settings.content?.default_notes || this.settings.content.default_notes);
+
                         this.settings.content = {
                             ...this.settings.content,
-                            default_terms: data.settings.default_terms,
-                            default_notes: data.settings.default_notes,
+                            default_terms: defaultTerms,
+                            default_notes: defaultNotes,
                             payment_instructions: { ...this.settings.content.payment_instructions, ...data.settings.payment_instructions }
                         };
                     }
