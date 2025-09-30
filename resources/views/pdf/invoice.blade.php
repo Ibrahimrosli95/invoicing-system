@@ -5,12 +5,14 @@
     <title>Invoice {{ $invoice->number }}</title>
     <style>
         :root {
-            --primary-blue: {{ $palette['accent_color'] ?? '#0b57d0' }};
-            --primary-contrast: {{ $palette['accent_text_color'] ?? '#ffffff' }};
-            --text-color: {{ $palette['text_color'] ?? '#000000' }};
-            --muted-color: {{ $palette['muted_text_color'] ?? '#4b5563' }};
-            --heading-color: {{ $palette['heading_color'] ?? '#000000' }};
-            --border-color: {{ $palette['border_color'] ?? '#d0d5dd' }};
+            --primary-blue: {{ !empty($palette['accent_color']) ? $palette['accent_color'] : '#0b57d0' }};
+            --primary-contrast: {{ !empty($palette['accent_text_color']) ? $palette['accent_text_color'] : '#ffffff' }};
+            --text-color: {{ !empty($palette['text_color']) ? $palette['text_color'] : '#000000' }};
+            --muted-color: {{ !empty($palette['muted_text_color']) ? $palette['muted_text_color'] : '#4b5563' }};
+            --heading-color: {{ !empty($palette['heading_color']) ? $palette['heading_color'] : '#000000' }};
+            --border-color: {{ !empty($palette['border_color']) ? $palette['border_color'] : '#d0d5dd' }};
+            --table-header-bg: {{ !empty($palette['table_header_background']) ? $palette['table_header_background'] : '#0b57d0' }};
+            --table-header-text: {{ !empty($palette['table_header_text']) ? $palette['table_header_text'] : '#ffffff' }};
         }
 
         * {
@@ -28,10 +30,10 @@
         }
 
         .page {
-            width: 180mm;
+            width: 190mm;
             min-height: 297mm;
-            padding: 12mm 14mm;
             margin: 0 auto;
+            padding: 14mm 16mm;
         }
 
         h1, h2, h3 {
@@ -58,7 +60,7 @@
         .company-name {
             font-size: 14px;
             font-weight: 700;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
             color: var(--primary-blue);
         }
 
@@ -84,7 +86,7 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
 
         .bill-table td {
@@ -108,12 +110,12 @@
         }
 
         .items-table thead th {
-            background: var(--primary-blue);
-            color: var(--primary-contrast);
+            background: var(--table-header-bg);
+            color: var(--table-header-text);
             padding: 8px 10px;
             font-weight: 600;
             text-align: left;
-            border: 1px solid var(--primary-blue);
+            border: 1px solid var(--table-header-bg);
         }
 
         .items-table tbody td {
@@ -147,7 +149,7 @@
         }
 
         .payment-block {
-            padding-right: 20mm;
+            padding-right: 18mm;
         }
 
         .payment-text {
@@ -191,14 +193,14 @@
 
         .signature-table {
             width: 100%;
-            margin-top: 18mm;
+            margin-top: 14mm;
             font-size: 12px;
         }
 
         .signature-table td {
             width: 50%;
             text-align: center;
-            padding-top: 18mm;
+            padding-top: 14mm;
         }
 
         .signature-line {
@@ -209,7 +211,7 @@
         }
 
         .footer {
-            margin-top: 15mm;
+            margin-top: 12mm;
             text-align: center;
             font-size: 10px;
             color: var(--muted-color);
@@ -227,8 +229,23 @@
     $paid = $invoice->amount_paid ?? 0;
     $balance = max(0, $total - $paid);
 
-    $paymentText = $invoice->payment_instructions
-        ?: ($invoice->company->invoice_settings['content']['payment_instructions']['additional_info'] ?? 'Please include the invoice number as your payment reference.');
+    $paymentText = trim($invoice->payment_instructions);
+    if ($paymentText === '') {
+        $accountHolder = $invoice->company->invoice_settings['content']['payment_instructions']['account_holder'] ?? ($invoice->company->name ?? '');
+        $bankName = $invoice->company->invoice_settings['content']['payment_instructions']['bank_name'] ?? '';
+        $accountNumber = $invoice->company->invoice_settings['content']['payment_instructions']['account_number'] ?? '';
+        $instructions = [];
+        if ($accountHolder) {
+            $instructions[] = 'Pay Cheque to ' . $accountHolder;
+        }
+        if ($bankName && $accountNumber) {
+            $instructions[] = 'Send to bank (' . $bankName . ') ' . $accountNumber;
+        } elseif ($bankName) {
+            $instructions[] = 'Bank: ' . $bankName;
+        }
+        $instructions[] = 'Please include invoice number in payment reference.';
+        $paymentText = implode("\n", array_filter($instructions));
+    }
 
     $logoPath = null;
     if (($sections['show_company_logo'] ?? true) && !empty($invoice->company?->logo)) {
@@ -256,8 +273,8 @@
                     $invoice->company->address,
                     trim(collect([$invoice->company->postal_code, $invoice->company->city])->filter()->implode(' ')),
                     $invoice->company->state,
-                    'Email: ' . ($invoice->company->email ?? '—'),
-                    'Mobile: ' . ($invoice->company->phone ?? '—'),
+                    'Email: ' . ($invoice->company->email ?? 'ï¿½'),
+                    'Mobile: ' . ($invoice->company->phone ?? 'ï¿½'),
                 ] as $line)
                     @if(!empty(trim($line, ' -')))
                         <div class="company-line">{{ $line }}</div>
@@ -307,11 +324,11 @@
                     </tr>
                     <tr>
                         <td>Due Date :</td>
-                        <td>{{ optional($invoice->due_date)->format('d M, Y') ?? '—' }}</td>
+                        <td>{{ optional($invoice->due_date)->format('d M, Y') ?? 'ï¿½' }}</td>
                     </tr>
                     <tr>
                         <td>Payment Terms :</td>
-                        <td>{{ $invoice->payment_terms ? $invoice->payment_terms . ' days' : '—' }}</td>
+                        <td>{{ $invoice->payment_terms ? $invoice->payment_terms . ' days' : 'ï¿½' }}</td>
                     </tr>
                 </table>
             </td>
@@ -386,9 +403,9 @@
         <tr>
             @php
                 $author = $invoice->createdBy;
-                $authorName = $author?->name ?? 'Marketing Manager';
+                $authorName = $author->name ?? 'Marketing Manager';
                 $authorTitle = $invoice->company->invoice_settings['content']['signature_blocks']['company_signature_title'] ?? 'Marketing Manager';
-                $authorSignature = $author?->signature_path ? public_path('storage/' . ltrim($author->signature_path, '/')) : null;
+                $authorSignature = $author->signature_path ? public_path('storage/' . ltrim($author->signature_path, '/')) : null;
                 if ($authorSignature && file_exists($authorSignature)) {
                     $authorSignature = 'file://' . str_replace('\\\\', '/', $authorSignature);
                 } else {
@@ -403,17 +420,14 @@
                 <div style="margin-top:2px;">{{ $authorName }}</div>
             </td>
             <td>
-                @php
-                    $customerName = $invoice->customer_name ?? 'Customer';
-                @endphp
                 <div class="signature-line">Customer Acceptance</div>
-                <div style="margin-top:2px;">{{ $customerName }}</div>
+                <div style="margin-top:2px;">{{ $invoice->customer_name ?? 'Customer' }}</div>
             </td>
         </tr>
     </table>
 
     <div class="footer">
-        {{ $invoice->company->name ?? 'Company' }} • Invoice {{ $invoice->number }} • Generated on {{ now()->format('d M Y, H:i') }}
+        {{ $invoice->company->name ?? 'Company' }} ï¿½ Invoice {{ $invoice->number }} ï¿½ Generated on {{ now()->format('d M Y, H:i') }}
     </div>
 </div>
 </body>
