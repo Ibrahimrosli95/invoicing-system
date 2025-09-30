@@ -335,6 +335,13 @@ class InvoiceSettingsService
             foreach ($colorFields as $field) {
                 if (isset($settings['appearance'][$field])) {
                     $color = $settings['appearance'][$field];
+
+                    // Validate that color is a string
+                    if (!is_string($color)) {
+                        $errors["appearance.{$field}"] = 'Color must be a string.';
+                        continue;
+                    }
+
                     // Validate hex color format (#RGB or #RRGGBB)
                     if (!preg_match('/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/', $color)) {
                         $errors["appearance.{$field}"] = 'Color must be a valid hex format (#RGB or #RRGGBB).';
