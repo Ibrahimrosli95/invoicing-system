@@ -321,19 +321,43 @@ class InvoiceSettingsController extends Controller
      */
     public function updateAppearance(Request $request): JsonResponse
     {
-        $request->validate([
-            'appearance.background_color' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
-            'appearance.border_color' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
-            'appearance.heading_color' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
-            'appearance.text_color' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
-            'appearance.muted_text_color' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
-            'appearance.accent_color' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
-            'appearance.accent_text_color' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
-            'appearance.table_header_background' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
-            'appearance.table_header_text' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
+        // Validate that appearance is an array
+        $validated = $request->validate([
+            'appearance' => 'required|array',
         ]);
 
-        $success = $this->settingsService->setSetting('appearance', $request->appearance);
+        // Manual validation for color fields to avoid regex delimiter issues
+        $colorFields = [
+            'background_color', 'border_color', 'heading_color', 'text_color',
+            'muted_text_color', 'accent_color', 'accent_text_color',
+            'table_header_background', 'table_header_text', 'table_row_even'
+        ];
+
+        $appearance = $request->appearance;
+        $errors = [];
+
+        foreach ($colorFields as $field) {
+            if (isset($appearance[$field])) {
+                $color = $appearance[$field];
+
+                // Check if it's a string and matches hex format
+                if (!is_string($color)) {
+                    $errors["appearance.{$field}"] = "The appearance.{$field} must be a string.";
+                } elseif (!preg_match('/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/', $color)) {
+                    $errors["appearance.{$field}"] = "The appearance.{$field} must be a valid hex color.";
+                }
+            }
+        }
+
+        if (!empty($errors)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $errors
+            ], 422);
+        }
+
+        $success = $this->settingsService->setSetting('appearance', $appearance);
 
         return response()->json([
             'success' => $success,
