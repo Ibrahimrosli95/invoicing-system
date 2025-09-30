@@ -24,7 +24,7 @@ class InvoiceSettingsController extends Controller
      */
     public function index(): View
     {
-        $this->authorize('manage-company-settings');
+        $this->authorize('manage settings');
 
         $settings = $this->settingsService->getSettings();
 
@@ -49,7 +49,7 @@ class InvoiceSettingsController extends Controller
      */
     public function update(Request $request): JsonResponse|RedirectResponse
     {
-        $this->authorize('manage-company-settings');
+        $this->authorize('manage settings');
 
         // Validate the settings
         $errors = $this->settingsService->validateSettings($request->all());
@@ -199,7 +199,7 @@ class InvoiceSettingsController extends Controller
      */
     public function resetToDefaults(Request $request): JsonResponse|RedirectResponse
     {
-        $this->authorize('manage-company-settings');
+        $this->authorize('manage settings');
 
         $success = $this->settingsService->resetToDefaults();
 
