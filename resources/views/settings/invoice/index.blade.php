@@ -684,7 +684,15 @@ function invoiceSettings() {
 
         async saveSettings() {
             try {
-                // Save main settings
+                // Log the settings being sent for debugging
+                console.log('Saving settings:', JSON.parse(JSON.stringify(this.settings)));
+
+                // Prepare settings without columns and appearance (they have dedicated endpoints)
+                const mainSettings = { ...this.settings };
+                delete mainSettings.columns;
+                delete mainSettings.appearance;
+
+                // Save main settings (sections, content, logo, defaults)
                 const mainResponse = await fetch('/invoice-settings', {
                     method: 'PUT',
                     headers: {
@@ -692,12 +700,12 @@ function invoiceSettings() {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify(this.settings)
+                    body: JSON.stringify(mainSettings)
                 });
 
                 if (!mainResponse.ok) {
                     const errorData = await mainResponse.json();
-                    console.error('Validation errors:', errorData);
+                    console.error('Main settings validation errors:', errorData);
 
                     // Extract and format validation errors
                     let errorMessage = 'Validation failed: ';
@@ -712,9 +720,7 @@ function invoiceSettings() {
                     throw new Error(errorMessage);
                 }
 
-                const mainData = await mainResponse.json();
-
-                // Save columns separately
+                // Save columns using dedicated endpoint
                 if (this.settings.columns) {
                     const columnsResponse = await fetch('/invoice-settings/columns', {
                         method: 'PUT',
@@ -733,7 +739,7 @@ function invoiceSettings() {
                     }
                 }
 
-                // Save appearance separately
+                // Save appearance using dedicated endpoint
                 if (this.settings.appearance) {
                     const appearanceResponse = await fetch('/invoice-settings/appearance', {
                         method: 'PUT',
