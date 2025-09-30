@@ -120,15 +120,11 @@ class InvoicePdfRenderer
     protected function resolveSections($invoice, array $mergedSettings): array
     {
         $sections = $mergedSettings['sections'] ?? [];
-        $logoSettings = $mergedSettings['logo'] ?? [];
 
         return [
-            'show_shipping' => $sections['show_shipping'] ?? false,
+            'show_company_logo' => $sections['show_company_logo'] ?? true,
             'show_payment_instructions' => $sections['show_payment_instructions'] ?? true,
             'show_signatures' => $sections['show_signatures'] ?? true,
-            'show_additional_notes' => $sections['show_additional_notes'] ?? false,
-            'show_terms_conditions' => $sections['show_terms_conditions'] ?? true,
-            'show_company_logo' => $logoSettings['show_company_logo'] ?? true,
         ];
     }
 
@@ -139,18 +135,14 @@ class InvoicePdfRenderer
     {
         $appearance = $mergedSettings['appearance'] ?? [];
 
+        // SIMPLIFIED - Only 6 essential colors
         $defaults = [
-            'background_color' => '#ffffff',
-            'border_color' => '#e5e7eb',
-            'heading_color' => '#111827',
-            'subheading_color' => '#1f2937',
-            'text_color' => '#111827',
-            'muted_text_color' => '#6b7280',
-            'accent_color' => '#1d4ed8',
+            'accent_color' => '#0b57d0',
             'accent_text_color' => '#ffffff',
-            'table_header_background' => '#1d4ed8',
-            'table_header_text' => '#ffffff',
-            'table_row_even' => '#f8fafc',
+            'text_color' => '#000000',
+            'muted_text_color' => '#4b5563',
+            'heading_color' => '#000000',
+            'border_color' => '#d0d5dd',
         ];
 
         // Precedence: options > appearance > defaults

@@ -8,98 +8,43 @@ use Illuminate\Support\Facades\Cache;
 class InvoiceSettingsService
 {
     /**
-     * Default invoice settings structure
+     * Default invoice settings structure - SIMPLIFIED FOR PDF GENERATION
      */
     public function getDefaultSettings(): array
     {
         return [
-            'logo' => [
-                'show_company_logo' => true,
-                'logo_position' => 'left', // left, center, right
-                'logo_size' => 'medium', // small, medium, large
+            // Color palette for PDF
+            'appearance' => [
+                'accent_color' => '#0b57d0',
+                'accent_text_color' => '#ffffff',
+                'text_color' => '#000000',
+                'muted_text_color' => '#4b5563',
+                'heading_color' => '#000000',
+                'border_color' => '#d0d5dd',
             ],
+
+            // Table columns configuration
+            'columns' => [
+                ['key' => 'sl', 'label' => 'Sl.', 'visible' => true, 'order' => 1],
+                ['key' => 'description', 'label' => 'Description', 'visible' => true, 'order' => 2],
+                ['key' => 'quantity', 'label' => 'Qty', 'visible' => true, 'order' => 3],
+                ['key' => 'rate', 'label' => 'Rate', 'visible' => true, 'order' => 4],
+                ['key' => 'amount', 'label' => 'Amount', 'visible' => true, 'order' => 5],
+            ],
+
+            // Section visibility toggles
             'sections' => [
-                'show_shipping' => true,
+                'show_company_logo' => true,
                 'show_payment_instructions' => true,
                 'show_signatures' => true,
-                'show_additional_notes' => false,
-                'show_terms_conditions' => true,
             ],
-            'layout' => [
-                'header_style' => 'professional', // professional, minimal, modern
-                'color_scheme' => 'blue', // blue, green, gray, custom
-                'font_size' => 'normal', // small, normal, large
-                'margins' => 'standard', // tight, standard, wide
-            ],
-            'appearance' => [
-                'background_color' => '#ffffff',
-                'border_color' => '#e5e7eb',
-                'heading_color' => '#111827',
-                'subheading_color' => '#1f2937',
-                'text_color' => '#111827',
-                'muted_text_color' => '#6b7280',
-                'accent_color' => '#1d4ed8',
-                'accent_text_color' => '#ffffff',
-                'table_header_background' => '#1d4ed8',
-                'table_header_text' => '#ffffff',
-                'table_row_even' => '#f8fafc',
-            ],
-            'defaults' => [
-                'payment_terms' => 30,
-                'late_fee_percentage' => 1.5,
-                'currency' => 'RM',
-                'tax_percentage' => 6.0,
-                'show_discount_column' => true,
-                'show_tax_column' => true,
-            ],
-            'content' => [
-                'default_terms' => 'Payment is due within the specified payment terms. Late payments may incur additional charges.',
-                'default_notes' => 'Thank you for your business!',
-                'payment_instructions' => [
-                    'bank_name' => '',
-                    'account_number' => '',
-                    'account_holder' => '',
-                    'swift_code' => '',
-                    'additional_info' => 'Please include invoice number in payment reference.',
-                ],
-                'signature_blocks' => [
-                    'show_company_signature' => true,
-                    'show_client_signature' => true,
-                    'company_signature_title' => 'Authorized Representative',
-                    'client_signature_title' => 'Customer Acceptance',
-                ],
-            ],
-            'columns' => [
-                [
-                    'key' => 'sl',
-                    'label' => 'Sl.',
-                    'visible' => true,
-                    'order' => 1,
-                ],
-                [
-                    'key' => 'description',
-                    'label' => 'Description',
-                    'visible' => true,
-                    'order' => 2,
-                ],
-                [
-                    'key' => 'quantity',
-                    'label' => 'Qty',
-                    'visible' => true,
-                    'order' => 3,
-                ],
-                [
-                    'key' => 'rate',
-                    'label' => 'Rate',
-                    'visible' => true,
-                    'order' => 4,
-                ],
-                [
-                    'key' => 'amount',
-                    'label' => 'Amount',
-                    'visible' => true,
-                    'order' => 5,
-                ],
+
+            // Payment instructions for PDF
+            'payment_instructions' => [
+                'bank_name' => '',
+                'account_number' => '',
+                'account_holder' => '',
+                'additional_info' => 'Please include invoice number in payment reference.',
             ],
         ];
     }
@@ -324,27 +269,21 @@ class InvoiceSettingsService
             $errors['defaults.tax_percentage'] = 'Tax percentage must be between 0 and 100.';
         }
 
-        // Validate appearance colors
+        // Validate appearance colors (SIMPLIFIED - only 6 essential colors)
         if (isset($settings['appearance'])) {
-            $colorFields = [
-                'background_color', 'border_color', 'heading_color', 'subheading_color',
-                'text_color', 'muted_text_color', 'accent_color', 'accent_text_color',
-                'table_header_background', 'table_header_text', 'table_row_even'
-            ];
+            $colorFields = ['accent_color', 'accent_text_color', 'text_color', 'muted_text_color', 'heading_color', 'border_color'];
 
             foreach ($colorFields as $field) {
                 if (isset($settings['appearance'][$field])) {
                     $color = $settings['appearance'][$field];
 
-                    // Validate that color is a string
                     if (!is_string($color)) {
                         $errors["appearance.{$field}"] = 'Color must be a string.';
                         continue;
                     }
 
-                    // Validate hex color format (#RGB or #RRGGBB)
                     if (!preg_match('/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/', $color)) {
-                        $errors["appearance.{$field}"] = 'Color must be a valid hex format (#RGB or #RRGGBB).';
+                        $errors["appearance.{$field}"] = 'Color must be a valid hex format.';
                     }
                 }
             }
@@ -356,29 +295,27 @@ class InvoiceSettingsService
                 if (!isset($column['key']) || !isset($column['label'])) {
                     $errors["columns.{$index}"] = 'Each column must have a key and label.';
                 }
-                if (isset($column['label'])) {
-                    if (!is_string($column['label'])) {
-                        $errors["columns.{$index}.label"] = 'Column label must be a string.';
-                    } elseif (strlen($column['label']) > 50) {
-                        $errors["columns.{$index}.label"] = 'Column label must be 50 characters or less.';
-                    }
+                if (isset($column['label']) && !is_string($column['label'])) {
+                    $errors["columns.{$index}.label"] = 'Column label must be a string.';
                 }
             }
         }
 
-        // Validate content max lengths
-        if (isset($settings['content']['default_terms'])) {
-            if (is_array($settings['content']['default_terms'])) {
-                $errors['content.default_terms'] = 'Default terms must be a string.';
-            } elseif (strlen($settings['content']['default_terms']) > 2000) {
-                $errors['content.default_terms'] = 'Default terms must be 2000 characters or less.';
+        // Validate sections (simple booleans)
+        if (isset($settings['sections'])) {
+            foreach (['show_company_logo', 'show_payment_instructions', 'show_signatures'] as $field) {
+                if (isset($settings['sections'][$field]) && !is_bool($settings['sections'][$field])) {
+                    $errors["sections.{$field}"] = 'Must be true or false.';
+                }
             }
         }
-        if (isset($settings['content']['default_notes'])) {
-            if (is_array($settings['content']['default_notes'])) {
-                $errors['content.default_notes'] = 'Default notes must be a string.';
-            } elseif (strlen($settings['content']['default_notes']) > 1000) {
-                $errors['content.default_notes'] = 'Default notes must be 1000 characters or less.';
+
+        // Validate payment instructions (optional strings)
+        if (isset($settings['payment_instructions'])) {
+            foreach (['bank_name', 'account_number', 'account_holder', 'additional_info'] as $field) {
+                if (isset($settings['payment_instructions'][$field]) && !is_string($settings['payment_instructions'][$field])) {
+                    $errors["payment_instructions.{$field}"] = 'Must be a string.';
+                }
             }
         }
 

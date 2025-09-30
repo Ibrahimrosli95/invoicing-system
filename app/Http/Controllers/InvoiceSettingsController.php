@@ -326,12 +326,8 @@ class InvoiceSettingsController extends Controller
             'appearance' => 'required|array',
         ]);
 
-        // Manual validation for color fields to avoid regex delimiter issues
-        $colorFields = [
-            'background_color', 'border_color', 'heading_color', 'text_color',
-            'muted_text_color', 'accent_color', 'accent_text_color',
-            'table_header_background', 'table_header_text', 'table_row_even'
-        ];
+        // Manual validation for color fields - SIMPLIFIED to 6 essential colors
+        $colorFields = ['accent_color', 'accent_text_color', 'text_color', 'muted_text_color', 'heading_color', 'border_color'];
 
         $appearance = $request->appearance;
         $errors = [];
