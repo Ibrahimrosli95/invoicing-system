@@ -5,15 +5,12 @@
     <title>Invoice {{ $invoice->number }}</title>
     <style>
         :root {
-            --primary-blue: {{ $palette['accent_color'] ?? '#1e40af' }};
-            --white: {{ $palette['accent_text_color'] ?? '#ffffff' }};
-            --text-black: {{ $palette['text_color'] ?? '#000000' }};
-            --text-grey: {{ $palette['muted_text_color'] ?? '#6b7280' }};
+            --primary-blue: {{ $palette['accent_color'] ?? '#0b57d0' }};
+            --primary-contrast: {{ $palette['accent_text_color'] ?? '#ffffff' }};
+            --text-color: {{ $palette['text_color'] ?? '#000000' }};
+            --muted-color: {{ $palette['muted_text_color'] ?? '#4b5563' }};
             --heading-color: {{ $palette['heading_color'] ?? '#000000' }};
-            --border-color: {{ $palette['border_color'] ?? '#d1d5db' }};
-            --table-header-bg: {{ $palette['table_header_background'] ?? '#1e40af' }};
-            --table-header-text: {{ $palette['table_header_text'] ?? '#ffffff' }};
-            --balance-due-color: #dc2626;
+            --border-color: {{ $palette['border_color'] ?? '#d0d5dd' }};
         }
 
         * {
@@ -23,198 +20,141 @@
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
             font-size: 12px;
-            color: var(--text-black);
-            line-height: 1.55;
+            color: var(--text-color);
             background: #ffffff;
+            line-height: 1.5;
         }
 
         .page {
             width: 180mm;
             min-height: 297mm;
-            margin: 0;
-            padding: 10mm;
-            position: relative;
-            box-sizing: border-box;
+            padding: 12mm 14mm;
+            margin: 0 auto;
         }
 
         h1, h2, h3 {
             margin: 0;
             font-weight: 600;
-            color: var(--heading-color);
         }
 
         .title {
             text-align: center;
-            letter-spacing: 3px;
             font-size: 26px;
-            margin-bottom: 12mm;
+            letter-spacing: 2px;
+            margin-bottom: 10mm;
         }
 
-        .header {
+        table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .header td {
+        .header-table td {
             vertical-align: top;
-            padding: 0;
-        }
-
-        .company-block {
-            width: 70%;
         }
 
         .company-name {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
+            margin-bottom: 3px;
             color: var(--primary-blue);
-            margin-bottom: 4px;
         }
 
         .company-line {
+            color: var(--muted-color);
             font-size: 12px;
-            color: var(--text-grey);
         }
 
         .logo {
-            max-width: 120px;
-            max-height: 60px;
+            max-width: 140px;
+            max-height: 70px;
             object-fit: contain;
         }
 
-        .top-divider {
+        .separator {
             border: none;
             border-top: 2px solid var(--primary-blue);
-            margin: 12mm 0 10mm;
+            margin: 10mm 0 8mm;
         }
 
-        .info-row {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .info-row td {
-            vertical-align: top;
-            padding: 0 2mm 0 0;
-        }
-
-        .info-row td:last-child {
-            padding-right: 0;
-        }
-
-        .card {
-            width: 100%;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 12px 14px;
-            background: #fff;
-            box-sizing: border-box;
-        }
-
-        .card-title {
+        .section-label {
             font-size: 12px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
 
-        .meta-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
+        .bill-table td {
+            padding: 2px 0;
         }
 
         .meta-table td {
-            padding: 3px 0;
+            padding: 2px 4px;
         }
 
-        .meta-label {
-            color: var(--text-grey);
-            padding-right: 12px;
+        .meta-table td:first-child {
+            font-weight: 600;
+            color: var(--muted-color);
+            padding-right: 10px;
             white-space: nowrap;
         }
 
-        .bill-line {
-            font-size: 12px;
-        }
-
         .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 12mm;
-        }
-
-        .items-table th {
-            background: var(--table-header-bg);
-            color: var(--table-header-text);
-            padding: 8px 10px;
+            margin-top: 8mm;
             font-size: 12px;
-            text-align: left;
         }
 
-        .items-table th:nth-child(1),
+        .items-table thead th {
+            background: var(--primary-blue);
+            color: var(--primary-contrast);
+            padding: 8px 10px;
+            font-weight: 600;
+            text-align: left;
+            border: 1px solid var(--primary-blue);
+        }
+
+        .items-table tbody td {
+            padding: 7px 10px;
+            border: 1px solid var(--border-color);
+        }
+
         .items-table td:nth-child(1) {
             width: 8%;
             text-align: center;
         }
 
-        .items-table th:nth-child(3),
         .items-table td:nth-child(3) {
-            width: 12%;
+            width: 10%;
             text-align: center;
         }
 
-        .items-table th:nth-child(4),
         .items-table td:nth-child(4),
-        .items-table th:nth-child(5),
         .items-table td:nth-child(5) {
-            width: 18%;
+            width: 17%;
             text-align: right;
         }
 
-        .items-table td {
-            padding: 8px 10px;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 12px;
+        .summary-table {
+            margin-top: 8mm;
         }
 
-        .items-table tbody tr:nth-child(even) {
-            background: var(--table-row-even);
-        }
-
-        .summary-grid {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 12mm;
-        }
-
-        .summary-grid td {
+        .summary-table td {
             vertical-align: top;
-            padding: 0 2mm 0 0;
+            padding: 0;
         }
 
-        .summary-grid td:last-child {
-            padding-right: 0;
-        }
-
-        .payment-instructions {
-            width: 60%;
+        .payment-block {
+            padding-right: 20mm;
         }
 
         .payment-text {
             border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px 12px;
-            font-size: 12px;
-            color: var(--text-black);
+            padding: 8px 10px;
+            border-radius: 4px;
             white-space: pre-line;
-        }
-
-        .totals {
-            width: 40%;
         }
 
         .totals-table {
@@ -224,52 +164,62 @@
         }
 
         .totals-table td {
-            padding: 3px 0;
+            padding: 2px 0;
         }
 
         .totals-table td:first-child {
-            color: var(--text-grey);
+            text-align: left;
+            color: var(--muted-color);
             padding-right: 12px;
         }
 
-        .totals-table tr.total td {
-            font-weight: 600;
-            border-top: 1px solid var(--border-color);
-            padding-top: 6px;
-            color: var(--heading-color);
-        }
-
-        .totals-table tr.balance td {
-            font-weight: 600;
-            color: #b91c1c;
-        }
-
-        .footer-signature {
-            margin-top: 18mm;
+        .totals-table td:last-child {
             text-align: right;
+            width: 120px;
+        }
+
+        .totals-table .total-row td {
+            font-weight: 600;
+            padding-top: 4px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .totals-table .balance-row td {
+            font-weight: 700;
+            color: #dc2626;
+        }
+
+        .signature-table {
+            width: 100%;
+            margin-top: 18mm;
             font-size: 12px;
         }
 
-        .signature-line {
-            display: inline-block;
-            border-top: 1px solid var(--border-color);
-            padding-top: 6px;
-            width: 170px;
+        .signature-table td {
+            width: 50%;
             text-align: center;
+            padding-top: 18mm;
+        }
+
+        .signature-line {
+            border-top: 1px solid var(--border-color);
+            padding-top: 4px;
+            width: 80%;
+            margin: 0 auto;
         }
 
         .footer {
-            margin-top: 20mm;
+            margin-top: 15mm;
             text-align: center;
             font-size: 10px;
-            color: var(--text-grey);
+            color: var(--muted-color);
         }
     </style>
 </head>
 <body>
 @php
     $currency = $currency ?? ($invoice->company->invoice_settings['defaults']['currency'] ?? 'RM');
-    $money = fn($value) => trim(($currency ? $currency . ' ' : '') . number_format((float) $value, 2));
+    $format = fn($value) => trim(($currency ? $currency . ' ' : '') . number_format((float) $value, 2));
     $subtotal = $invoice->subtotal ?? $invoice->items->sum(fn($item) => $item->total_price ?? ($item->quantity * $item->unit_price));
     $discount = $invoice->discount_amount ?? 0;
     $tax = $invoice->tax_amount ?? 0;
@@ -277,8 +227,8 @@
     $paid = $invoice->amount_paid ?? 0;
     $balance = max(0, $total - $paid);
 
-    $paymentInstructions = $invoice->payment_instructions
-        ?: ($invoice->company->invoice_settings['content']['payment_instructions']['additional_info'] ?? '');
+    $paymentText = $invoice->payment_instructions
+        ?: ($invoice->company->invoice_settings['content']['payment_instructions']['additional_info'] ?? 'Please include the invoice number as your payment reference.');
 
     $logoPath = null;
     if (($sections['show_company_logo'] ?? true) && !empty($invoice->company?->logo)) {
@@ -298,7 +248,7 @@
 <div class="page">
     <h1 class="title">INVOICE</h1>
 
-    <table class="header">
+    <table class="header-table">
         <tr>
             <td class="company-block">
                 <div class="company-name">{{ $invoice->company->name ?? 'Company Name' }}</div>
@@ -306,15 +256,15 @@
                     $invoice->company->address,
                     trim(collect([$invoice->company->postal_code, $invoice->company->city])->filter()->implode(' ')),
                     $invoice->company->state,
-                    'Email: ' . ($invoice->company->email ?? 'ï¿½'),
-                    'Tel: ' . ($invoice->company->phone ?? 'ï¿½'),
+                    'Email: ' . ($invoice->company->email ?? '—'),
+                    'Mobile: ' . ($invoice->company->phone ?? '—'),
                 ] as $line)
                     @if(!empty(trim($line, ' -')))
                         <div class="company-line">{{ $line }}</div>
                     @endif
                 @endforeach
             </td>
-            <td style="width: 30%; text-align: right;">
+            <td style="width:30%; text-align:right;">
                 @if($logoPath)
                     <img src="{{ $logoPath }}" alt="Company Logo" class="logo">
                 @endif
@@ -322,50 +272,48 @@
         </tr>
     </table>
 
-    <hr class="top-divider">
+    <hr class="separator">
 
     <table class="info-row">
         <tr>
-            <td style="width: 50%;">
-                <div class="card">
-                    <div class="card-title">Bill To</div>
-                    <div class="bill-line">{{ $invoice->customer_name ?? 'Customer Name' }}</div>
+            <td style="width:50%; padding-right:6mm;">
+                <div class="section-label">Bill To</div>
+                <table class="bill-table">
+                    <tr><td>{{ $invoice->customer_name ?? 'Customer Name' }}</td></tr>
                     @if($invoice->customer_company)
-                        <div class="bill-line">{{ $invoice->customer_company }}</div>
+                        <tr><td>{{ $invoice->customer_company }}</td></tr>
                     @endif
                     @foreach($billAddress as $line)
-                        <div class="bill-line">{{ $line }}</div>
+                        <tr><td>{{ $line }}</td></tr>
                     @endforeach
                     @if($invoice->customer_email)
-                        <div class="bill-line">Email: {{ $invoice->customer_email }}</div>
+                        <tr><td>Email: {{ $invoice->customer_email }}</td></tr>
                     @endif
                     @if($invoice->customer_phone)
-                        <div class="bill-line">Phone: {{ $invoice->customer_phone }}</div>
+                        <tr><td>Phone: {{ $invoice->customer_phone }}</td></tr>
                     @endif
-                </div>
+                </table>
             </td>
-            <td style="width: 50%;">
-                <div class="card">
-                    <div class="card-title">Invoice Info</div>
-                    <table class="meta-table">
-                        <tr>
-                            <td class="meta-label">Invoice No :</td>
-                            <td>{{ $invoice->number }}</td>
-                        </tr>
-                        <tr>
-                            <td class="meta-label">Invoice Date :</td>
-                            <td>{{ optional($invoice->issued_date)->format('d M, Y') ?? now()->format('d M, Y') }}</td>
-                        </tr>
-                        <tr>
-                            <td class="meta-label">Due Date :</td>
-                            <td>{{ optional($invoice->due_date)->format('d M, Y') ?? 'ï¿½' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="meta-label">Payment Terms :</td>
-                            <td>{{ $invoice->payment_terms ? $invoice->payment_terms . ' days' : 'ï¿½' }}</td>
-                        </tr>
-                    </table>
-                </div>
+            <td style="width:50%;">
+                <div class="section-label">Invoice Info</div>
+                <table class="meta-table">
+                    <tr>
+                        <td>Invoice No :</td>
+                        <td>{{ $invoice->number }}</td>
+                    </tr>
+                    <tr>
+                        <td>Invoice Date :</td>
+                        <td>{{ optional($invoice->issued_date)->format('d M, Y') ?? now()->format('d M, Y') }}</td>
+                    </tr>
+                    <tr>
+                        <td>Due Date :</td>
+                        <td>{{ optional($invoice->due_date)->format('d M, Y') ?? '—' }}</td>
+                    </tr>
+                    <tr>
+                        <td>Payment Terms :</td>
+                        <td>{{ $invoice->payment_terms ? $invoice->payment_terms . ' days' : '—' }}</td>
+                    </tr>
+                </table>
             </td>
         </tr>
     </table>
@@ -384,69 +332,88 @@
             @foreach($invoice->items as $index => $item)
                 <tr>
                     <td>{{ $index + 1 }}</td>
-                    <td>
-                        {{ $item->description }}
-                        @if($item->specifications)
-                            <div style="font-size: 11px; color: var(--muted-color);">{{ $item->specifications }}</div>
-                        @endif
-                    </td>
+                    <td>{{ $item->description }}</td>
                     <td>{{ rtrim(rtrim(number_format((float) $item->quantity, 2), '0'), '.') }}</td>
-                    <td>{{ $money($item->unit_price) }}</td>
-                    <td>{{ $money($item->total_price ?? ($item->quantity * $item->unit_price)) }}</td>
+                    <td>{{ $format($item->unit_price) }}</td>
+                    <td>{{ $format($item->total_price ?? ($item->quantity * $item->unit_price)) }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
-    <table class="summary-grid">
+    <table class="summary-table">
         <tr>
-            <td class="payment-instructions">
-                <div class="card-title" style="margin-bottom: 6px;">Payment Instructions</div>
-                <div class="payment-text">{{ $paymentInstructions ? strip_tags($paymentInstructions) : 'Please include the invoice number as your payment reference.' }}</div>
+            <td class="payment-block">
+                <div class="section-label">Payment Instructions</div>
+                <div class="payment-text">{!! nl2br(e($paymentText)) !!}</div>
             </td>
-            <td class="totals">
+            <td>
                 <table class="totals-table">
                     <tr>
                         <td>Subtotal</td>
-                        <td>{{ $money($subtotal) }}</td>
+                        <td>{{ $format($subtotal) }}</td>
                     </tr>
                     @if($discount > 0)
                         <tr>
                             <td>Discount</td>
-                            <td>-{{ $money($discount) }}</td>
+                            <td>-{{ $format($discount) }}</td>
                         </tr>
                     @endif
                     @if($tax > 0)
                         <tr>
                             <td>Tax</td>
-                            <td>{{ $money($tax) }}</td>
+                            <td>{{ $format($tax) }}</td>
                         </tr>
                     @endif
-                    <tr class="total">
+                    <tr class="total-row">
                         <td>Total</td>
-                        <td>{{ $money($total) }}</td>
+                        <td>{{ $format($total) }}</td>
                     </tr>
                     <tr>
                         <td>Paid</td>
-                        <td>{{ $money($paid) }}</td>
+                        <td>{{ $format($paid) }}</td>
                     </tr>
-                    <tr class="balance">
+                    <tr class="balance-row">
                         <td>Balance Due</td>
-                        <td>{{ $money($balance) }}</td>
+                        <td>{{ $format($balance) }}</td>
                     </tr>
                 </table>
             </td>
         </tr>
     </table>
 
-    <div class="footer-signature">
-        <div class="signature-line">
-            {{ $invoice->company->invoice_settings['content']['signature_blocks']['company_signature_title'] ?? 'Marketing Manager' }}
-        </div>
-    </div>
+    <table class="signature-table">
+        <tr>
+            @php
+                $author = $invoice->createdBy;
+                $authorName = $author?->name ?? 'Marketing Manager';
+                $authorTitle = $invoice->company->invoice_settings['content']['signature_blocks']['company_signature_title'] ?? 'Marketing Manager';
+                $authorSignature = $author?->signature_path ? public_path('storage/' . ltrim($author->signature_path, '/')) : null;
+                if ($authorSignature && file_exists($authorSignature)) {
+                    $authorSignature = 'file://' . str_replace('\\\\', '/', $authorSignature);
+                } else {
+                    $authorSignature = null;
+                }
+            @endphp
+            <td>
+                @if($authorSignature)
+                    <img src="{{ $authorSignature }}" alt="Signature" style="max-height:40px; margin-bottom:4mm;">
+                @endif
+                <div class="signature-line">{{ $authorTitle }}</div>
+                <div style="margin-top:2px;">{{ $authorName }}</div>
+            </td>
+            <td>
+                @php
+                    $customerName = $invoice->customer_name ?? 'Customer';
+                @endphp
+                <div class="signature-line">Customer Acceptance</div>
+                <div style="margin-top:2px;">{{ $customerName }}</div>
+            </td>
+        </tr>
+    </table>
 
     <div class="footer">
-        {{ $invoice->company->name ?? 'Company' }} ï¿½ Invoice {{ $invoice->number }} ï¿½ Generated on {{ now()->format('d M Y, H:i') }}
+        {{ $invoice->company->name ?? 'Company' }} • Invoice {{ $invoice->number }} • Generated on {{ now()->format('d M Y, H:i') }}
     </div>
 </div>
 </body>
