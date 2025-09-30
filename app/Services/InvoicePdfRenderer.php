@@ -153,6 +153,21 @@ class InvoicePdfRenderer
     {
         $columns = $mergedSettings['columns'] ?? [];
 
+        // If columns is a string, decode it
+        if (is_string($columns)) {
+            $columns = json_decode($columns, true) ?? [];
+        }
+
+        // Ensure columns is an array
+        if (!is_array($columns)) {
+            $columns = [];
+        }
+
+        // Filter out non-array items and ensure each column has required keys
+        $columns = array_filter($columns, function($col) {
+            return is_array($col) && isset($col['key']) && isset($col['label']);
+        });
+
         // Filter visible columns and sort by order
         $visibleColumns = array_filter($columns, fn($col) => $col['visible'] ?? true);
         usort($visibleColumns, fn($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
