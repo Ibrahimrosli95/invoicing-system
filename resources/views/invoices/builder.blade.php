@@ -245,10 +245,16 @@
                             <table class="w-full">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 60%;">Description</th>
-                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 5%;">Qty</th>
-                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 20%;">Rate</th>
-                                        <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 15%;">Total</th>
+                                        <template x-for="column in visibleColumns" :key="column.key">
+                                            <th class="px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                                :class="{
+                                                    'text-left': column.key === 'description',
+                                                    'text-center': column.key === 'sl' || column.key === 'quantity',
+                                                    'text-right': column.key === 'rate' || column.key === 'amount'
+                                                }"
+                                                :style="column.key === 'description' ? 'width: 60%;' : (column.key === 'quantity' || column.key === 'sl' ? 'width: 8%;' : 'width: 18%;')"
+                                                x-text="column.label"></th>
+                                        </template>
                                         <th class="w-10"></th>
                                     </tr>
                                 </thead>
@@ -1040,6 +1046,15 @@ function invoiceBuilder() {
             show_company_logo: true
         },
 
+        // Table Columns Configuration
+        columns: [
+            { key: 'sl', label: 'Sl.', visible: true, order: 1 },
+            { key: 'description', label: 'Description', visible: true, order: 2 },
+            { key: 'quantity', label: 'Qty', visible: true, order: 3 },
+            { key: 'rate', label: 'Rate', visible: true, order: 4 },
+            { key: 'amount', label: 'Amount', visible: true, order: 5 }
+        ],
+
         // Shipping Information
         shippingInfo: {
             name: '',
@@ -1733,6 +1748,12 @@ function invoiceBuilder() {
             return this.total - this.paidAmount;
         },
 
+        get visibleColumns() {
+            return this.columns
+                .filter(col => col.visible)
+                .sort((a, b) => a.order - b.order);
+        },
+
         // Load Invoice Settings
         loadInvoiceSettings() {
             fetch('/invoice-settings/api')
@@ -1747,6 +1768,18 @@ function invoiceBuilder() {
                 })
                 .catch(error => {
                     console.error('Failed to load invoice settings:', error);
+                });
+
+            // Load columns configuration
+            fetch('/invoice-settings/columns')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.columns) {
+                        this.columns = data.columns;
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to load columns configuration:', error);
                 });
         },
 

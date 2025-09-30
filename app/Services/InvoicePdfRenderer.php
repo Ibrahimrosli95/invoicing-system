@@ -80,12 +80,14 @@ class InvoicePdfRenderer
      */
     protected function buildViewData(Invoice $invoice, array $options = []): array
     {
-        $currency = $this->settingsService->getSetting('defaults.currency', 'RM', $invoice->company_id);
+        $mergedSettings = $this->settingsService->getMergedSettingsForPDF($invoice, $invoice->company_id);
+        $currency = $mergedSettings['defaults']['currency'] ?? 'RM';
 
         return [
             'invoice' => $invoice,
-            'sections' => $this->resolveSections($invoice),
-            'palette' => $this->resolvePalette($invoice, $options),
+            'sections' => $this->resolveSections($invoice, $mergedSettings),
+            'palette' => $this->resolvePalette($invoice, $options, $mergedSettings),
+            'columns' => $this->resolveColumns($mergedSettings),
             'currency' => $currency,
             'currencyHelper' => function($amount) use ($currency) {
                 return $currency . ' ' . number_format($amount, 2);
@@ -93,35 +95,30 @@ class InvoicePdfRenderer
             'dateHelper' => function($date) {
                 return $date ? $date->format('d M, Y') : '';
             },
+            'settings' => $mergedSettings,
         ];
     }
 
-    protected function resolveSections(Invoice $invoice): array
+    protected function resolveSections(Invoice $invoice, array $mergedSettings): array
     {
-        $defaultSections = $this->settingsService->getOptionalSections($invoice->company_id);
-        $invoiceSections = $invoice->optional_sections ?? [];
-
-        if (is_string($invoiceSections)) {
-            $invoiceSections = json_decode($invoiceSections, true) ?? [];
-        }
-
-        $logoSettings = $this->settingsService->getLogoSettings($invoice->company_id);
+        $sections = $mergedSettings['sections'] ?? [];
+        $logoSettings = $mergedSettings['logo'] ?? [];
 
         return [
-            'show_shipping' => $invoiceSections['show_shipping'] ?? ($defaultSections['show_shipping'] ?? false),
-            'show_payment_instructions' => $invoiceSections['show_payment_instructions'] ?? ($defaultSections['show_payment_instructions'] ?? false),
-            'show_signatures' => $invoiceSections['show_signatures'] ?? ($defaultSections['show_signatures'] ?? false),
-            'show_additional_notes' => $invoiceSections['show_additional_notes'] ?? ($defaultSections['show_additional_notes'] ?? false),
-            'show_terms_conditions' => $invoiceSections['show_terms_conditions'] ?? ($defaultSections['show_terms_conditions'] ?? true),
+            'show_shipping' => $sections['show_shipping'] ?? false,
+            'show_payment_instructions' => $sections['show_payment_instructions'] ?? true,
+            'show_signatures' => $sections['show_signatures'] ?? true,
+            'show_additional_notes' => $sections['show_additional_notes'] ?? false,
+            'show_terms_conditions' => $sections['show_terms_conditions'] ?? true,
             'show_company_logo' => $logoSettings['show_company_logo'] ?? true,
         ];
     }
 
-    protected function resolvePalette(Invoice $invoice, array $options = []): array
+    protected function resolvePalette(Invoice $invoice, array $options, array $mergedSettings): array
     {
-        $appearance = $this->settingsService->getSetting('appearance', [], $invoice->company_id);
+        $appearance = $mergedSettings['appearance'] ?? [];
 
-        return array_merge([
+        $defaults = [
             'background_color' => '#ffffff',
             'border_color' => '#e5e7eb',
             'heading_color' => '#111827',
@@ -133,7 +130,21 @@ class InvoicePdfRenderer
             'table_header_background' => '#1d4ed8',
             'table_header_text' => '#ffffff',
             'table_row_even' => '#f8fafc',
-        ], $appearance, $options['palette'] ?? []);
+        ];
+
+        // Precedence: options > appearance > defaults
+        return array_merge($defaults, $appearance, $options['palette'] ?? []);
+    }
+
+    protected function resolveColumns(array $mergedSettings): array
+    {
+        $columns = $mergedSettings['columns'] ?? [];
+
+        // Filter visible columns and sort by order
+        $visibleColumns = array_filter($columns, fn($col) => $col['visible'] ?? true);
+        usort($visibleColumns, fn($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
+
+        return $visibleColumns;
     }
 
     /**

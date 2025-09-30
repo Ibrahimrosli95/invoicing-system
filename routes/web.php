@@ -170,6 +170,10 @@ Route::middleware('auth')->group(function () {
     Route::put('invoice-settings', [InvoiceSettingsController::class, 'update'])->name('invoice-settings.update');
     Route::get('invoice-settings/api', [InvoiceSettingsController::class, 'getSettings'])->name('invoice-settings.api');
     Route::post('invoice-settings/preview', [InvoiceSettingsController::class, 'preview'])->name('invoice-settings.preview');
+    Route::post('invoice-settings/preview-pdf', [InvoiceSettingsController::class, 'previewPDF'])->name('invoice-settings.preview-pdf');
+    Route::get('invoice-settings/columns', [InvoiceSettingsController::class, 'getColumns'])->name('invoice-settings.columns');
+    Route::put('invoice-settings/columns', [InvoiceSettingsController::class, 'updateColumns'])->name('invoice-settings.columns.update');
+    Route::put('invoice-settings/appearance', [InvoiceSettingsController::class, 'updateAppearance'])->name('invoice-settings.appearance.update');
 
     // Invoice Note Template Management
     Route::resource('invoice-note-templates', \App\Http\Controllers\InvoiceNoteTemplateController::class);

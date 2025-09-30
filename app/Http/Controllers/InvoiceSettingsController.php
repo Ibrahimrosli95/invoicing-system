@@ -258,4 +258,133 @@ class InvoiceSettingsController extends Controller
             'message' => 'Settings preview generated successfully.'
         ]);
     }
+
+    /**
+     * Generate preview PDF with current/test settings
+     */
+    public function previewPDF(Request $request)
+    {
+        $this->authorize('manage settings');
+
+        // Create mock invoice data for preview
+        $mockInvoice = $this->createMockInvoice($request->input('settings', []));
+
+        // Use PDF renderer with preview settings
+        $pdfRenderer = app(\App\Services\InvoicePdfRenderer::class);
+
+        return $pdfRenderer->inlineResponse($mockInvoice);
+    }
+
+    /**
+     * Get columns configuration
+     */
+    public function getColumns(Request $request): JsonResponse
+    {
+        $columns = $this->settingsService->getColumns();
+
+        return response()->json([
+            'success' => true,
+            'columns' => $columns
+        ]);
+    }
+
+    /**
+     * Update columns configuration
+     */
+    public function updateColumns(Request $request): JsonResponse
+    {
+        $request->validate([
+            'columns' => 'required|array',
+            'columns.*.key' => 'required|string',
+            'columns.*.label' => 'required|string|max:50',
+            'columns.*.visible' => 'required|boolean',
+            'columns.*.order' => 'required|integer|min:1',
+        ]);
+
+        $success = $this->settingsService->updateColumns($request->columns);
+
+        return response()->json([
+            'success' => $success,
+            'message' => $success ? 'Columns updated successfully.' : 'Failed to update columns.',
+            'columns' => $success ? $this->settingsService->getColumns() : null
+        ]);
+    }
+
+    /**
+     * Update appearance/palette settings
+     */
+    public function updateAppearance(Request $request): JsonResponse
+    {
+        $request->validate([
+            'appearance.background_color' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
+            'appearance.border_color' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
+            'appearance.heading_color' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
+            'appearance.text_color' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
+            'appearance.muted_text_color' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
+            'appearance.accent_color' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
+            'appearance.accent_text_color' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
+            'appearance.table_header_background' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
+            'appearance.table_header_text' => 'nullable|regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/',
+        ]);
+
+        $success = $this->settingsService->setSetting('appearance', $request->appearance);
+
+        return response()->json([
+            'success' => $success,
+            'message' => $success ? 'Appearance updated successfully.' : 'Failed to update appearance.',
+            'appearance' => $success ? $this->settingsService->getAppearance() : null
+        ]);
+    }
+
+    /**
+     * Create mock invoice for PDF preview
+     */
+    private function createMockInvoice(array $settingsOverride = []): object
+    {
+        $company = auth()->user()->company;
+
+        // Create a mock invoice object with necessary properties
+        $mockInvoice = new \stdClass();
+        $mockInvoice->id = 0;
+        $mockInvoice->number = 'PREVIEW-001';
+        $mockInvoice->company_id = $company->id;
+        $mockInvoice->company = $company;
+        $mockInvoice->issued_date = now();
+        $mockInvoice->due_date = now()->addDays(30);
+        $mockInvoice->payment_terms = 30;
+        $mockInvoice->customer_name = 'Sample Customer';
+        $mockInvoice->customer_company = 'Sample Company Ltd.';
+        $mockInvoice->customer_email = 'customer@example.com';
+        $mockInvoice->customer_phone = '+60123456789';
+        $mockInvoice->customer_address = '123 Sample Street';
+        $mockInvoice->customer_city = 'Kuala Lumpur';
+        $mockInvoice->customer_state = 'Wilayah Persekutuan';
+        $mockInvoice->customer_postal_code = '50000';
+        $mockInvoice->payment_instructions = '';
+        $mockInvoice->optional_sections = $settingsOverride['sections'] ?? null;
+        $mockInvoice->subtotal = 1000.00;
+        $mockInvoice->discount_amount = 50.00;
+        $mockInvoice->tax_amount = 57.00;
+        $mockInvoice->total = 1007.00;
+        $mockInvoice->amount_paid = 0.00;
+
+        // Mock items
+        $item1 = new \stdClass();
+        $item1->description = 'Sample Product 1';
+        $item1->quantity = 2;
+        $item1->unit_price = 250.00;
+        $item1->total_price = 500.00;
+
+        $item2 = new \stdClass();
+        $item2->description = 'Sample Product 2';
+        $item2->quantity = 5;
+        $item2->unit_price = 100.00;
+        $item2->total_price = 500.00;
+
+        $mockInvoice->items = collect([$item1, $item2]);
+        $mockInvoice->paymentRecords = collect([]);
+        $mockInvoice->createdBy = auth()->user();
+
+        return $mockInvoice;
+    }
 }

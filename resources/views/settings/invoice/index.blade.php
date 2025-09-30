@@ -104,6 +104,60 @@
                 </div>
             </div>
 
+            <!-- Table Columns Configuration -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-6">Table Columns</h2>
+                <p class="text-sm text-gray-600 mb-4">Customize the column labels, visibility, and order for the invoice items table.</p>
+
+                <div class="space-y-3">
+                    <template x-for="(column, index) in settings.columns" :key="column.key">
+                        <div class="flex items-center space-x-4 p-3 bg-gray-50 rounded-md border border-gray-200">
+                            <!-- Drag Handle (visual only, ordering via inputs) -->
+                            <div class="flex-shrink-0 text-gray-400 cursor-move">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V4a2 2 0 00-2-2H7zm3 14a1 1 0 100-2 1 1 0 000 2zm0-4a1 1 0 100-2 1 1 0 000 2zm0-4a1 1 0 100-2 1 1 0 000 2z"/>
+                                </svg>
+                            </div>
+
+                            <!-- Order -->
+                            <div class="flex-shrink-0 w-16">
+                                <input type="number"
+                                       x-model="column.order"
+                                       min="1"
+                                       class="w-full text-xs border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+                                       @change="sortColumns()">
+                            </div>
+
+                            <!-- Visibility Toggle -->
+                            <div class="flex-shrink-0">
+                                <input type="checkbox"
+                                       x-model="column.visible"
+                                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200">
+                            </div>
+
+                            <!-- Column Key (readonly badge) -->
+                            <div class="flex-shrink-0">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                                      x-text="column.key"></span>
+                            </div>
+
+                            <!-- Label Input -->
+                            <div class="flex-1">
+                                <input type="text"
+                                       x-model="column.label"
+                                       maxlength="50"
+                                       class="w-full text-sm border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+                                       placeholder="Column Label">
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="mt-4 text-xs text-gray-500">
+                    <p><strong>Tip:</strong> Adjust the order numbers to reorder columns. Uncheck the box to hide a column from PDF output.</p>
+                </div>
+            </div>
+
             <!-- Invoice Color Theme -->
             <div class="bg-white rounded-lg shadow p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-6">Invoice Color Theme</h2>
@@ -427,9 +481,13 @@
                 </button>
 
                 <div class="space-x-3">
-                    <button @click="previewSettings"
+                    <button @click="previewPDF"
                             class="px-4 py-2 bg-green-100 text-green-700 font-medium rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500">
-                        Preview Changes
+                        <svg class="inline-block w-4 h-4 mr-1 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        Preview Invoice PDF
                     </button>
                     <button @click="saveSettings"
                             class="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -526,7 +584,14 @@ function invoiceSettings() {
                     swift_code: '',
                     additional_info: 'Please include invoice number in payment reference.'
                 }
-            }
+            },
+            columns: [
+                { key: 'sl', label: 'Sl.', visible: true, order: 1 },
+                { key: 'description', label: 'Description', visible: true, order: 2 },
+                { key: 'quantity', label: 'Qty', visible: true, order: 3 },
+                { key: 'rate', label: 'Rate', visible: true, order: 4 },
+                { key: 'amount', label: 'Amount', visible: true, order: 5 }
+            ]
         },
 
         message: {
@@ -561,6 +626,23 @@ function invoiceSettings() {
                     console.error('Failed to load settings:', error);
                     this.showMessage('error', 'Failed to load settings');
                 });
+
+            // Load columns configuration
+            fetch('/invoice-settings/columns')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.columns) {
+                        this.settings.columns = data.columns;
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to load columns:', error);
+                });
+        },
+
+        sortColumns() {
+            // Sort columns by order property
+            this.settings.columns.sort((a, b) => a.order - b.order);
         },
 
         normalizeColor(colorKey) {
@@ -649,28 +731,32 @@ function invoiceSettings() {
             }
         },
 
-        previewSettings() {
-            fetch('/invoice-settings/preview', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify(this.settings)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    this.showMessage('success', 'Settings preview generated! Check the browser console for details.');
-                    console.log('Preview Settings:', data.preview_settings);
-                } else {
-                    this.showMessage('error', data.message || 'Failed to generate preview');
-                }
-            })
-            .catch(error => {
-                console.error('Preview error:', error);
-                this.showMessage('error', 'Failed to generate preview');
-            });
+        previewPDF() {
+            // Create a form and submit it to open PDF in new tab
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/invoice-settings/preview-pdf';
+            form.target = '_blank';
+
+            // Add CSRF token
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            form.appendChild(csrfInput);
+
+            // Add settings data
+            const settingsInput = document.createElement('input');
+            settingsInput.type = 'hidden';
+            settingsInput.name = 'settings';
+            settingsInput.value = JSON.stringify(this.settings);
+            form.appendChild(settingsInput);
+
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+
+            this.showMessage('success', 'Opening PDF preview in new tab...');
         },
 
         showMessage(type, text) {

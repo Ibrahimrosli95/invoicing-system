@@ -69,7 +69,49 @@ class InvoiceSettingsService
                     'client_signature_title' => 'Customer Acceptance',
                 ],
             ],
+            'columns' => [
+                [
+                    'key' => 'sl',
+                    'label' => 'Sl.',
+                    'visible' => true,
+                    'order' => 1,
+                ],
+                [
+                    'key' => 'description',
+                    'label' => 'Description',
+                    'visible' => true,
+                    'order' => 2,
+                ],
+                [
+                    'key' => 'quantity',
+                    'label' => 'Qty',
+                    'visible' => true,
+                    'order' => 3,
+                ],
+                [
+                    'key' => 'rate',
+                    'label' => 'Rate',
+                    'visible' => true,
+                    'order' => 4,
+                ],
+                [
+                    'key' => 'amount',
+                    'label' => 'Amount',
+                    'visible' => true,
+                    'order' => 5,
+                ],
+            ],
         ];
+    }
+
+    /**
+     * Get default settings for product invoice type
+     */
+    public function getDefaultProductInvoiceSettings(): array
+    {
+        $defaults = $this->getDefaultSettings();
+        $defaults['template_name'] = 'Product Invoice Default';
+        return $defaults;
     }
 
     /**
@@ -301,6 +343,98 @@ class InvoiceSettingsService
             }
         }
 
+        // Validate columns structure
+        if (isset($settings['columns']) && is_array($settings['columns'])) {
+            foreach ($settings['columns'] as $index => $column) {
+                if (!isset($column['key']) || !isset($column['label'])) {
+                    $errors["columns.{$index}"] = 'Each column must have a key and label.';
+                }
+                if (isset($column['label']) && strlen($column['label']) > 50) {
+                    $errors["columns.{$index}.label"] = 'Column label must be 50 characters or less.';
+                }
+            }
+        }
+
+        // Validate content max lengths
+        if (isset($settings['content']['default_terms']) && strlen($settings['content']['default_terms']) > 2000) {
+            $errors['content.default_terms'] = 'Default terms must be 2000 characters or less.';
+        }
+        if (isset($settings['content']['default_notes']) && strlen($settings['content']['default_notes']) > 1000) {
+            $errors['content.default_notes'] = 'Default notes must be 1000 characters or less.';
+        }
+
         return $errors;
+    }
+
+    /**
+     * Get appearance/palette settings with fallback
+     */
+    public function getAppearance(?int $companyId = null): array
+    {
+        return $this->getSetting('appearance', $this->getDefaultSettings()['appearance'], $companyId);
+    }
+
+    /**
+     * Get columns configuration with fallback
+     */
+    public function getColumns(?int $companyId = null): array
+    {
+        return $this->getSetting('columns', $this->getDefaultSettings()['columns'], $companyId);
+    }
+
+    /**
+     * Update columns configuration
+     */
+    public function updateColumns(array $columns, ?int $companyId = null): bool
+    {
+        // Validate and sort by order
+        usort($columns, fn($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
+        return $this->setSetting('columns', $columns, $companyId);
+    }
+
+    /**
+     * Get default content (terms, notes, etc.)
+     */
+    public function getDefaultContent(?int $companyId = null): array
+    {
+        return $this->getSetting('content', $this->getDefaultSettings()['content'], $companyId);
+    }
+
+    /**
+     * Get merged settings for PDF rendering with proper precedence:
+     * 1. Document-specific values (from $invoice)
+     * 2. Company document_settings.types.product_invoice
+     * 3. Company invoice_settings (legacy)
+     * 4. Hard-coded defaults
+     */
+    public function getMergedSettingsForPDF($invoice, ?int $companyId = null): array
+    {
+        $companyId = $companyId ?: $invoice->company_id;
+        $company = \App\Models\Company::find($companyId);
+
+        // Start with hard-coded defaults
+        $merged = $this->getDefaultSettings();
+
+        // Layer 3: Legacy company.invoice_settings (if exists)
+        if ($company && !empty($company->invoice_settings)) {
+            $merged = array_replace_recursive($merged, $company->invoice_settings);
+        }
+
+        // Layer 2: New company.document_settings.types.product_invoice (future enhancement)
+        // if ($company && !empty($company->document_settings['types']['product_invoice'])) {
+        //     $merged = array_replace_recursive($merged, $company->document_settings['types']['product_invoice']);
+        // }
+
+        // Layer 1: Invoice-specific overrides
+        if (!empty($invoice->optional_sections)) {
+            $invoiceSections = is_string($invoice->optional_sections)
+                ? json_decode($invoice->optional_sections, true)
+                : $invoice->optional_sections;
+            if (is_array($invoiceSections)) {
+                $merged['sections'] = array_replace($merged['sections'], $invoiceSections);
+            }
+        }
+
+        return $merged;
     }
 }

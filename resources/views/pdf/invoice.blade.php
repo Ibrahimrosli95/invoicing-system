@@ -1,12 +1,79 @@
 @php
-    $primaryBlue = !empty($palette['accent_color']) ? $palette['accent_color'] : '#0b57d0';
-    $primaryContrast = !empty($palette['accent_text_color']) ? $palette['accent_text_color'] : '#ffffff';
-    $textColor = !empty($palette['text_color']) ? $palette['text_color'] : '#000000';
-    $mutedColor = !empty($palette['muted_text_color']) ? $palette['muted_text_color'] : '#4b5563';
-    $headingColor = !empty($palette['heading_color']) ? $palette['heading_color'] : '#000000';
-    $borderColor = !empty($palette['border_color']) ? $palette['border_color'] : '#d0d5dd';
-    $tableHeaderBg = !empty($palette['table_header_background']) ? $palette['table_header_background'] : '#0b57d0';
-    $tableHeaderText = !empty($palette['table_header_text']) ? $palette['table_header_text'] : '#ffffff';
+    // Extract palette colors
+    $primaryBlue = $palette['accent_color'] ?? '#0b57d0';
+    $primaryContrast = $palette['accent_text_color'] ?? '#ffffff';
+    $textColor = $palette['text_color'] ?? '#000000';
+    $mutedColor = $palette['muted_text_color'] ?? '#4b5563';
+    $headingColor = $palette['heading_color'] ?? '#000000';
+    $borderColor = $palette['border_color'] ?? '#d0d5dd';
+    $tableHeaderBg = $palette['table_header_background'] ?? '#0b57d0';
+    $tableHeaderText = $palette['table_header_text'] ?? '#ffffff';
+
+    // Calculate financial totals
+    $subtotal = $invoice->subtotal ?? $invoice->items->sum(fn($item) => $item->total_price ?? ($item->quantity * $item->unit_price));
+    $discount = $invoice->discount_amount ?? 0;
+    $tax = $invoice->tax_amount ?? 0;
+    $total = $invoice->total ?? ($subtotal - $discount + $tax);
+    $paid = $invoice->amount_paid ?? 0;
+    $balance = max(0, $total - $paid);
+
+    // Currency formatter
+    $format = fn($value) => trim(($currency ? $currency . ' ' : '') . number_format((float) $value, 2));
+
+    // Payment instructions fallback
+    $paymentText = trim($invoice->payment_instructions ?? '');
+    if ($paymentText === '') {
+        $holder = $settings['content']['payment_instructions']['account_holder']
+            ?? $invoice->company->name ?? '';
+        $bank = $settings['content']['payment_instructions']['bank_name'] ?? '';
+        $account = $settings['content']['payment_instructions']['account_number'] ?? '';
+        $lines = [];
+        if ($holder) {
+            $lines[] = 'Pay Cheque to ' . $holder;
+        }
+        if ($bank && $account) {
+            $lines[] = 'Send to bank (' . $bank . ') ' . $account;
+        } elseif ($bank) {
+            $lines[] = 'Bank: ' . $bank;
+        }
+        $lines[] = $settings['content']['payment_instructions']['additional_info']
+            ?? 'Please include invoice number in payment reference.';
+        $paymentText = implode("\n", array_filter($lines));
+    }
+
+    // Logo path
+    $logoPath = null;
+    if ($sections['show_company_logo'] && !empty($invoice->company?->logo)) {
+        $path = public_path('storage/' . ltrim($invoice->company->logo, '/'));
+        if (file_exists($path)) {
+            $logoPath = 'file://' . str_replace('\\', '/', $path);
+        }
+    }
+
+    // Bill address
+    $billAddress = array_filter([
+        $invoice->customer_address,
+        trim(collect([$invoice->customer_postal_code, $invoice->customer_city])->filter()->implode(' ')),
+        $invoice->customer_state,
+    ]);
+
+    // Signature configuration
+    $author = $invoice->createdBy;
+    $authorName = $author?->name ?? ($settings['content']['signature_blocks']['company_signature_title'] ?? 'Authorized Representative');
+    $authorTitle = $settings['content']['signature_blocks']['company_signature_title'] ?? 'Authorized Representative';
+    $authorSignature = null;
+    if ($author?->signature_path) {
+        $sigPath = public_path('storage/' . ltrim($author->signature_path, '/'));
+        if (file_exists($sigPath)) {
+            $authorSignature = 'file://' . str_replace('\\', '/', $sigPath);
+        }
+    }
+
+    // Column labels from settings
+    $columnLabels = [];
+    foreach ($columns as $col) {
+        $columnLabels[$col['key']] = $col['label'];
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -16,11 +83,11 @@
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            margin: 0;
-            padding: 0;
             font-family: Arial, Helvetica, sans-serif;
             font-size: 12px;
             color: {{ $textColor }};
@@ -35,7 +102,6 @@
         }
 
         h1, h2, h3 {
-            margin: 0;
             font-weight: 600;
             color: {{ $headingColor }};
         }
@@ -54,6 +120,7 @@
 
         .header-table td {
             vertical-align: top;
+            padding: 0;
         }
 
         .company-name {
@@ -66,6 +133,7 @@
         .company-line {
             color: {{ $mutedColor }};
             font-size: 12px;
+            line-height: 1.4;
         }
 
         .logo {
@@ -89,8 +157,21 @@
             color: {{ $headingColor }};
         }
 
+        .card {
+            border: 1px solid {{ $borderColor }};
+            border-radius: 4px;
+            padding: 8px 10px;
+            background: #fafafa;
+        }
+
+        .info-row td {
+            vertical-align: top;
+            padding: 0;
+        }
+
         .bill-table td {
             padding: 2px 0;
+            line-height: 1.4;
         }
 
         .meta-table {
@@ -112,34 +193,26 @@
         .items-table {
             margin-top: 8mm;
             font-size: 12px;
+            width: 100%;
         }
 
         .items-table thead th {
             background: {{ $tableHeaderBg }};
             color: {{ $tableHeaderText }};
-            padding: 8px 8px;
+            padding: 8px;
             font-weight: 600;
             text-align: left;
             border: 1px solid {{ $tableHeaderBg }};
         }
-
-        .items-table thead th:nth-child(1) { width: 8%; text-align: center; }
-        .items-table thead th:nth-child(3) { width: 10%; text-align: center; }
-        .items-table thead th:nth-child(4),
-        .items-table thead th:nth-child(5) { width: 18%; text-align: right; }
 
         .items-table tbody td {
             padding: 6px 8px;
             border: 1px solid {{ $borderColor }};
         }
 
-        .items-table tbody td:nth-child(1) { text-align: center; }
-        .items-table tbody td:nth-child(3) { text-align: center; }
-        .items-table tbody td:nth-child(4),
-        .items-table tbody td:nth-child(5) { text-align: right; }
-
         .summary-table {
             margin-top: 8mm;
+            width: 100%;
         }
 
         .summary-table td {
@@ -147,7 +220,9 @@
             padding: 0;
         }
 
-        .payment-block { padding-right: 12mm; }
+        .payment-block {
+            padding-right: 12mm;
+        }
 
         .payment-text {
             border: 1px solid {{ $borderColor }};
@@ -155,6 +230,9 @@
             border-radius: 4px;
             white-space: pre-line;
             color: {{ $textColor }};
+            background: #fafafa;
+            font-size: 11px;
+            line-height: 1.5;
         }
 
         .totals-table {
@@ -163,7 +241,7 @@
         }
 
         .totals-table td {
-            padding: 2px 0;
+            padding: 3px 0;
         }
 
         .totals-table td:first-child {
@@ -175,6 +253,7 @@
         .totals-table td:last-child {
             text-align: right;
             width: 110px;
+            font-weight: 500;
         }
 
         .totals-table .total-row td {
@@ -199,6 +278,7 @@
             width: 50%;
             text-align: center;
             padding-top: 12mm;
+            vertical-align: top;
         }
 
         .signature-line {
@@ -206,6 +286,13 @@
             padding-top: 4px;
             width: 75%;
             margin: 0 auto;
+            font-weight: 600;
+            color: {{ $mutedColor }};
+        }
+
+        .signature-name {
+            margin-top: 2px;
+            color: {{ $textColor }};
         }
 
         .footer {
@@ -213,68 +300,36 @@
             text-align: center;
             font-size: 10px;
             color: {{ $mutedColor }};
+            border-top: 1px solid {{ $borderColor }};
+            padding-top: 4mm;
         }
+
+        /* Column-specific widths */
+        .col-sl { width: 8%; text-align: center; }
+        .col-description { width: auto; text-align: left; }
+        .col-quantity { width: 10%; text-align: center; }
+        .col-rate { width: 18%; text-align: right; }
+        .col-amount { width: 18%; text-align: right; }
     </style>
 </head>
 <body>
-@php
-    $currency = $currency ?? ($invoice->company->invoice_settings['defaults']['currency'] ?? 'RM');
-    $format = fn($value) => trim(($currency ? $currency . ' ' : '') . number_format((float) $value, 2));
-    $subtotal = $invoice->subtotal ?? $invoice->items->sum(fn($item) => $item->total_price ?? ($item->quantity * $item->unit_price));
-    $discount = $invoice->discount_amount ?? 0;
-    $tax = $invoice->tax_amount ?? 0;
-    $total = $invoice->total ?? ($subtotal - $discount + $tax);
-    $paid = $invoice->amount_paid ?? 0;
-    $balance = max(0, $total - $paid);
-
-    $paymentText = trim($invoice->payment_instructions);
-    if ($paymentText === '') {
-        $holder = $invoice->company->invoice_settings['content']['payment_instructions']['account_holder'] ?? ($invoice->company->name ?? '');
-        $bank = $invoice->company->invoice_settings['content']['payment_instructions']['bank_name'] ?? '';
-        $account = $invoice->company->invoice_settings['content']['payment_instructions']['account_number'] ?? '';
-        $lines = [];
-        if ($holder) {
-            $lines[] = 'Pay Cheque to ' . $holder;
-        }
-        if ($bank && $account) {
-            $lines[] = 'Send to bank (' . $bank . ') ' . $account;
-        } elseif ($bank) {
-            $lines[] = 'Bank: ' . $bank;
-        }
-        $lines[] = 'Please include invoice number in payment reference.';
-        $paymentText = implode("\n", array_filter($lines));
-    }
-
-    $logoPath = null;
-    if (($sections['show_company_logo'] ?? true) && !empty($invoice->company?->logo)) {
-        $path = public_path('storage/' . ltrim($invoice->company->logo, '/'));
-        if (file_exists($path)) {
-            $logoPath = 'file://' . str_replace('\\\\', '/', $path);
-        }
-    }
-
-    $billAddress = array_filter([
-        $invoice->customer_address,
-        trim(collect([$invoice->customer_postal_code, $invoice->customer_city])->filter()->implode(' ')),
-        $invoice->customer_state,
-    ]);
-@endphp
-
 <div class="page">
+    {{-- Centered Title --}}
     <h1 class="title">INVOICE</h1>
 
+    {{-- Company Block + Logo --}}
     <table class="header-table">
         <tr>
-            <td class="company-block">
+            <td style="width:70%;">
                 <div class="company-name">{{ $invoice->company->name ?? 'Company Name' }}</div>
                 @foreach([
                     $invoice->company->address,
                     trim(collect([$invoice->company->postal_code, $invoice->company->city])->filter()->implode(' ')),
                     $invoice->company->state,
-                    'Email: ' . ($invoice->company->email ?? '—'),
-                    'Mobile: ' . ($invoice->company->phone ?? '—'),
+                    'Email: ' . ($invoice->company->email ?? 'â€”'),
+                    'Mobile: ' . ($invoice->company->phone ?? 'â€”'),
                 ] as $line)
-                    @if(!empty(trim($line, ' -')))
+                    @if(!empty(trim($line, ' -â€”')))
                         <div class="company-line">{{ $line }}</div>
                     @endif
                 @endforeach
@@ -289,80 +344,95 @@
 
     <hr class="separator">
 
+    {{-- Bill To + Invoice Info Cards --}}
     <table class="info-row">
         <tr>
             <td style="width:50%; padding-right:6mm;">
                 <div class="section-label">Bill To</div>
-                <table class="bill-table">
-                    <tr><td>{{ $invoice->customer_name ?? 'Customer Name' }}</td></tr>
-                    @if($invoice->customer_company)
-                        <tr><td>{{ $invoice->customer_company }}</td></tr>
-                    @endif
-                    @foreach($billAddress as $line)
-                        <tr><td>{{ $line }}</td></tr>
-                    @endforeach
-                    @if($invoice->customer_email)
-                        <tr><td>Email: {{ $invoice->customer_email }}</td></tr>
-                    @endif
-                    @if($invoice->customer_phone)
-                        <tr><td>Phone: {{ $invoice->customer_phone }}</td></tr>
-                    @endif
-                </table>
+                <div class="card">
+                    <table class="bill-table">
+                        <tr><td>{{ $invoice->customer_name ?? 'Customer Name' }}</td></tr>
+                        @if($invoice->customer_company)
+                            <tr><td>{{ $invoice->customer_company }}</td></tr>
+                        @endif
+                        @foreach($billAddress as $line)
+                            <tr><td>{{ $line }}</td></tr>
+                        @endforeach
+                        @if($invoice->customer_email)
+                            <tr><td>Email: {{ $invoice->customer_email }}</td></tr>
+                        @endif
+                        @if($invoice->customer_phone)
+                            <tr><td>Phone: {{ $invoice->customer_phone }}</td></tr>
+                        @endif
+                    </table>
+                </div>
             </td>
             <td style="width:50%;">
                 <div class="section-label">Invoice Info</div>
-                <table class="meta-table">
-                    <tr>
-                        <td>Invoice No :</td>
-                        <td>{{ $invoice->number }}</td>
-                    </tr>
-                    <tr>
-                        <td>Invoice Date :</td>
-                        <td>{{ optional($invoice->issued_date)->format('d M, Y') ?? now()->format('d M, Y') }}</td>
-                    </tr>
-                    <tr>
-                        <td>Due Date :</td>
-                        <td>{{ optional($invoice->due_date)->format('d M, Y') ?? '—' }}</td>
-                    </tr>
-                    <tr>
-                        <td>Payment Terms :</td>
-                        <td>{{ $invoice->payment_terms ? $invoice->payment_terms . ' days' : '—' }}</td>
-                    </tr>
-                </table>
+                <div class="card">
+                    <table class="meta-table">
+                        <tr>
+                            <td>Invoice No :</td>
+                            <td>{{ $invoice->number }}</td>
+                        </tr>
+                        <tr>
+                            <td>Invoice Date :</td>
+                            <td>{{ optional($invoice->issued_date)->format('d M, Y') ?? now()->format('d M, Y') }}</td>
+                        </tr>
+                        <tr>
+                            <td>Due Date :</td>
+                            <td>{{ optional($invoice->due_date)->format('d M, Y') ?? 'â€”' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Payment Terms :</td>
+                            <td>{{ $invoice->payment_terms ? $invoice->payment_terms . ' days' : 'â€”' }}</td>
+                        </tr>
+                    </table>
+                </div>
             </td>
         </tr>
     </table>
 
+    {{-- Items Table with Blue Header --}}
     <table class="items-table">
         <thead>
             <tr>
-                <th>Sl.</th>
-                <th>Description</th>
-                <th>Qty</th>
-                <th>Rate</th>
-                <th>Amount</th>
+                @foreach($columns as $col)
+                    <th class="col-{{ $col['key'] }}">{{ $col['label'] }}</th>
+                @endforeach
             </tr>
         </thead>
         <tbody>
             @foreach($invoice->items as $index => $item)
                 <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ $item->description }}</td>
-                    <td>{{ rtrim(rtrim(number_format((float) $item->quantity, 2), '0'), '.') }}</td>
-                    <td>{{ $format($item->unit_price) }}</td>
-                    <td>{{ $format($item->total_price ?? ($item->quantity * $item->unit_price)) }}</td>
+                    @foreach($columns as $col)
+                        @if($col['key'] === 'sl')
+                            <td class="col-sl">{{ $index + 1 }}</td>
+                        @elseif($col['key'] === 'description')
+                            <td class="col-description">{{ $item->description }}</td>
+                        @elseif($col['key'] === 'quantity')
+                            <td class="col-quantity">{{ rtrim(rtrim(number_format((float) $item->quantity, 2), '0'), '.') }}</td>
+                        @elseif($col['key'] === 'rate')
+                            <td class="col-rate">{{ $format($item->unit_price) }}</td>
+                        @elseif($col['key'] === 'amount')
+                            <td class="col-amount">{{ $format($item->total_price ?? ($item->quantity * $item->unit_price)) }}</td>
+                        @endif
+                    @endforeach
                 </tr>
             @endforeach
         </tbody>
     </table>
 
+    {{-- Payment Instructions + Totals --}}
     <table class="summary-table">
         <tr>
-            <td class="payment-block">
-                <div class="section-label">Payment Instructions</div>
-                <div class="payment-text">{!! nl2br(e($paymentText)) !!}</div>
-            </td>
-            <td>
+            @if($sections['show_payment_instructions'])
+                <td class="payment-block" style="width:50%;">
+                    <div class="section-label">Payment Instructions</div>
+                    <div class="payment-text">{!! nl2br(e($paymentText)) !!}</div>
+                </td>
+            @endif
+            <td style="width:{{ $sections['show_payment_instructions'] ? '50%' : '100%' }};">
                 <table class="totals-table">
                     <tr>
                         <td>Subtotal</td>
@@ -397,35 +467,28 @@
         </tr>
     </table>
 
-    <table class="signature-table">
-        <tr>
-            @php
-                $author = $invoice->createdBy;
-                $authorName = $author?->name ?? 'Marketing Manager';
-                $authorTitle = $invoice->company->invoice_settings['content']['signature_blocks']['company_signature_title'] ?? 'Marketing Manager';
-                $authorSignature = $author?->signature_path ? public_path('storage/' . ltrim($author->signature_path, '/')) : null;
-                if ($authorSignature && file_exists($authorSignature)) {
-                    $authorSignature = 'file://' . str_replace('\\\\', '/', $authorSignature);
-                } else {
-                    $authorSignature = null;
-                }
-            @endphp
-            <td>
-                @if($authorSignature)
-                    <img src="{{ $authorSignature }}" alt="Signature" style="max-height:40px; margin-bottom:4mm;">
-                @endif
-                <div class="signature-line">{{ $authorTitle }}</div>
-                <div style="margin-top:2px;">{{ $authorName }}</div>
-            </td>
-            <td>
-                <div class="signature-line">Customer Acceptance</div>
-                <div style="margin-top:2px;">{{ $invoice->customer_name ?? 'Customer' }}</div>
-            </td>
-        </tr>
-    </table>
+    {{-- Dual Signature Lines --}}
+    @if($sections['show_signatures'])
+        <table class="signature-table">
+            <tr>
+                <td>
+                    @if($authorSignature)
+                        <img src="{{ $authorSignature }}" alt="Signature" style="max-height:40px; margin-bottom:4mm;">
+                    @endif
+                    <div class="signature-line">{{ $authorTitle }}</div>
+                    <div class="signature-name">{{ $authorName }}</div>
+                </td>
+                <td>
+                    <div class="signature-line">{{ $settings['content']['signature_blocks']['client_signature_title'] ?? 'Customer Acceptance' }}</div>
+                    <div class="signature-name">{{ $invoice->customer_name ?? 'Customer' }}</div>
+                </td>
+            </tr>
+        </table>
+    @endif
 
+    {{-- Footer --}}
     <div class="footer">
-        {{ $invoice->company->name ?? 'Company' }} • Invoice {{ $invoice->number }} • Generated on {{ now()->format('d M Y, H:i') }}
+        {{ $invoice->company->name ?? 'Company' }} â€¢ Invoice {{ $invoice->number }} â€¢ Generated on {{ now()->format('d M Y, H:i') }}
     </div>
 </div>
 </body>
