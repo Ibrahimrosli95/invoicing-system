@@ -266,8 +266,14 @@ class InvoiceSettingsController extends Controller
     {
         $this->authorize('manage settings');
 
+        // Get settings from request - may be JSON string or array
+        $settings = $request->input('settings', []);
+        if (is_string($settings)) {
+            $settings = json_decode($settings, true) ?? [];
+        }
+
         // Create mock invoice data for preview
-        $mockInvoice = $this->createMockInvoice($request->input('settings', []));
+        $mockInvoice = $this->createMockInvoice($settings);
 
         // Use PDF renderer with preview settings
         $pdfRenderer = app(\App\Services\InvoicePdfRenderer::class);
