@@ -168,8 +168,18 @@ class InvoicePdfRenderer
             return is_array($col) && isset($col['key']) && isset($col['label']);
         });
 
+        // Remove duplicates by key (keep first occurrence)
+        $uniqueColumns = [];
+        $seenKeys = [];
+        foreach ($columns as $col) {
+            if (!in_array($col['key'], $seenKeys)) {
+                $seenKeys[] = $col['key'];
+                $uniqueColumns[] = $col;
+            }
+        }
+
         // Filter visible columns and sort by order
-        $visibleColumns = array_filter($columns, fn($col) => $col['visible'] ?? true);
+        $visibleColumns = array_filter($uniqueColumns, fn($col) => $col['visible'] ?? true);
         usort($visibleColumns, fn($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
 
         return $visibleColumns;
