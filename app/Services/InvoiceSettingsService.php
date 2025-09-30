@@ -101,8 +101,10 @@ class InvoiceSettingsService
         }
 
         // Validate and merge with existing settings
+        // Use array_replace_recursive instead of array_merge_recursive
+        // to properly replace values instead of merging arrays
         $currentSettings = $this->getSettings($companyId);
-        $updatedSettings = array_merge_recursive($currentSettings, $settings);
+        $updatedSettings = array_replace_recursive($currentSettings, $settings);
 
         // Update company settings
         $company->update([
