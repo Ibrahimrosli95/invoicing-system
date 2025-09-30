@@ -10,6 +10,13 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Check if companies table exists first
+        if (!DB::getSchemaBuilder()->hasTable('companies')) {
+            // Skip this migration if companies table doesn't exist yet
+            // This handles fresh installations where no tables exist
+            return;
+        }
+
         // Get all companies with existing invoice_settings
         $companies = DB::table('companies')
             ->whereNotNull('invoice_settings')
@@ -49,6 +56,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Check if companies table exists first
+        if (!DB::getSchemaBuilder()->hasTable('companies')) {
+            return;
+        }
+
         // Get all companies with invoice_settings containing columns
         $companies = DB::table('companies')
             ->whereNotNull('invoice_settings')
