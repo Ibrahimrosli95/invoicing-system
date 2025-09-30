@@ -22,6 +22,7 @@
 
         body {
             margin: 0;
+            padding: 0;
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             font-size: 12px;
             color: var(--text-black);
@@ -30,10 +31,10 @@
         }
 
         .page {
-            width: 210mm;
+            width: 100%;
             min-height: 297mm;
-            margin: 0 auto;
-            padding: 18mm 20mm;
+            margin: 0;
+            padding: 15mm;
             position: relative;
         }
 
