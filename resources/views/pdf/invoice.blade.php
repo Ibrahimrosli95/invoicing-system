@@ -23,10 +23,10 @@
     // Payment instructions fallback
     $paymentText = trim($invoice->payment_instructions ?? '');
     if ($paymentText === '') {
-        $holder = $settings['content']['payment_instructions']['account_holder']
+        $holder = $settings['payment_instructions']['account_holder']
             ?? $invoice->company->name ?? '';
-        $bank = $settings['content']['payment_instructions']['bank_name'] ?? '';
-        $account = $settings['content']['payment_instructions']['account_number'] ?? '';
+        $bank = $settings['payment_instructions']['bank_name'] ?? '';
+        $account = $settings['payment_instructions']['account_number'] ?? '';
         $lines = [];
         if ($holder) {
             $lines[] = 'Pay Cheque to ' . $holder;
@@ -36,7 +36,7 @@
         } elseif ($bank) {
             $lines[] = 'Bank: ' . $bank;
         }
-        $lines[] = $settings['content']['payment_instructions']['additional_info']
+        $lines[] = $settings['payment_instructions']['additional_info']
             ?? 'Please include invoice number in payment reference.';
         $paymentText = implode("\n", array_filter($lines));
     }
@@ -59,8 +59,8 @@
 
     // Signature configuration
     $author = $invoice->createdBy;
-    $authorName = $author?->name ?? ($settings['content']['signature_blocks']['company_signature_title'] ?? 'Authorized Representative');
-    $authorTitle = $settings['content']['signature_blocks']['company_signature_title'] ?? 'Authorized Representative';
+    $authorName = $author?->name ?? 'Authorized Representative';
+    $authorTitle = 'Authorized Representative';
     $authorSignature = null;
     if ($author?->signature_path) {
         $sigPath = public_path('storage/' . ltrim($author->signature_path, '/'));
@@ -479,7 +479,7 @@
                     <div class="signature-name">{{ $authorName }}</div>
                 </td>
                 <td>
-                    <div class="signature-line">{{ $settings['content']['signature_blocks']['client_signature_title'] ?? 'Customer Acceptance' }}</div>
+                    <div class="signature-line">Customer Acceptance</div>
                     <div class="signature-name">{{ $invoice->customer_name ?? 'Customer' }}</div>
                 </td>
             </tr>
