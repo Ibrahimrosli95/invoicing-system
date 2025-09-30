@@ -16,15 +16,20 @@ class InvoicePdfRenderer
 
     /**
      * Generate the raw PDF binary for an invoice.
+     *
+     * @param Invoice|object $invoice Invoice model or mock object
      */
-    public function generate(Invoice $invoice, array $options = []): string
+    public function generate(Invoice|object $invoice, array $options = []): string
     {
-        $invoice->loadMissing([
-            'company',
-            'items',
-            'createdBy',
-            'paymentRecords' => fn ($query) => $query->orderBy('payment_date'),
-        ]);
+        // Only load relationships if this is an actual Invoice model
+        if ($invoice instanceof Invoice) {
+            $invoice->loadMissing([
+                'company',
+                'items',
+                'createdBy',
+                'paymentRecords' => fn ($query) => $query->orderBy('payment_date'),
+            ]);
+        }
 
         $viewData = $this->buildViewData($invoice, $options);
         $html = View::make('pdf.invoice', $viewData)->render();
@@ -41,8 +46,10 @@ class InvoicePdfRenderer
 
     /**
      * Stream the PDF as a download response.
+     *
+     * @param Invoice|object $invoice Invoice model or mock object
      */
-    public function downloadResponse(Invoice $invoice): \Symfony\Component\HttpFoundation\StreamedResponse
+    public function downloadResponse(Invoice|object $invoice): \Symfony\Component\HttpFoundation\StreamedResponse
     {
         $filename = $this->makeFilename($invoice);
         $pdf = $this->generate($invoice);
@@ -56,8 +63,10 @@ class InvoicePdfRenderer
 
     /**
      * Stream the PDF inline for preview.
+     *
+     * @param Invoice|object $invoice Invoice model or mock object
      */
-    public function inlineResponse(Invoice $invoice): \Symfony\Component\HttpFoundation\Response
+    public function inlineResponse(Invoice|object $invoice): \Symfony\Component\HttpFoundation\Response
     {
         $filename = $this->makeFilename($invoice);
         $pdf = $this->generate($invoice);
@@ -68,7 +77,10 @@ class InvoicePdfRenderer
         ]);
     }
 
-    protected function makeFilename(Invoice $invoice): string
+    /**
+     * @param Invoice|object $invoice Invoice model or mock object
+     */
+    protected function makeFilename(Invoice|object $invoice): string
     {
         $number = $invoice->number ?: 'draft-invoice';
 
@@ -77,10 +89,13 @@ class InvoicePdfRenderer
 
     /**
      * Prepare shared data for the invoice PDF view.
+     *
+     * @param Invoice|object $invoice Invoice model or mock object
      */
-    protected function buildViewData(Invoice $invoice, array $options = []): array
+    protected function buildViewData(Invoice|object $invoice, array $options = []): array
     {
-        $mergedSettings = $this->settingsService->getMergedSettingsForPDF($invoice, $invoice->company_id);
+        $companyId = $invoice->company_id ?? null;
+        $mergedSettings = $this->settingsService->getMergedSettingsForPDF($invoice, $companyId);
         $currency = $mergedSettings['defaults']['currency'] ?? 'RM';
 
         return [
@@ -99,7 +114,10 @@ class InvoicePdfRenderer
         ];
     }
 
-    protected function resolveSections(Invoice $invoice, array $mergedSettings): array
+    /**
+     * @param Invoice|object $invoice Invoice model or mock object
+     */
+    protected function resolveSections(Invoice|object $invoice, array $mergedSettings): array
     {
         $sections = $mergedSettings['sections'] ?? [];
         $logoSettings = $mergedSettings['logo'] ?? [];
@@ -114,7 +132,10 @@ class InvoicePdfRenderer
         ];
     }
 
-    protected function resolvePalette(Invoice $invoice, array $options, array $mergedSettings): array
+    /**
+     * @param Invoice|object $invoice Invoice model or mock object
+     */
+    protected function resolvePalette(Invoice|object $invoice, array $options, array $mergedSettings): array
     {
         $appearance = $mergedSettings['appearance'] ?? [];
 
