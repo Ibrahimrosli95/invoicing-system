@@ -54,11 +54,12 @@
         .header {
             display: flex;
             justify-content: space-between;
-            gap: 16mm;
+            gap: 8mm;
         }
 
         .company-block {
             flex: 1;
+            max-width: 60%;
         }
 
         .company-name {
@@ -74,8 +75,8 @@
         }
 
         .logo {
-            max-width: 150px;
-            max-height: 70px;
+            max-width: 120px;
+            max-height: 60px;
             object-fit: contain;
         }
 
@@ -88,15 +89,17 @@
         .info-row {
             display: flex;
             justify-content: space-between;
-            gap: 10mm;
+            gap: 5mm;
         }
 
         .card {
             flex: 1;
+            max-width: 48%;
             border: 1px solid var(--border-color);
             border-radius: 6px;
             padding: 12px 14px;
             background: #fff;
+            box-sizing: border-box;
         }
 
         .card-title {
@@ -175,11 +178,12 @@
             display: flex;
             justify-content: space-between;
             margin-top: 12mm;
-            gap: 20mm;
+            gap: 8mm;
         }
 
         .payment-instructions {
             flex: 1;
+            max-width: 55%;
         }
 
         .payment-text {
@@ -192,7 +196,8 @@
         }
 
         .totals {
-            min-width: 220px;
+            min-width: 180px;
+            max-width: 40%;
         }
 
         .totals-table {
