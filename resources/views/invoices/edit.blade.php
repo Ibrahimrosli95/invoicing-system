@@ -161,6 +161,22 @@
                                                        class="text-sm text-gray-700 border-0 border-b border-gray-300 focus:border-blue-500 focus:ring-0 px-0 py-1 bg-transparent w-16">
                                                 <span class="text-xs text-gray-500 ml-1">days</span>
                                             </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">PO Number</label>
+                                                <input type="text" x-model="poNumber"
+                                                       class="w-full text-sm text-gray-700 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 px-2 py-1"
+                                                       placeholder="Optional">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Customer Segment</label>
+                                                <select x-model="customerSegmentId"
+                                                        class="w-full text-sm text-gray-700 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 px-2 py-1">
+                                                    <option value="">None</option>
+                                                    @foreach($customerSegments as $segment)
+                                                        <option value="{{ $segment->id }}">{{ $segment->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
                                             <div class="flex justify-between items-center">
                                                 <span class="text-sm font-medium text-gray-500">Status:</span>
                                                 <span class="text-sm px-2 py-1 rounded {{ $invoice->status === 'DRAFT' ? 'bg-gray-100 text-gray-800' : 'bg-blue-100 text-blue-800' }}">
@@ -313,6 +329,8 @@ function invoiceEditor() {
         termsConditions: @json($invoice->terms_conditions),
         dueDate: @json($invoice->due_date ? $invoice->due_date->format('Y-m-d') : ''),
         paymentTerms: @json($invoice->payment_terms ?? 30),
+        poNumber: @json($invoice->po_number ?? ''),
+        customerSegmentId: @json($invoice->customer_segment_id ?? ''),
         teamId: @json($invoice->team_id),
         assignedTo: @json($invoice->assigned_to),
 
@@ -332,6 +350,8 @@ function invoiceEditor() {
                 formData.append('terms_conditions', this.termsConditions || '');
                 formData.append('due_date', this.dueDate || '');
                 formData.append('payment_terms_days', this.paymentTerms || 30);
+                formData.append('po_number', this.poNumber || '');
+                formData.append('customer_segment_id', this.customerSegmentId || '');
                 formData.append('team_id', this.teamId || '');
                 formData.append('assigned_to', this.assignedTo || '');
 
