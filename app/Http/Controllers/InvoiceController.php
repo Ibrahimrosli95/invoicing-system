@@ -174,7 +174,13 @@ class InvoiceController extends Controller
             'payment_instructions' => \App\Models\InvoiceNoteTemplate::getDefaultForType('payment_instructions'),
         ];
 
-        return view('invoices.builder', compact('defaultTemplates'));
+        // Get customer segments for pricing
+        $customerSegments = CustomerSegment::forCompany()
+            ->active()
+            ->orderBy('name')
+            ->get();
+
+        return view('invoices.builder', compact('defaultTemplates', 'customerSegments'));
     }
 
     /**
