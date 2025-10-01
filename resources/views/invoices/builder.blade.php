@@ -1120,7 +1120,7 @@ function invoiceBuilder() {
         paymentInstructions: @json($defaultTemplates['payment_instructions']->content ?? 'Please make payments to:\n\nCompany: {{ auth()->user()->company->name ?? "Your Company Name" }}\nBank: Maybank\nAccount: 1234567890\n\nPlease include invoice number in payment reference.'),
 
         // Logo Management
-        companyLogo: '{{ auth()->user()->company->logo ?? "/images/logo-placeholder.png" }}',
+        companyLogo: '{{ auth()->user()->company->logo ? asset("storage/" . auth()->user()->company->logo) : "" }}',
 
         // Notes Templates
         notesTemplates: [
