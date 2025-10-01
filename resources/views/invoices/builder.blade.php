@@ -261,6 +261,7 @@
                                 <tbody class="divide-y divide-gray-200">
                                 <template x-for="(item, index) in lineItems" :key="index">
                                     <tr>
+                                        <td class="px-6 py-4 text-center text-sm font-medium text-gray-600" style="width: 8%;" x-text="index + 1"></td>
                                         <td class="px-6 py-4 relative" style="width: 60%;">
                                             <div class="relative">
                                                 <input type="text"
@@ -291,15 +292,15 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 text-right" style="width: 5%;">
+                                        <td class="px-6 py-4 text-right" style="width: 8%;">
                                             <input type="number" x-model="item.quantity" @input="calculateTotals"
                                                    class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px] border-b border-gray-200 focus:border-blue-500" min="1" step="1" style="min-width: 50px;">
                                         </td>
-                                        <td class="px-6 py-4 text-right" style="width: 20%;">
+                                        <td class="px-6 py-4 text-right" style="width: 18%;">
                                             <input type="number" x-model="item.unit_price" @input="calculateTotals"
                                                    class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px] border-b border-gray-200 focus:border-blue-500" min="0" step="0.01" style="min-width: 80px;">
                                         </td>
-                                        <td class="px-6 py-4 text-right text-sm font-medium" style="width: 15%;">
+                                        <td class="px-6 py-4 text-right text-sm font-medium" style="width: 18%;">
                                             RM <span x-text="(item.quantity * item.unit_price).toFixed(2)">0.00</span>
                                         </td>
                                         <td class="px-6 py-4 text-center">
@@ -315,7 +316,7 @@
 
                                 <!-- Add Item Row -->
                                 <tr class="bg-gray-50">
-                                    <td colspan="5" class="px-6 py-4">
+                                    <td colspan="6" class="px-6 py-4">
                                         <button @click="addLineItem" type="button"
                                                 class="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100">
                                             <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -997,6 +998,147 @@
             </div>
         </div>
     </div>
+
+    <!-- Pricing Options Modal -->
+    <div x-show="showPricingOptionsModal"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center min-h-screen px-4 z-50"
+         style="display: none;">
+        <div @click.away="closePricingOptions"
+             class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
+            <!-- Header -->
+            <div class="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                <div>
+                    <h2 class="text-xl font-semibold text-white" x-text="selectedPricingItem.name">Select Pricing</h2>
+                    <p class="text-blue-100 text-sm mt-1" x-text="selectedPricingItem.item_code"></p>
+                </div>
+                <button @click="closePricingOptions"
+                        class="text-white hover:text-gray-200 text-2xl font-semibold">
+                    &times;
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="p-6 max-h-[calc(90vh-180px)] overflow-y-auto">
+                <!-- Item Description -->
+                <div x-show="selectedPricingItem.description" class="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <p class="text-sm text-gray-700" x-text="selectedPricingItem.description"></p>
+                </div>
+
+                <!-- Customer Segment Pricing Options -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Customer Segment Pricing</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <template x-for="(price, segmentName) in selectedPricingItem.segment_pricing" :key="segmentName">
+                            <button @click="selectSegmentPrice(segmentName, price)"
+                                    :class="{
+                                        'border-blue-500 bg-blue-50': selectedSegmentPrice.segment === segmentName,
+                                        'border-gray-300 hover:border-blue-300 hover:bg-blue-50': selectedSegmentPrice.segment !== segmentName
+                                    }"
+                                    class="relative border-2 rounded-lg p-4 text-left transition-all duration-200">
+                                <!-- Recommended Badge -->
+                                <div x-show="segmentName.toLowerCase() === customerSegmentName.toLowerCase()"
+                                     class="absolute top-2 right-2">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Recommended
+                                    </span>
+                                </div>
+
+                                <div class="mb-2">
+                                    <div class="text-sm font-medium text-gray-900" x-text="segmentName"></div>
+                                </div>
+                                <div class="text-2xl font-bold text-blue-600">
+                                    RM <span x-text="parseFloat(price).toFixed(2)">0.00</span>
+                                </div>
+                                <div x-show="price < selectedPricingItem.unit_price_raw" class="mt-2">
+                                    <span class="text-xs text-green-600 font-medium">
+                                        Save RM <span x-text="(selectedPricingItem.unit_price_raw - price).toFixed(2)">0.00</span>
+                                    </span>
+                                </div>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Base Price Option -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Standard Pricing</h3>
+                    <button @click="selectSegmentPrice('Standard', selectedPricingItem.unit_price_raw)"
+                            :class="{
+                                'border-blue-500 bg-blue-50': selectedSegmentPrice.segment === 'Standard',
+                                'border-gray-300 hover:border-blue-300 hover:bg-blue-50': selectedSegmentPrice.segment !== 'Standard'
+                            }"
+                            class="w-full border-2 rounded-lg p-4 text-left transition-all duration-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">Standard Price</div>
+                                <div class="text-xs text-gray-500 mt-1">Base pricing without segment discount</div>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-700">
+                                RM <span x-text="parseFloat(selectedPricingItem.unit_price_raw).toFixed(2)">0.00</span>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Manual Price Override -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Manual Price Override</h3>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-1">
+                            <label class="block text-xs font-medium text-gray-600 mb-2">Custom Price (RM)</label>
+                            <input type="number"
+                                   x-model="customPrice"
+                                   @input="selectedSegmentPrice = { segment: 'Custom', price: parseFloat(customPrice) || 0 }"
+                                   step="0.01"
+                                   min="0"
+                                   placeholder="Enter custom price"
+                                   class="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div class="pt-6">
+                            <button @click="customPrice = selectedPricingItem.unit_price_raw"
+                                    class="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg">
+                                Reset to Base
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">
+                        💡 Manual override allows you to set any custom price regardless of segment pricing
+                    </p>
+                </div>
+
+                <!-- Selected Price Summary -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">Selected Price:</div>
+                            <div class="text-xs text-gray-600 mt-1" x-text="selectedSegmentPrice.segment + ' Pricing'"></div>
+                        </div>
+                        <div class="text-3xl font-bold text-blue-600">
+                            RM <span x-text="parseFloat(selectedSegmentPrice.price || 0).toFixed(2)">0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex items-center justify-between bg-gray-50 px-6 py-4 border-t">
+                <button @click="closePricingOptions"
+                        class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg">
+                    Cancel
+                </button>
+                <button @click="applyPricingSelection"
+                        class="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm">
+                    Apply Price
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -1006,16 +1148,24 @@ function invoiceBuilder() {
         showCustomerDropdown: false,
         showNewCustomerModal: false,
         showTemplateModal: false,
+        showPricingOptionsModal: false,
 
         // Customer Management
         customerSearch: '',
         customerResults: [],
         selectedCustomer: {},
+        customerSegmentName: '',
 
         // Pricing Book Integration
         showPricingDropdown: {},
         pricingResults: {},
         searchTimeout: null,
+
+        // Pricing Options Modal
+        selectedPricingItem: {},
+        selectedPricingItemIndex: null,
+        selectedSegmentPrice: { segment: '', price: 0 },
+        customPrice: 0,
 
         // New Customer Form
         newCustomer: {
@@ -1405,6 +1555,9 @@ function invoiceBuilder() {
             this.customerSearch = customer.name;
             this.showCustomerDropdown = false;
 
+            // Capture customer segment name for pricing
+            this.customerSegmentName = customer.customer_segment || '';
+
             // Set shipping same as billing by default
             this.shippingSameAsBilling = true;
 
@@ -1594,12 +1747,62 @@ function invoiceBuilder() {
         },
 
         selectPricingItem(index, pricingItem) {
-            this.lineItems[index].description = pricingItem.name;
-            this.lineItems[index].unit_price = parseFloat(pricingItem.unit_price_raw || pricingItem.unit_price);
-            this.lineItems[index].pricing_item_id = pricingItem.id;
-            this.lineItems[index].item_code = pricingItem.item_code;
+            // Store the selected item and index
+            this.selectedPricingItem = pricingItem;
+            this.selectedPricingItemIndex = index;
 
+            // Auto-select customer's segment price if available
+            if (this.customerSegmentName && pricingItem.segment_pricing && pricingItem.segment_pricing[this.customerSegmentName]) {
+                this.selectedSegmentPrice = {
+                    segment: this.customerSegmentName,
+                    price: parseFloat(pricingItem.segment_pricing[this.customerSegmentName])
+                };
+                this.customPrice = this.selectedSegmentPrice.price;
+            } else {
+                // Default to standard price
+                this.selectedSegmentPrice = {
+                    segment: 'Standard',
+                    price: parseFloat(pricingItem.unit_price_raw || pricingItem.unit_price)
+                };
+                this.customPrice = this.selectedSegmentPrice.price;
+            }
+
+            // Hide dropdown and show pricing options modal
             this.showPricingDropdown[index] = false;
+            this.showPricingOptionsModal = true;
+        },
+
+        selectSegmentPrice(segmentName, price) {
+            this.selectedSegmentPrice = {
+                segment: segmentName,
+                price: parseFloat(price)
+            };
+            this.customPrice = this.selectedSegmentPrice.price;
+        },
+
+        closePricingOptions() {
+            this.showPricingOptionsModal = false;
+            this.selectedPricingItem = {};
+            this.selectedPricingItemIndex = null;
+            this.selectedSegmentPrice = { segment: '', price: 0 };
+            this.customPrice = 0;
+        },
+
+        applyPricingSelection() {
+            const index = this.selectedPricingItemIndex;
+            const item = this.selectedPricingItem;
+
+            // Update line item with selected pricing
+            this.lineItems[index].description = item.name;
+            this.lineItems[index].unit_price = this.selectedSegmentPrice.price;
+            this.lineItems[index].pricing_item_id = item.id;
+            this.lineItems[index].item_code = item.item_code;
+
+            // Store the selected segment for reference (optional metadata)
+            this.lineItems[index].selected_segment = this.selectedSegmentPrice.segment;
+
+            // Close modal and recalculate
+            this.closePricingOptions();
             this.calculateTotals();
         },
 
