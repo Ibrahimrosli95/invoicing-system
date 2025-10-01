@@ -167,15 +167,23 @@
                                                        class="w-full text-sm text-gray-700 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 px-2 py-1"
                                                        placeholder="Optional">
                                             </div>
-                                            <div>
-                                                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Customer Segment</label>
-                                                <select x-model="customerSegmentId"
-                                                        class="w-full text-sm text-gray-700 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 px-2 py-1">
-                                                    <option value="">None</option>
-                                                    @foreach($customerSegments as $segment)
-                                                        <option value="{{ $segment->id }}">{{ $segment->name }}</option>
-                                                    @endforeach
-                                                </select>
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-sm font-medium text-gray-500">Customer Segment:</span>
+                                                <span class="text-sm text-gray-700">
+                                                    @if($invoice->customer && $invoice->customer->customerSegment)
+                                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium"
+                                                              style="background-color: {{ $invoice->customer->customerSegment->color }}20; color: {{ $invoice->customer->customerSegment->color }}">
+                                                            {{ $invoice->customer->customerSegment->name }}
+                                                        </span>
+                                                    @elseif($invoice->customerSegment)
+                                                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium"
+                                                              style="background-color: {{ $invoice->customerSegment->color }}20; color: {{ $invoice->customerSegment->color }}">
+                                                            {{ $invoice->customerSegment->name }}
+                                                        </span>
+                                                    @else
+                                                        <span class="text-gray-400">Not set</span>
+                                                    @endif
+                                                </span>
                                             </div>
                                             <div class="flex justify-between items-center">
                                                 <span class="text-sm font-medium text-gray-500">Status:</span>
@@ -330,7 +338,6 @@ function invoiceEditor() {
         dueDate: @json($invoice->due_date ? $invoice->due_date->format('Y-m-d') : ''),
         paymentTerms: @json($invoice->payment_terms ?? 30),
         poNumber: @json($invoice->po_number ?? ''),
-        customerSegmentId: @json($invoice->customer_segment_id ?? ''),
         teamId: @json($invoice->team_id),
         assignedTo: @json($invoice->assigned_to),
 
@@ -351,7 +358,6 @@ function invoiceEditor() {
                 formData.append('due_date', this.dueDate || '');
                 formData.append('payment_terms_days', this.paymentTerms || 30);
                 formData.append('po_number', this.poNumber || '');
-                formData.append('customer_segment_id', this.customerSegmentId || '');
                 formData.append('team_id', this.teamId || '');
                 formData.append('assigned_to', this.assignedTo || '');
 

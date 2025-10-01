@@ -470,12 +470,7 @@ class InvoiceController extends Controller
             ->orderBy('name')
             ->get();
 
-        $customerSegments = CustomerSegment::forCompany()
-            ->active()
-            ->orderBy('name')
-            ->get();
-
-        return view('invoices.edit', compact('invoice', 'teams', 'assignees', 'customerSegments'));
+        return view('invoices.edit', compact('invoice', 'teams', 'assignees'));
     }
 
     /**
@@ -501,7 +496,6 @@ class InvoiceController extends Controller
             'customer_state' => 'nullable|string|max:100',
             'customer_postal_code' => 'nullable|string|max:20',
             'po_number' => 'nullable|string|max:50',
-            'customer_segment_id' => 'nullable|exists:customer_segments,id',
             'description' => 'nullable|string',
             'terms_conditions' => 'nullable|string',
             'notes' => 'nullable|string',
