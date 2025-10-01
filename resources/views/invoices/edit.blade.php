@@ -231,20 +231,20 @@
 
                         @if($invoice->items->count() > 0)
                             <div class="overflow-x-auto">
-                                <table class="w-full">
+                                <table class="w-full table-fixed">
                                     <thead>
-                                        <tr class="border-b border-gray-200">
-                                            <th class="text-left py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Description</th>
-                                            <th class="text-center py-3 text-xs font-medium text-gray-500 uppercase tracking-wide w-20">Qty</th>
-                                            <th class="text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wide w-24">Unit Price</th>
-                                            <th class="text-right py-3 text-xs font-medium text-gray-500 uppercase tracking-wide w-24">Total</th>
+                                        <tr class="border-b-2 border-gray-300">
+                                            <th class="text-left px-4 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wide" style="width: 50%;">Description</th>
+                                            <th class="text-center px-4 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wide" style="width: 12%;">Qty</th>
+                                            <th class="text-right px-4 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wide" style="width: 19%;">Unit Price</th>
+                                            <th class="text-right px-4 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wide" style="width: 19%;">Total</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach($invoice->items as $item)
-                                            <tr class="border-b border-gray-100">
-                                                <td class="py-4">
-                                                    <div class="font-medium text-gray-900">{{ $item->description }}</div>
+                                            <tr class="border-b border-gray-200">
+                                                <td class="px-4 py-4" style="width: 50%;">
+                                                    <div class="font-medium text-gray-900 text-sm">{{ $item->description }}</div>
                                                     @if($item->specifications)
                                                         <div class="text-xs text-gray-500 mt-1">{{ $item->specifications }}</div>
                                                     @endif
@@ -252,9 +252,9 @@
                                                         <div class="text-xs text-gray-500 mt-1">Note: {{ $item->notes }}</div>
                                                     @endif
                                                 </td>
-                                                <td class="py-4 text-center text-sm text-gray-700">{{ $item->quantity }} {{ $item->unit }}</td>
-                                                <td class="py-4 text-right text-sm text-gray-700">RM {{ number_format($item->unit_price, 2) }}</td>
-                                                <td class="py-4 text-right font-medium text-gray-900">RM {{ number_format($item->total_price, 2) }}</td>
+                                                <td class="px-4 py-4 text-center text-sm text-gray-700" style="width: 12%;">{{ $item->quantity }} {{ $item->unit }}</td>
+                                                <td class="px-4 py-4 text-right text-sm text-gray-700" style="width: 19%;">RM {{ number_format($item->unit_price, 2) }}</td>
+                                                <td class="px-4 py-4 text-right font-medium text-gray-900 text-sm" style="width: 19%;">RM {{ number_format($item->total_price, 2) }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>
