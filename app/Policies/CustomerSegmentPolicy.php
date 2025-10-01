@@ -38,6 +38,19 @@ class CustomerSegmentPolicy
     }
 
     /**
+     * Determine whether the user can edit the customer segment (show edit form).
+     */
+    public function edit(User $user, CustomerSegment $segment): bool
+    {
+        // Must be same company
+        if ($user->company_id !== $segment->company_id) {
+            return false;
+        }
+
+        return $user->can('edit customer segments');
+    }
+
+    /**
      * Determine whether the user can update the customer segment.
      */
     public function update(User $user, CustomerSegment $segment): bool
