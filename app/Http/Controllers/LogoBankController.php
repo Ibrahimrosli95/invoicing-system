@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class LogoBankController extends Controller
 {
@@ -120,7 +121,7 @@ class LogoBankController extends Controller
     /**
      * Serve a logo file.
      */
-    public function serve(CompanyLogo $logo): Response
+    public function serve(CompanyLogo $logo): BinaryFileResponse
     {
         // Ensure logo belongs to user's company
         if ($logo->company_id !== auth()->user()->company_id) {
