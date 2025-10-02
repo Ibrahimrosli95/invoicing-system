@@ -101,4 +101,12 @@ class Company extends Model
     {
         return $this->hasMany(EmailDeliveryLog::class);
     }
+
+    /**
+     * Get all customer segments for this company.
+     */
+    public function customerSegments(): HasMany
+    {
+        return $this->hasMany(\App\Models\CustomerSegment::class);
+    }
 }
