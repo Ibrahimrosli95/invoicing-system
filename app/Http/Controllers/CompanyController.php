@@ -93,7 +93,7 @@ class CompanyController extends Controller
             'timezone' => 'required|string|max:50',
             'currency' => 'required|string|max:3',
             'date_format' => 'required|string|max:20',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'logo' => 'nullable|file|max:2048', // Simplified validation to avoid fileinfo dependency
             'remove_logo' => 'nullable|boolean',
             
             // Additional settings
@@ -122,6 +122,17 @@ class CompanyController extends Controller
 
         // Handle logo upload
         if ($request->hasFile('logo')) {
+            // Manual extension check since fileinfo may not be available
+            $file = $request->file('logo');
+            $extension = strtolower($file->getClientOriginalExtension());
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
+
+            if (!in_array($extension, $allowedExtensions)) {
+                return redirect()->back()
+                    ->withErrors(['logo' => 'Logo must be an image file (jpg, jpeg, png, gif, svg)'])
+                    ->withInput();
+            }
+
             // Delete old logo if exists
             if ($company->logo_path && Storage::disk('public')->exists($company->logo_path)) {
                 Storage::disk('public')->delete($company->logo_path);
