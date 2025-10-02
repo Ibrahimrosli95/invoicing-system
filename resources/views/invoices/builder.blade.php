@@ -1645,6 +1645,10 @@ function invoiceBuilder() {
         },
 
         selectPricingItem(index, pricingItem) {
+            console.log('Selecting pricing item:', pricingItem);
+            console.log('Customer segment name:', this.customerSegmentName);
+            console.log('Segment pricing available:', pricingItem.segment_pricing);
+
             // Auto-apply customer's segment price if available, otherwise use base price
             let selectedPrice = parseFloat(pricingItem.unit_price_raw || pricingItem.unit_price);
             let selectedSegment = 'Standard';
@@ -1652,6 +1656,9 @@ function invoiceBuilder() {
             if (this.customerSegmentName && pricingItem.segment_pricing && pricingItem.segment_pricing[this.customerSegmentName]) {
                 selectedPrice = parseFloat(pricingItem.segment_pricing[this.customerSegmentName]);
                 selectedSegment = this.customerSegmentName;
+                console.log('Using segment price:', selectedPrice, 'for segment:', selectedSegment);
+            } else {
+                console.log('Using standard price:', selectedPrice);
             }
 
             // Update line item immediately
@@ -1664,6 +1671,8 @@ function invoiceBuilder() {
             // Store full segment pricing data for inline switching
             this.lineItems[index].segment_pricing = pricingItem.segment_pricing || {};
             this.lineItems[index].base_price = parseFloat(pricingItem.unit_price_raw || pricingItem.unit_price);
+
+            console.log('Line item updated:', this.lineItems[index]);
 
             // Hide dropdown and recalculate
             this.showPricingDropdown[index] = false;
