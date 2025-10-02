@@ -300,8 +300,30 @@
                                                    class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px] border-b border-gray-200 focus:border-blue-500" min="1" step="1" style="min-width: 50px;">
                                         </td>
                                         <td class="px-6 py-4 text-right" style="width: 14%;">
-                                            <input type="number" x-model="item.unit_price" @input="calculateTotals"
-                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px] border-b border-gray-200 focus:border-blue-500" min="0" step="0.01" style="min-width: 80px;">
+                                            <div class="flex flex-col space-y-1">
+                                                <!-- Price Input -->
+                                                <input type="number" x-model="item.unit_price" @input="calculateTotals"
+                                                       class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px] border-b border-gray-200 focus:border-blue-500" min="0" step="0.01" style="min-width: 80px;">
+
+                                                <!-- Segment Selector (only if item has pricing data) -->
+                                                <div x-show="item.segment_pricing && Object.keys(item.segment_pricing).length > 0"
+                                                     class="relative">
+                                                    <select x-model="item.selected_segment"
+                                                            @change="changeSegmentPricing(index, item.selected_segment)"
+                                                            class="w-full text-xs py-1 pr-6 border-0 bg-gray-50 text-gray-600 rounded focus:ring-1 focus:ring-blue-500 cursor-pointer">
+                                                        <!-- Standard Price -->
+                                                        <option value="Standard">Standard</option>
+
+                                                        <!-- Dynamic Segment Prices -->
+                                                        <template x-for="(price, segmentName) in item.segment_pricing" :key="segmentName">
+                                                            <option :value="segmentName" x-text="segmentName"></option>
+                                                        </template>
+
+                                                        <!-- Custom Price Option -->
+                                                        <option value="Custom">Custom</option>
+                                                    </select>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td class="px-6 py-4 text-right text-sm font-medium" style="width: 14%;">
                                             RM <span x-text="(item.quantity * item.unit_price).toFixed(2)">0.00</span>
