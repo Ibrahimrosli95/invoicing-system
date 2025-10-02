@@ -16,7 +16,9 @@ class CustomerSegmentController extends Controller
      */
     public function __construct()
     {
-        $this->authorizeResource(CustomerSegment::class, 'customerSegment');
+        // Note: authorizeResource has issues with before() method
+        // Using manual authorization in each method instead
+        // $this->authorizeResource(CustomerSegment::class, 'customerSegment');
     }
 
     /**
@@ -112,6 +114,8 @@ class CustomerSegmentController extends Controller
      */
     public function show(CustomerSegment $customerSegment)
     {
+        $this->authorize('view', $customerSegment);
+
         \Log::info('CustomerSegmentController@show called', [
             'segment_id' => $customerSegment->id,
             'user_id' => auth()->id(),
@@ -139,6 +143,8 @@ class CustomerSegmentController extends Controller
      */
     public function edit(CustomerSegment $customerSegment)
     {
+        $this->authorize('update', $customerSegment);
+
         return view('customer-segments.edit', compact('customerSegment'));
     }
 
@@ -147,6 +153,8 @@ class CustomerSegmentController extends Controller
      */
     public function update(Request $request, CustomerSegment $customerSegment)
     {
+        $this->authorize('update', $customerSegment);
+
         $validated = $request->validate([
             'name' => [
                 'required',
@@ -174,6 +182,8 @@ class CustomerSegmentController extends Controller
      */
     public function destroy(CustomerSegment $customerSegment)
     {
+        $this->authorize('delete', $customerSegment);
+
         // Check if segment has customers
         $customerCount = Customer::forCompany()
                                ->where('customer_segment_id', $customerSegment->id)
