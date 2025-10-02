@@ -668,7 +668,7 @@
                                 <div x-show="!editingSignature.user">
                                     <template x-if="userSignature.image_path">
                                         <div class="flex flex-col items-center">
-                                            <img :src="`/storage/${userSignature.image_path}`"
+                                            <img :src="userSignature.image_path.startsWith('data:') ? userSignature.image_path : `/storage/${userSignature.image_path}`"
                                                  alt="Sales Rep Signature"
                                                  class="h-12 mb-2">
                                             <div class="border-t border-gray-400 w-full mt-1"></div>
@@ -700,11 +700,20 @@
                                                placeholder="{{ auth()->user()->name }}"
                                                class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                                     </div>
-                                    <p class="text-xs text-gray-600">
-                                        <a href="{{ route('profile.signature') }}" target="_blank" class="text-blue-600 hover:text-blue-700 underline">
-                                            Update signature image in profile
+                                    <div class="flex items-center gap-2">
+                                        <button type="button"
+                                                @click="openSignaturePad('user')"
+                                                class="flex-1 px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors">
+                                            <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                            </svg>
+                                            Draw Signature
+                                        </button>
+                                        <a href="{{ route('profile.signature') }}" target="_blank"
+                                           class="flex-1 px-3 py-2 bg-white border border-gray-300 text-gray-700 text-xs font-medium rounded hover:bg-gray-50 transition-colors text-center">
+                                            Upload Image
                                         </a>
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
 
@@ -735,7 +744,7 @@
                                 <div x-show="!editingSignature.company">
                                     <template x-if="companySignature.image_path">
                                         <div class="flex flex-col items-center">
-                                            <img :src="`/storage/${companySignature.image_path}`"
+                                            <img :src="companySignature.image_path.startsWith('data:') ? companySignature.image_path : `/storage/${companySignature.image_path}`"
                                                  alt="Company Signature"
                                                  class="h-12 mb-2">
                                             <div class="border-t border-gray-400 w-full mt-1"></div>
@@ -767,11 +776,20 @@
                                                placeholder="Company Representative"
                                                class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                                     </div>
-                                    <p class="text-xs text-gray-600">
-                                        <a href="{{ route('invoice-settings.index') }}" target="_blank" class="text-blue-600 hover:text-blue-700 underline">
-                                            Update company signature in settings
+                                    <div class="flex items-center gap-2">
+                                        <button type="button"
+                                                @click="openSignaturePad('company')"
+                                                class="flex-1 px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors">
+                                            <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                            </svg>
+                                            Draw Signature
+                                        </button>
+                                        <a href="{{ route('invoice-settings.index') }}" target="_blank"
+                                           class="flex-1 px-3 py-2 bg-white border border-gray-300 text-gray-700 text-xs font-medium rounded hover:bg-gray-50 transition-colors text-center">
+                                            Upload Image
                                         </a>
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
 
@@ -917,6 +935,67 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Signature Pad Modal -->
+    <div x-show="signaturePad.show"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @keydown.escape="closeSignaturePad"
+         class="fixed inset-0 z-50 overflow-y-auto"
+         style="display: none;">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="closeSignaturePad"></div>
+
+            <div class="relative inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full sm:p-6">
+                <div class="mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Draw Your Signature</h3>
+                    <p class="mt-1 text-sm text-gray-500">Use your mouse or touchscreen to draw your signature below</p>
+                </div>
+
+                <!-- Canvas Container -->
+                <div class="border-2 border-gray-300 rounded-lg bg-white mb-4">
+                    <canvas id="signatureCanvas"
+                            class="w-full cursor-crosshair"
+                            width="700"
+                            height="200"
+                            style="touch-action: none;">
+                    </canvas>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                    <button type="button"
+                            @click="clearSignaturePad"
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        Clear
+                    </button>
+
+                    <div class="flex items-center gap-3">
+                        <button type="button"
+                                @click="closeSignaturePad"
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-300 hover:bg-gray-400 rounded-lg transition-colors">
+                            Cancel
+                        </button>
+                        <button type="button"
+                                @click="saveSignature"
+                                class="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Save Signature
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1500,6 +1579,17 @@ function invoiceBuilder() {
             company: false
         },
 
+        // Signature Pad State
+        signaturePad: {
+            show: false,
+            type: '', // 'user' or 'company'
+            canvas: null,
+            ctx: null,
+            isDrawing: false,
+            lastX: 0,
+            lastY: 0
+        },
+
         init() {
             // Set default dates in DD/MM/YYYY format
             const today = new Date();
@@ -1587,6 +1677,121 @@ function invoiceBuilder() {
                     lastFocusedButton.blur();
                 }
             });
+        },
+
+        // Signature Pad Methods
+        openSignaturePad(type) {
+            this.signaturePad.type = type;
+            this.signaturePad.show = true;
+            document.body.style.overflow = 'hidden';
+
+            // Initialize canvas after modal is shown
+            this.$nextTick(() => {
+                this.initSignatureCanvas();
+            });
+        },
+
+        closeSignaturePad() {
+            this.signaturePad.show = false;
+            document.body.style.overflow = '';
+            this.signaturePad.type = '';
+
+            // Remove event listeners
+            if (this.signaturePad.canvas) {
+                this.signaturePad.canvas.removeEventListener('mousedown', this.startDrawing);
+                this.signaturePad.canvas.removeEventListener('mousemove', this.draw);
+                this.signaturePad.canvas.removeEventListener('mouseup', this.stopDrawing);
+                this.signaturePad.canvas.removeEventListener('mouseout', this.stopDrawing);
+                this.signaturePad.canvas.removeEventListener('touchstart', this.startDrawing);
+                this.signaturePad.canvas.removeEventListener('touchmove', this.draw);
+                this.signaturePad.canvas.removeEventListener('touchend', this.stopDrawing);
+            }
+        },
+
+        initSignatureCanvas() {
+            this.signaturePad.canvas = document.getElementById('signatureCanvas');
+            if (!this.signaturePad.canvas) return;
+
+            this.signaturePad.ctx = this.signaturePad.canvas.getContext('2d');
+
+            // Set canvas background to white
+            this.signaturePad.ctx.fillStyle = 'white';
+            this.signaturePad.ctx.fillRect(0, 0, this.signaturePad.canvas.width, this.signaturePad.canvas.height);
+
+            // Set drawing style
+            this.signaturePad.ctx.strokeStyle = '#000';
+            this.signaturePad.ctx.lineWidth = 2;
+            this.signaturePad.ctx.lineCap = 'round';
+            this.signaturePad.ctx.lineJoin = 'round';
+
+            // Add event listeners
+            this.signaturePad.canvas.addEventListener('mousedown', (e) => this.startDrawing(e));
+            this.signaturePad.canvas.addEventListener('mousemove', (e) => this.draw(e));
+            this.signaturePad.canvas.addEventListener('mouseup', () => this.stopDrawing());
+            this.signaturePad.canvas.addEventListener('mouseout', () => this.stopDrawing());
+
+            // Touch events for mobile
+            this.signaturePad.canvas.addEventListener('touchstart', (e) => this.startDrawing(e), { passive: false });
+            this.signaturePad.canvas.addEventListener('touchmove', (e) => this.draw(e), { passive: false });
+            this.signaturePad.canvas.addEventListener('touchend', () => this.stopDrawing());
+        },
+
+        startDrawing(e) {
+            e.preventDefault();
+            this.signaturePad.isDrawing = true;
+
+            const rect = this.signaturePad.canvas.getBoundingClientRect();
+            const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+            const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+
+            this.signaturePad.lastX = x;
+            this.signaturePad.lastY = y;
+        },
+
+        draw(e) {
+            if (!this.signaturePad.isDrawing) return;
+            e.preventDefault();
+
+            const rect = this.signaturePad.canvas.getBoundingClientRect();
+            const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+            const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+
+            this.signaturePad.ctx.beginPath();
+            this.signaturePad.ctx.moveTo(this.signaturePad.lastX, this.signaturePad.lastY);
+            this.signaturePad.ctx.lineTo(x, y);
+            this.signaturePad.ctx.stroke();
+
+            this.signaturePad.lastX = x;
+            this.signaturePad.lastY = y;
+        },
+
+        stopDrawing() {
+            this.signaturePad.isDrawing = false;
+        },
+
+        clearSignaturePad() {
+            if (!this.signaturePad.ctx || !this.signaturePad.canvas) return;
+
+            // Clear canvas and set white background
+            this.signaturePad.ctx.fillStyle = 'white';
+            this.signaturePad.ctx.fillRect(0, 0, this.signaturePad.canvas.width, this.signaturePad.canvas.height);
+        },
+
+        saveSignature() {
+            if (!this.signaturePad.canvas) return;
+
+            // Convert canvas to data URL
+            const dataURL = this.signaturePad.canvas.toDataURL('image/png');
+
+            // Update the appropriate signature based on type
+            if (this.signaturePad.type === 'user') {
+                this.userSignature.image_path = dataURL;
+            } else if (this.signaturePad.type === 'company') {
+                this.companySignature.image_path = dataURL;
+            }
+
+            // Close modal
+            this.closeSignaturePad();
         },
 
         // Modal Apply Methods
