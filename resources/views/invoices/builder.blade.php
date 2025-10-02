@@ -253,16 +253,11 @@
                             </colgroup>
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <template x-for="column in visibleColumns" :key="column.key">
-                                            <th class="px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                                :class="{
-                                                    'text-left': column.key === 'description',
-                                                    'text-center': column.key === 'sl' || column.key === 'quantity',
-                                                    'text-right': column.key === 'rate' || column.key === 'amount'
-                                                }"
-                                                :style="column.key === 'sl' ? 'width: 6%;' : column.key === 'description' ? 'width: 48%;' : column.key === 'quantity' ? 'width: 12%;' : column.key === 'rate' ? 'width: 14%;' : 'width: 14%;'"
-                                                x-text="column.label"></th>
-                                        </template>
+                                        <th class="px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider text-center" style="width: 6%;">SI</th>
+                                        <th class="px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider text-left" style="width: 48%;">Description</th>
+                                        <th class="px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider text-center" style="width: 12%;">Qty</th>
+                                        <th class="px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider text-right" style="width: 14%;">Rate (RM)</th>
+                                        <th class="px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider text-right" style="width: 14%;">Amount (RM)</th>
                                         <th class="px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider text-center" style="width: 6%;">Action</th>
                                     </tr>
                                 </thead>
