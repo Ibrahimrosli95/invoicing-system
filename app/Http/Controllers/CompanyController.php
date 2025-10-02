@@ -69,13 +69,14 @@ class CompanyController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
-        $company = auth()->user()->company;
-        
-        if (!$company) {
-            abort(404, 'Company not found');
-        }
+        try {
+            $company = auth()->user()->company;
 
-        $validated = $request->validate([
+            if (!$company) {
+                abort(404, 'Company not found');
+            }
+
+            $validated = $request->validate([
             'name' => 'required|string|max:255',
             'tagline' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255',
@@ -171,6 +172,18 @@ class CompanyController extends Controller
 
         return redirect()->route('company.show')
             ->with('success', 'Company settings updated successfully.');
+
+        } catch (\Exception $e) {
+            \Log::error('Company update failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => auth()->id(),
+            ]);
+
+            return redirect()->back()
+                ->withErrors(['error' => 'Failed to update company: ' . $e->getMessage()])
+                ->withInput();
+        }
     }
 
     /**
