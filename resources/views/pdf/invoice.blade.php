@@ -59,18 +59,35 @@
         $paymentText = implode("\n", array_filter($lines));
     }
 
-    // Logo path - check invoice company logo first, then settings
+    // Logo path - check invoice-specific logo first, then company default logo, then settings
     $logoPath = null;
     if ($sections['show_company_logo']) {
-        // Try invoice company logo first (check both logo and logo_path columns)
-        $logoFile = $invoice->company?->logo_path ?? $invoice->company?->logo ?? $settings['company_logo'] ?? null;
+        // Priority 1: Invoice-specific logo from logo bank
+        $logoFile = null;
+        if ($invoice->companyLogo) {
+            $logoFile = $invoice->companyLogo->file_path;
+        }
+
+        // Priority 2: Company default logo from logo bank
+        if (!$logoFile && $invoice->company?->defaultLogo()) {
+            $logoFile = $invoice->company->defaultLogo()->file_path;
+        }
+
+        // Priority 3: Legacy company logo_path
+        if (!$logoFile) {
+            $logoFile = $invoice->company?->logo_path ?? $invoice->company?->logo ?? $settings['company_logo'] ?? null;
+        }
 
         // Debug logging - always log for troubleshooting
         \Log::info('Invoice PDF Logo Debug', [
             'invoice_id' => $invoice->id,
+            'invoice_company_logo_id' => $invoice->company_logo_id,
+            'invoice_company_logo_path' => $invoice->companyLogo?->file_path,
+            'company_default_logo_path' => $invoice->company?->defaultLogo()?->file_path,
             'company_logo_path' => $invoice->company?->logo_path,
             'company_logo' => $invoice->company?->logo,
             'settings_logo' => $settings['company_logo'] ?? null,
+            'final_logo_file' => $logoFile,
             'logo_file_empty' => empty($logoFile),
             'show_company_logo' => $sections['show_company_logo'],
         ]);

@@ -65,23 +65,22 @@
                             <div class="flex flex-col items-center lg:items-end w-full lg:w-1/3 order-1 lg:order-2" x-show="optionalSections.show_company_logo">
                                 <!-- Logo Section -->
                                 <div class="relative group mb-4">
-                                    <img :src="companyLogo" alt="Company Logo" class="h-20 cursor-pointer" @click="$refs.logoUpload.click()">
-                                    <input type="file" x-ref="logoUpload" @change="handleLogoUpload" accept="image/*" class="hidden">
-                                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded" @click="$refs.logoUpload.click()">
+                                    <img :src="selectedLogoUrl" alt="Company Logo" class="h-20 cursor-pointer" @click="showLogoSelector = true">
+                                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded" @click="showLogoSelector = true">
                                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                         </svg>
                                     </div>
                                 </div>
 
                                 <!-- Logo Action Buttons -->
                                 <div class="flex space-x-2">
-                                    <button @click="$refs.logoUpload.click()" class="px-3 py-1 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-200 rounded-full hover:bg-amber-200 transition-colors">
-                                        Change Logo
+                                    <button type="button" @click="showLogoSelector = true" class="px-3 py-1 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-200 rounded-full hover:bg-amber-200 transition-colors">
+                                        Choose Logo
                                     </button>
-                                    <button @click="companyLogo = '/images/placeholder-logo.png'" class="px-3 py-1 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-200 rounded-full hover:bg-amber-200 transition-colors">
-                                        Remove Logo
-                                    </button>
+                                    <a href="{{ route('logo-bank.index') }}" target="_blank" class="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 border border-blue-200 rounded-full hover:bg-blue-200 transition-colors">
+                                        Manage Logos
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -1045,6 +1044,105 @@
         </div>
     </div>
 
+    <!-- Logo Selector Modal -->
+    <div x-show="showLogoSelector"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center min-h-screen px-4 z-50"
+         style="display: none;">
+        <div @click.away="showLogoSelector = false"
+             class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[80vh] overflow-hidden">
+            <!-- Header -->
+            <div class="flex items-center justify-between bg-gray-50 px-6 py-4 border-b">
+                <h2 class="text-lg font-semibold text-gray-900">Select Company Logo</h2>
+                <button @click="showLogoSelector = false"
+                        class="text-gray-500 hover:text-gray-700 text-xl font-semibold">
+                    &times;
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="p-6 max-h-96 overflow-y-auto">
+                <!-- Loading State -->
+                <div x-show="logoBank.length === 0" class="flex items-center justify-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span class="ml-2 text-gray-600">Loading logos...</span>
+                </div>
+
+                <!-- Logo Grid -->
+                <div x-show="logoBank.length > 0" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <template x-for="logo in logoBank" :key="logo.id">
+                        <div @click="selectLogo(logo.id, logo.url)"
+                             :class="selectedLogoId === logo.id ? 'ring-2 ring-blue-600 bg-blue-50' : 'hover:bg-gray-50'"
+                             class="border border-gray-200 rounded-lg p-4 cursor-pointer transition-all relative">
+                            <!-- Selected Indicator -->
+                            <div x-show="selectedLogoId === logo.id"
+                                 class="absolute top-2 right-2 bg-blue-600 text-white rounded-full p-1">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+
+                            <!-- Default Badge -->
+                            <div x-show="logo.is_default"
+                                 class="absolute top-2 left-2">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Default
+                                </span>
+                            </div>
+
+                            <!-- Logo Image -->
+                            <div class="aspect-w-16 aspect-h-9 bg-gray-100 flex items-center justify-center mb-3 rounded">
+                                <img :src="logo.url"
+                                     :alt="logo.name"
+                                     class="max-h-20 object-contain">
+                            </div>
+
+                            <!-- Logo Name -->
+                            <h3 class="text-sm font-medium text-gray-900 text-center truncate" x-text="logo.name"></h3>
+                            <p x-show="logo.notes" class="text-xs text-gray-500 text-center mt-1 line-clamp-2" x-text="logo.notes"></p>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Empty State -->
+                <div x-show="logoBank.length === 0"
+                     class="text-center py-8"
+                     style="display: none;">
+                    <div class="text-gray-400 mb-2">
+                        <svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No logos available</h3>
+                    <p class="text-gray-600 mb-4">Upload logos in the Logo Bank to get started.</p>
+                    <a href="{{ route('logo-bank.index') }}"
+                       target="_blank"
+                       class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+                        Go to Logo Bank
+                    </a>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex items-center justify-between bg-gray-50 px-6 py-4 border-t">
+                <a href="{{ route('logo-bank.index') }}"
+                   target="_blank"
+                   class="text-sm text-blue-600 hover:text-blue-800">
+                    Manage Logo Bank
+                </a>
+                <button @click="showLogoSelector = false"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
     </div>
 
 <script>
@@ -1167,8 +1265,11 @@ function invoiceBuilder() {
         terms: @json($defaultTemplates['terms']->content ?? 'Payment is due within 30 days. Late payments may incur additional charges.'),
         paymentInstructions: @json($defaultTemplates['payment_instructions']->content ?? 'Please make payments to:\n\nCompany: {{ auth()->user()->company->name ?? "Your Company Name" }}\nBank: Maybank\nAccount: 1234567890\n\nPlease include invoice number in payment reference.'),
 
-        // Logo Management (add timestamp to bust cache when logo changes)
-        companyLogo: '{{ auth()->user()->company->logo_path ? route("company.logo") . "?v=" . (auth()->user()->company->updated_at?->timestamp ?? time()) : "" }}',
+        // Logo Management
+        logoBank: [],
+        selectedLogoId: {{ auth()->user()->company->defaultLogo()?->id ?? 'null' }},
+        selectedLogoUrl: '{{ auth()->user()->company->defaultLogo() ? route("logo-bank.serve", auth()->user()->company->defaultLogo()->id) . "?v=" . auth()->user()->company->defaultLogo()->updated_at->timestamp : "" }}',
+        showLogoSelector: false,
 
         // Notes Templates
         notesTemplates: [
@@ -1208,6 +1309,9 @@ function invoiceBuilder() {
 
             // Load saved notes templates
             this.loadSavedTemplates();
+
+            // Load logo bank
+            this.loadLogoBank();
         },
 
         // Modal Methods
@@ -1960,6 +2064,7 @@ function invoiceBuilder() {
                 customer_state: this.selectedCustomer.state || '',
                 customer_postal_code: this.selectedCustomer.postal_code || '',
                 customer_segment_id: this.selectedCustomer.customer_segment_id || null,
+                company_logo_id: this.selectedLogoId || null,
 
                 // Invoice details
                 title: `Invoice for ${this.selectedCustomer.name || 'Customer'}`,
@@ -2094,6 +2199,51 @@ function invoiceBuilder() {
                 default:
                     return true;
             }
+        },
+
+        // Logo Bank Methods
+        async loadLogoBank() {
+            try {
+                const response = await fetch('{{ route("logo-bank.list") }}', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    this.logoBank = data.logos;
+
+                    // If no logo is currently selected and there's a default, select it
+                    if (!this.selectedLogoId && data.logos.length > 0) {
+                        const defaultLogo = data.logos.find(logo => logo.is_default);
+                        if (defaultLogo) {
+                            this.selectedLogoId = defaultLogo.id;
+                            this.selectedLogoUrl = defaultLogo.url;
+                        }
+                    }
+                } else {
+                    throw new Error('Failed to load logo bank');
+                }
+            } catch (error) {
+                console.error('Error loading logo bank:', error);
+                this.$dispatch('notify', {
+                    type: 'error',
+                    message: 'Failed to load logo bank. Please try again.'
+                });
+            }
+        },
+
+        selectLogo(logoId, logoUrl) {
+            this.selectedLogoId = logoId;
+            this.selectedLogoUrl = logoUrl;
+            this.showLogoSelector = false;
+            this.$dispatch('notify', {
+                type: 'success',
+                message: 'Logo selected successfully!'
+            });
         }
     };
 }
