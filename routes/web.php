@@ -44,7 +44,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/company/edit', [CompanyController::class, 'edit'])->name('company.edit');
     Route::patch('/company', [CompanyController::class, 'update'])->name('company.update');
     Route::get('/company/logo', [CompanyController::class, 'serveLogo'])->name('company.logo');
-    
+
+    // Logo Bank
+    Route::prefix('logo-bank')->name('logo-bank.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\LogoBankController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\LogoBankController::class, 'store'])->name('store');
+        Route::post('/{logo}/set-default', [\App\Http\Controllers\LogoBankController::class, 'setDefault'])->name('set-default');
+        Route::delete('/{logo}', [\App\Http\Controllers\LogoBankController::class, 'destroy'])->name('destroy');
+        Route::get('/{logo}/serve', [\App\Http\Controllers\LogoBankController::class, 'serve'])->name('serve');
+        Route::get('/logos/list', [\App\Http\Controllers\LogoBankController::class, 'getLogos'])->name('list');
+    });
+
     // Settings Management
     Route::prefix('settings')->name('settings.')->group(function () {
         // Numbering Settings
