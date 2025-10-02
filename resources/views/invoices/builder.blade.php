@@ -1167,8 +1167,8 @@ function invoiceBuilder() {
         terms: @json($defaultTemplates['terms']->content ?? 'Payment is due within 30 days. Late payments may incur additional charges.'),
         paymentInstructions: @json($defaultTemplates['payment_instructions']->content ?? 'Please make payments to:\n\nCompany: {{ auth()->user()->company->name ?? "Your Company Name" }}\nBank: Maybank\nAccount: 1234567890\n\nPlease include invoice number in payment reference.'),
 
-        // Logo Management
-        companyLogo: '{{ auth()->user()->company->logo_path ? route("company.logo") : "" }}',
+        // Logo Management (add timestamp to bust cache when logo changes)
+        companyLogo: '{{ auth()->user()->company->logo_path ? route("company.logo") . "?v=" . (auth()->user()->company->updated_at?->timestamp ?? time()) : "" }}',
 
         // Notes Templates
         notesTemplates: [

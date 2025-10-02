@@ -95,7 +95,25 @@
             ]);
 
             if (file_exists($path)) {
-                $logoPath = 'file://' . str_replace('\\', '/', $path);
+                $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                $mimeTypes = [
+                    'jpg' => 'image/jpeg',
+                    'jpeg' => 'image/jpeg',
+                    'png' => 'image/png',
+                    'gif' => 'image/gif',
+                    'svg' => 'image/svg+xml',
+                ];
+                $mimeType = $mimeTypes[$extension] ?? 'image/png';
+
+                try {
+                    $logoData = base64_encode(file_get_contents($path));
+                    $logoPath = 'data:' . $mimeType . ';base64,' . $logoData;
+                } catch (\Throwable $exception) {
+                    \Log::warning('Invoice PDF Logo Encoding Failed', [
+                        'path' => $path,
+                        'exception' => $exception->getMessage(),
+                    ]);
+                }
             } else {
                 \Log::warning('Invoice PDF Logo File Not Found', [
                     'path' => $path,

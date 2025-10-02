@@ -214,9 +214,13 @@ class CompanyController extends Controller
         ];
         $mimeType = $mimeTypes[$extension] ?? 'application/octet-stream';
 
+        // Add Last-Modified header based on file modification time
+        $lastModified = filemtime($path);
+
         return response()->file($path, [
             'Content-Type' => $mimeType,
-            'Cache-Control' => 'public, max-age=31536000',
+            'Cache-Control' => 'public, max-age=3600', // Cache for 1 hour instead of 1 year
+            'Last-Modified' => gmdate('D, d M Y H:i:s', $lastModified) . ' GMT',
         ]);
     }
 

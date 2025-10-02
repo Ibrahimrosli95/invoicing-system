@@ -42,7 +42,7 @@
             <div class="flex flex-col items-center lg:items-end w-full lg:w-1/3 order-1 lg:order-2">
                 <div class="mb-4">
                     @if($invoice->company->logo_path)
-                        <img src="{{ route('company.logo') }}" alt="Company Logo" class="h-20">
+                        <img src="{{ route('company.logo') }}?v={{ $invoice->company->updated_at?->timestamp ?? time() }}" alt="Company Logo" class="h-20">
                     @else
                         <div class="h-20 w-20 bg-gray-100 rounded flex items-center justify-center">
                             <svg class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

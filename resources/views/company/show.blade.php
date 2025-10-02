@@ -30,7 +30,7 @@
                         <!-- Company Logo -->
                         <div class="flex-shrink-0 mr-6">
                             @if($company->logo_path)
-                                <img src="{{ route('company.logo') }}"
+                                <img src="{{ route('company.logo') }}?v={{ $company->updated_at?->timestamp ?? time() }}"
                                      alt="{{ $company->name }} Logo"
                                      class="h-16 w-16 object-cover rounded-lg border border-gray-200">
                             @else
