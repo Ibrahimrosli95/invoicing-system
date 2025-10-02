@@ -629,14 +629,26 @@
                         </div>
                     </div>
 
-                    <!-- Signatures (if enabled) - Dynamic 1-3 Column Layout -->
+                    <!-- Signatures (if enabled) - 3 Column Layout -->
                     <div x-show="optionalSections.show_signatures" class="px-4 md:px-6 lg:px-8 py-6 border-t border-gray-200">
-                        <div class="grid gap-4 md:gap-6"
-                             :class="{
-                                 'grid-cols-1': !optionalSections.show_company_signature && !optionalSections.show_customer_signature,
-                                 'grid-cols-1 md:grid-cols-2': (optionalSections.show_company_signature && !optionalSections.show_customer_signature) || (!optionalSections.show_company_signature && optionalSections.show_customer_signature),
-                                 'grid-cols-1 md:grid-cols-3': optionalSections.show_company_signature && optionalSections.show_customer_signature
-                             }">
+                        <!-- Signature Toggles -->
+                        <div class="flex items-center justify-end gap-4 mb-4 pb-3 border-b border-gray-200">
+                            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:text-gray-900">
+                                <input type="checkbox"
+                                       x-model="optionalSections.show_company_signature"
+                                       class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <span>Company Signature</span>
+                            </label>
+                            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:text-gray-900">
+                                <input type="checkbox"
+                                       x-model="optionalSections.show_customer_signature"
+                                       class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <span>Customer Signature</span>
+                            </label>
+                        </div>
+
+                        <!-- Always 3 Columns (33% each) -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
 
                             <!-- Sales Rep Signature (Always shown when signatures enabled) -->
                             <div class="relative group">
@@ -696,11 +708,20 @@
                                 </div>
                             </div>
 
-                            <!-- Company Signature (Optional - shown if toggle is ON) -->
-                            <div x-show="optionalSections.show_company_signature" class="relative group">
+                            <!-- Company Signature (Optional - 33% width) -->
+                            <div class="relative group"
+                                 :class="!optionalSections.show_company_signature ? 'opacity-40 pointer-events-none' : ''">
+                                <!-- Disabled Overlay -->
+                                <div x-show="!optionalSections.show_company_signature"
+                                     class="absolute inset-0 bg-gray-100 bg-opacity-50 rounded-lg flex items-center justify-center z-20"
+                                     style="display: none;">
+                                    <span class="text-xs text-gray-500 font-medium">Disabled</span>
+                                </div>
+
                                 <!-- Edit Button -->
                                 <button type="button"
                                         @click="editingSignature.company = !editingSignature.company"
+                                        x-show="optionalSections.show_company_signature"
                                         class="absolute top-0 right-0 p-1 text-gray-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                     <svg x-show="!editingSignature.company" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
@@ -754,8 +775,16 @@
                                 </div>
                             </div>
 
-                            <!-- Customer Signature (Optional - shown if toggle is ON) -->
-                            <div x-show="optionalSections.show_customer_signature">
+                            <!-- Customer Signature (Optional - 33% width) -->
+                            <div class="relative"
+                                 :class="!optionalSections.show_customer_signature ? 'opacity-40 pointer-events-none' : ''">
+                                <!-- Disabled Overlay -->
+                                <div x-show="!optionalSections.show_customer_signature"
+                                     class="absolute inset-0 bg-gray-100 bg-opacity-50 rounded-lg flex items-center justify-center z-20"
+                                     style="display: none;">
+                                    <span class="text-xs text-gray-500 font-medium">Disabled</span>
+                                </div>
+
                                 <div class="h-16 border-t border-gray-400 mt-4">
                                     <div class="mt-2 text-sm text-gray-600 text-center">Customer Acceptance</div>
                                     <div class="mt-1 text-sm text-gray-500 text-center" x-text="customerName || 'Customer'"></div>
