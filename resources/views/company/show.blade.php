@@ -30,9 +30,15 @@
                         <!-- Company Logo -->
                         <div class="flex-shrink-0 mr-6">
                             @if($company->logo_path)
-                                <img src="{{ Storage::url($company->logo_path) }}"
+                                <img src="{{ asset('storage/' . $company->logo_path) }}"
                                      alt="{{ $company->name }} Logo"
-                                     class="h-16 w-16 object-cover rounded-lg border border-gray-200">
+                                     class="h-16 w-16 object-cover rounded-lg border border-gray-200"
+                                     onerror="this.onerror=null; this.src='{{ asset('images/default-company-logo.png') }}'; this.classList.add('opacity-50');">
+                                {{-- Debug info (remove after testing) --}}
+                                <div class="text-xs text-gray-500 mt-1">
+                                    Path: {{ $company->logo_path }}<br>
+                                    URL: {{ asset('storage/' . $company->logo_path) }}
+                                </div>
                             @else
                                 <div class="h-16 w-16 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center">
                                     <svg class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
