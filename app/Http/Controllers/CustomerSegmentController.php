@@ -132,6 +132,14 @@ class CustomerSegmentController extends Controller
      */
     public function edit(CustomerSegment $customerSegment)
     {
+        // Debug logging
+        \Log::info('CustomerSegmentController@edit called', [
+            'segment_id' => $customerSegment->id,
+            'user_id' => auth()->id(),
+            'user_has_superadmin' => auth()->user()->hasRole('superadmin'),
+            'can_edit' => auth()->user()->can('edit', $customerSegment),
+        ]);
+
         return view('customer-segments.edit', compact('customerSegment'));
     }
 

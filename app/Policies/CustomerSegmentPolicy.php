@@ -8,6 +8,18 @@ use App\Models\User;
 class CustomerSegmentPolicy
 {
     /**
+     * Perform pre-authorization checks.
+     */
+    public function before(User $user, string $ability): ?bool
+    {
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
+        return null; // Fall through to individual policy methods
+    }
+
+    /**
      * Determine whether the user can view any customer segments.
      */
     public function viewAny(User $user): bool
