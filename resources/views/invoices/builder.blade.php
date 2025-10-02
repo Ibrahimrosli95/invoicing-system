@@ -1777,16 +1777,46 @@ function invoiceBuilder() {
             this.signaturePad.ctx.fillRect(0, 0, this.signaturePad.canvas.width, this.signaturePad.canvas.height);
         },
 
-        saveSignature() {
+        async saveSignature() {
             if (!this.signaturePad.canvas) return;
 
             // Convert canvas to data URL
             const dataURL = this.signaturePad.canvas.toDataURL('image/png');
 
-            // Update the appropriate signature based on type
+            // Save to server for user signature
             if (this.signaturePad.type === 'user') {
-                this.userSignature.image_path = dataURL;
+                try {
+                    const response = await fetch('{{ route("profile.signature.update") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            signature_data: dataURL,
+                            signature_name: this.userSignature.name,
+                            signature_title: this.userSignature.title
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Update with server path instead of data URL
+                        this.userSignature.image_path = data.signature.image_path;
+                        this.userSignature.name = data.signature.name;
+                        this.userSignature.title = data.signature.title;
+
+                        // Show success message
+                        this.showNotification('Signature saved successfully', 'success');
+                    }
+                } catch (error) {
+                    console.error('Error saving signature:', error);
+                    this.showNotification('Error saving signature', 'error');
+                }
             } else if (this.signaturePad.type === 'company') {
+                // For company signature, keep as data URL for now
                 this.companySignature.image_path = dataURL;
             }
 
@@ -2355,6 +2385,16 @@ function invoiceBuilder() {
         // Currency Formatting
         formatCurrency(amount) {
             return 'RM ' + parseFloat(amount || 0).toFixed(2);
+        },
+
+        // Show Notification
+        showNotification(message, type = 'success') {
+            // Create a simple alert for now - can be enhanced with a proper notification system
+            if (type === 'success') {
+                alert(message);
+            } else if (type === 'error') {
+                alert('Error: ' + message);
+            }
         },
 
         // Computed Properties

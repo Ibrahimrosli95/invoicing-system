@@ -35,11 +35,33 @@ class UserSignatureController extends Controller
             'signature_name' => 'nullable|string|max:100',
             'signature_title' => 'nullable|string|max:100',
             'signature_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'signature_data' => 'nullable|string', // For drawn signatures (base64)
             'remove_signature' => 'nullable|boolean',
         ]);
 
+        // Handle drawn signature (base64 data)
+        if ($request->filled('signature_data')) {
+            // Delete old signature if exists
+            if (!empty($user->signature_path)) {
+                Storage::disk('public')->delete($user->signature_path);
+            }
+
+            // Convert base64 to image
+            $imageData = $request->signature_data;
+
+            // Remove data URL prefix if present
+            if (strpos($imageData, 'data:image/png;base64,') === 0) {
+                $imageData = substr($imageData, strlen('data:image/png;base64,'));
+            }
+
+            $image = base64_decode($imageData);
+            $filename = 'signatures/users/' . $user->id . '_' . time() . '.png';
+
+            Storage::disk('public')->put($filename, $image);
+            $user->signature_path = $filename;
+        }
         // Handle signature image upload
-        if ($request->hasFile('signature_image')) {
+        elseif ($request->hasFile('signature_image')) {
             // Delete old signature if exists
             if (!empty($user->signature_path)) {
                 Storage::disk('public')->delete($user->signature_path);
