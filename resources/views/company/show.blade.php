@@ -29,8 +29,8 @@
                     <div class="flex items-center mb-6">
                         <!-- Company Logo -->
                         <div class="flex-shrink-0 mr-6">
-                            @if($company->logo)
-                                <img src="{{ Storage::url($company->logo) }}" 
+                            @if($company->logo_path)
+                                <img src="{{ Storage::url($company->logo_path) }}"
                                      alt="{{ $company->name }} Logo"
                                      class="h-16 w-16 object-cover rounded-lg border border-gray-200">
                             @else
