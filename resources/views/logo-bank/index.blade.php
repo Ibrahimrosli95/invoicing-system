@@ -2,22 +2,23 @@
 
 @section('title', 'Logo Bank')
 
-@section('header')
-<div class="bg-white border-b border-gray-200 px-6 py-4">
-    <div class="flex justify-between items-center">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Logo Bank') }}
-        </h2>
-        <button @click="showUploadModal = true"
-                class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-150 ease-in-out">
-            {{ __('Upload New Logo') }}
-        </button>
-    </div>
-</div>
-@endsection
-
 @section('content')
-<div class="py-12" x-data="logoBank()">
+<div x-data="logoBank()">
+    <!-- Header Section -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4 -mt-12">
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Logo Bank') }}
+            </h2>
+            <button @click="showUploadModal = true"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-150 ease-in-out">
+                {{ __('Upload New Logo') }}
+            </button>
+        </div>
+    </div>
+
+    <!-- Content Section -->
+    <div class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
         @if(session('success'))
@@ -220,7 +221,8 @@
             </div>
         </div>
     </div>
-</div>
+    </div> <!-- Close py-12 div -->
+</div> <!-- Close x-data div -->
 
 <script>
 function logoBank() {
