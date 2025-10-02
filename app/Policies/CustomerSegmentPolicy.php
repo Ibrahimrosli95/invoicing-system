@@ -40,12 +40,8 @@ class CustomerSegmentPolicy
      */
     public function view(User $user, CustomerSegment $segment): bool
     {
-        // Superadmin bypass in before() method
-        if ($user->company_id !== $segment->company_id) {
-            return false;
-        }
-
-        return $user->can('view customer segments');
+        // Superadmin already handled in before() method
+        return $user->company_id === $segment->company_id && $user->can('view customer segments');
     }
 
     /**
@@ -53,7 +49,7 @@ class CustomerSegmentPolicy
      */
     public function create(User $user): bool
     {
-        // Superadmin bypass in before() method
+        // Superadmin already handled in before() method
         return $user->can('create customer segments');
     }
 
@@ -63,12 +59,8 @@ class CustomerSegmentPolicy
      */
     public function update(User $user, CustomerSegment $segment): bool
     {
-        // Superadmin bypass in before() method
-        if ($user->company_id !== $segment->company_id) {
-            return false;
-        }
-
-        return $user->can('edit customer segments');
+        // Superadmin already handled in before() method
+        return $user->company_id === $segment->company_id && $user->can('edit customer segments');
     }
 
     /**
@@ -76,11 +68,7 @@ class CustomerSegmentPolicy
      */
     public function delete(User $user, CustomerSegment $segment): bool
     {
-        // Superadmin bypass in before() method
-        if ($user->company_id !== $segment->company_id) {
-            return false;
-        }
-
-        return $user->can('delete customer segments');
+        // Superadmin already handled in before() method
+        return $user->company_id === $segment->company_id && $user->can('delete customer segments');
     }
 }
