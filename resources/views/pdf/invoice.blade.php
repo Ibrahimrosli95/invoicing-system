@@ -65,6 +65,15 @@
         // Try invoice company logo first
         $logoFile = $invoice->company?->logo ?? $settings['company_logo'] ?? null;
 
+        // Debug logging - always log for troubleshooting
+        \Log::info('Invoice PDF Logo Debug', [
+            'invoice_id' => $invoice->id,
+            'company_logo' => $invoice->company?->logo,
+            'settings_logo' => $settings['company_logo'] ?? null,
+            'logo_file_empty' => empty($logoFile),
+            'show_company_logo' => $sections['show_company_logo'],
+        ]);
+
         if (!empty($logoFile)) {
             // Handle both storage/ prefixed and non-prefixed paths
             $logoFile = ltrim($logoFile, '/');
@@ -74,11 +83,8 @@
 
             $path = public_path($logoFile);
 
-            // Debug logging
-            \Log::info('Invoice PDF Logo Debug', [
-                'invoice_id' => $invoice->id,
-                'company_logo' => $invoice->company?->logo,
-                'settings_logo' => $settings['company_logo'] ?? null,
+            // Debug logging for file path
+            \Log::info('Invoice PDF Logo Path Check', [
                 'final_logo_file' => $logoFile,
                 'full_path' => $path,
                 'file_exists' => file_exists($path),
@@ -87,7 +93,21 @@
 
             if (file_exists($path)) {
                 $logoPath = 'file://' . str_replace('\\', '/', $path);
+            } else {
+                \Log::warning('Invoice PDF Logo File Not Found', [
+                    'path' => $path,
+                    'checked_paths' => [
+                        public_path($logoFile),
+                        public_path('storage/' . $logoFile),
+                        storage_path('app/public/' . str_replace('storage/', '', $logoFile)),
+                    ]
+                ]);
             }
+        } else {
+            \Log::warning('Invoice PDF No Logo Configured', [
+                'invoice_id' => $invoice->id,
+                'company_id' => $invoice->company_id,
+            ]);
         }
     }
 
