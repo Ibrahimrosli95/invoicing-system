@@ -485,6 +485,26 @@
         </tr>
     </table>
 
+    {{-- Notes --}}
+    @if(!empty($invoice->notes) || !empty($settings['default_notes']))
+        <div style="margin-top: 6mm; page-break-inside: avoid;">
+            <div class="section-label">Notes</div>
+            <div style="font-size: 9pt; line-height: 1.4; color: {{ $textColor }};">
+                {!! nl2br(e($invoice->notes ?? $settings['default_notes'] ?? '')) !!}
+            </div>
+        </div>
+    @endif
+
+    {{-- Terms & Conditions --}}
+    @if(!empty($invoice->terms) || !empty($settings['terms_and_conditions']))
+        <div style="margin-top: 6mm; page-break-inside: avoid;">
+            <div class="section-label">Terms & Conditions</div>
+            <div style="font-size: 9pt; line-height: 1.4; color: {{ $textColor }};">
+                {!! nl2br(e($invoice->terms ?? $settings['terms_and_conditions'] ?? '')) !!}
+            </div>
+        </div>
+    @endif
+
     {{-- Dual Signature Lines --}}
     @if($sections['show_signatures'])
         <table class="signature-table">
@@ -502,26 +522,6 @@
                 </td>
             </tr>
         </table>
-    @endif
-
-    {{-- Terms & Conditions --}}
-    @if(!empty($invoice->terms) || !empty($settings['terms_and_conditions']))
-        <div style="margin-top: 8mm; page-break-inside: avoid;">
-            <div class="section-label">Terms & Conditions</div>
-            <div style="font-size: 9pt; line-height: 1.4; color: {{ $textColor }};">
-                {!! nl2br(e($invoice->terms ?? $settings['terms_and_conditions'] ?? '')) !!}
-            </div>
-        </div>
-    @endif
-
-    {{-- Notes --}}
-    @if(!empty($invoice->notes) || !empty($settings['default_notes']))
-        <div style="margin-top: 6mm; page-break-inside: avoid;">
-            <div class="section-label">Notes</div>
-            <div style="font-size: 9pt; line-height: 1.4; color: {{ $textColor }};">
-                {!! nl2br(e($invoice->notes ?? $settings['default_notes'] ?? '')) !!}
-            </div>
-        </div>
     @endif
 
     {{-- Footer --}}
