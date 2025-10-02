@@ -50,6 +50,26 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [\App\Http\Controllers\LogoBankController::class, 'index'])->name('index');
         Route::post('/', [\App\Http\Controllers\LogoBankController::class, 'store'])->name('store');
         Route::get('/logos/list', [\App\Http\Controllers\LogoBankController::class, 'getLogos'])->name('list'); // Must come before /{logo} routes
+        Route::get('/debug', function () {
+            $logos = auth()->user()->company->logos;
+            $debug = [];
+            foreach ($logos as $logo) {
+                $path = \Storage::disk('public')->path($logo->file_path);
+                $debug[] = [
+                    'id' => $logo->id,
+                    'name' => $logo->name,
+                    'file_path' => $logo->file_path,
+                    'full_path' => $path,
+                    'exists' => file_exists($path),
+                    'storage_path' => storage_path('app/public'),
+                    'url' => route('logo-bank.serve', $logo->id),
+                ];
+            }
+            return response()->json([
+                'logos_count' => $logos->count(),
+                'debug' => $debug,
+            ]);
+        })->name('debug');
         Route::post('/{logo}/set-default', [\App\Http\Controllers\LogoBankController::class, 'setDefault'])->name('set-default');
         Route::delete('/{logo}', [\App\Http\Controllers\LogoBankController::class, 'destroy'])->name('destroy');
         Route::get('/{logo}/serve', [\App\Http\Controllers\LogoBankController::class, 'serve'])->name('serve');
