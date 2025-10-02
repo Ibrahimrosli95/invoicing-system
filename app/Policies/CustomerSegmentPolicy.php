@@ -32,10 +32,7 @@ class CustomerSegmentPolicy
      */
     public function view(User $user, CustomerSegment $segment): bool
     {
-        if ($user->hasRole('superadmin')) {
-            return true;
-        }
-
+        // Superadmin bypass in before() method
         if ($user->company_id !== $segment->company_id) {
             return false;
         }
@@ -48,10 +45,7 @@ class CustomerSegmentPolicy
      */
     public function create(User $user): bool
     {
-        if ($user->hasRole('superadmin')) {
-            return true;
-        }
-
+        // Superadmin bypass in before() method
         return $user->can('create customer segments');
     }
 
@@ -60,10 +54,7 @@ class CustomerSegmentPolicy
      */
     public function edit(User $user, CustomerSegment $segment): bool
     {
-        if ($user->hasRole('superadmin')) {
-            return true;
-        }
-
+        // Superadmin bypass in before() method
         if ($user->company_id !== $segment->company_id) {
             return false;
         }
@@ -76,10 +67,7 @@ class CustomerSegmentPolicy
      */
     public function update(User $user, CustomerSegment $segment): bool
     {
-        if ($user->hasRole('superadmin')) {
-            return true;
-        }
-
+        // Superadmin bypass in before() method
         if ($user->company_id !== $segment->company_id) {
             return false;
         }
@@ -92,10 +80,7 @@ class CustomerSegmentPolicy
      */
     public function delete(User $user, CustomerSegment $segment): bool
     {
-        if ($user->hasRole('superadmin')) {
-            return true;
-        }
-
+        // Superadmin bypass in before() method
         if ($user->company_id !== $segment->company_id) {
             return false;
         }
