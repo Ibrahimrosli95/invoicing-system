@@ -14,9 +14,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('signature_path')->nullable()->after('profile_photo_path');
-            $table->string('signature_name')->nullable()->after('signature_path');
-            $table->string('signature_title')->nullable()->after('signature_name');
+            $table->string('signature_path')->nullable();
+            $table->string('signature_name')->nullable();
+            $table->string('signature_title')->nullable();
         });
     }
 
