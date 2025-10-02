@@ -12,7 +12,15 @@ class CustomerSegmentPolicy
      */
     public function before(User $user, string $ability): ?bool
     {
+        \Log::info('CustomerSegmentPolicy@before called', [
+            'user_id' => $user->id,
+            'ability' => $ability,
+            'has_superadmin' => $user->hasRole('superadmin'),
+            'user_roles' => $user->getRoleNames()->toArray(),
+        ]);
+
         if ($user->hasRole('superadmin')) {
+            \Log::info('Superadmin bypass - returning true');
             return true;
         }
 
