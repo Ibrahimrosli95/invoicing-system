@@ -33,7 +33,7 @@ class CompanyLogo extends Model
      */
     public function getUrlAttribute(): string
     {
-        return route('company.logo.serve', $this->id);
+        return route('logo-bank.serve', $this->id);
     }
 
     /**

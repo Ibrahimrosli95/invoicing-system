@@ -49,10 +49,10 @@ Route::middleware('auth')->group(function () {
     Route::prefix('logo-bank')->name('logo-bank.')->group(function () {
         Route::get('/', [\App\Http\Controllers\LogoBankController::class, 'index'])->name('index');
         Route::post('/', [\App\Http\Controllers\LogoBankController::class, 'store'])->name('store');
+        Route::get('/logos/list', [\App\Http\Controllers\LogoBankController::class, 'getLogos'])->name('list'); // Must come before /{logo} routes
         Route::post('/{logo}/set-default', [\App\Http\Controllers\LogoBankController::class, 'setDefault'])->name('set-default');
         Route::delete('/{logo}', [\App\Http\Controllers\LogoBankController::class, 'destroy'])->name('destroy');
         Route::get('/{logo}/serve', [\App\Http\Controllers\LogoBankController::class, 'serve'])->name('serve');
-        Route::get('/logos/list', [\App\Http\Controllers\LogoBankController::class, 'getLogos'])->name('list');
     });
 
     // Settings Management
