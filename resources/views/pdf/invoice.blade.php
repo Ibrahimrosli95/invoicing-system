@@ -76,13 +76,15 @@
         ]);
 
         if (!empty($logoFile)) {
-            // Handle both storage/ prefixed and non-prefixed paths
+            // Use storage path directly (not public/storage symlink)
             $logoFile = ltrim($logoFile, '/');
-            if (!str_starts_with($logoFile, 'storage/')) {
-                $logoFile = 'storage/' . $logoFile;
+
+            // Remove 'storage/' prefix if present
+            if (str_starts_with($logoFile, 'storage/')) {
+                $logoFile = substr($logoFile, 8); // Remove 'storage/' prefix
             }
 
-            $path = public_path($logoFile);
+            $path = storage_path('app/public/' . $logoFile);
 
             // Debug logging for file path
             \Log::info('Invoice PDF Logo Path Check', [

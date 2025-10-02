@@ -41,10 +41,14 @@
             @if($settings['optional_sections']['show_company_logo'] ?? true)
             <div class="flex flex-col items-center lg:items-end w-full lg:w-1/3 order-1 lg:order-2">
                 <div class="mb-4">
-                    @if($invoice->company->logo)
-                        <img src="{{ asset('storage/' . $invoice->company->logo) }}" alt="Company Logo" class="h-20">
+                    @if($invoice->company->logo_path)
+                        <img src="{{ route('company.logo') }}" alt="Company Logo" class="h-20">
                     @else
-                        <img src="{{ asset('images/placeholder-logo.png') }}" alt="Company Logo" class="h-20">
+                        <div class="h-20 w-20 bg-gray-100 rounded flex items-center justify-center">
+                            <svg class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                        </div>
                     @endif
                 </div>
             </div>
