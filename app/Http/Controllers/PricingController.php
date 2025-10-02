@@ -1048,7 +1048,7 @@ class PricingController extends Controller
         $products = PricingItem::query()
             ->forCompany()
             ->active()
-            ->with(['category', 'pricingTiers', 'company.customerSegments']);
+            ->with(['category', 'pricingTiers']);
 
         if (!empty($query)) {
             $products->where(function ($q) use ($query) {
@@ -1062,17 +1062,22 @@ class PricingController extends Controller
             $products->inCategory($category);
         }
 
+        // Get all customer segments for this company once
+        $customerSegments = \App\Models\CustomerSegment::where('company_id', auth()->user()->company_id)
+            ->where('is_active', true)
+            ->get()
+            ->keyBy('id');
+
         $items = $products->orderBy('name')
             ->limit($limit)
             ->get()
-            ->map(function ($item) {
+            ->map(function ($item) use ($customerSegments) {
                 // Convert segment IDs to segment names in pricing
                 $segmentPricing = [];
-                if ($item->segment_selling_prices && $item->company && $item->company->customerSegments) {
+                if ($item->segment_selling_prices && is_array($item->segment_selling_prices)) {
                     foreach ($item->segment_selling_prices as $segmentId => $price) {
-                        $segment = $item->company->customerSegments->firstWhere('id', $segmentId);
-                        if ($segment) {
-                            $segmentPricing[$segment->name] = $price;
+                        if ($customerSegments->has($segmentId)) {
+                            $segmentPricing[$customerSegments[$segmentId]->name] = $price;
                         }
                     }
                 }
