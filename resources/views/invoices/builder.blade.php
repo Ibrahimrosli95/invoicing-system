@@ -242,7 +242,15 @@
                         <!-- Line Items Table - Desktop -->
                         <div class="hidden md:block">
                         <div class="overflow-hidden rounded-xl border border-gray-200">
-                            <table class="w-full">
+                            <table class="w-full table-fixed">
+                            <colgroup>
+                                <col style="width: 6%;">
+                                <col style="width: 48%;">
+                                <col style="width: 12%;">
+                                <col style="width: 14%;">
+                                <col style="width: 14%;">
+                                <col style="width: 6%;">
+                            </colgroup>
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <template x-for="column in visibleColumns" :key="column.key">
@@ -252,7 +260,7 @@
                                                     'text-center': column.key === 'sl' || column.key === 'quantity',
                                                     'text-right': column.key === 'rate' || column.key === 'amount'
                                                 }"
-                                                :style="column.key === 'sl' ? 'width: 6%;' : column.key === 'description' ? 'width: 50%;' : column.key === 'quantity' ? 'width: 12%;' : column.key === 'rate' ? 'width: 16%;' : 'width: 16%;'"
+                                                :style="column.key === 'sl' ? 'width: 6%;' : column.key === 'description' ? 'width: 48%;' : column.key === 'quantity' ? 'width: 12%;' : column.key === 'rate' ? 'width: 14%;' : 'width: 14%;'"
                                                 x-text="column.label"></th>
                                         </template>
                                         <th class="px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider text-center" style="width: 6%;">Action</th>
@@ -262,7 +270,7 @@
                                 <template x-for="(item, index) in lineItems" :key="index">
                                     <tr>
                                         <td class="px-6 py-4 text-center text-sm font-medium text-gray-600" style="width: 6%;" x-text="index + 1"></td>
-                                        <td class="px-6 py-4 relative" style="width: 50%;">
+                                        <td class="px-6 py-4 relative" style="width: 48%;">
                                             <div class="relative">
                                                 <input type="text"
                                                        x-model="item.description"
@@ -296,11 +304,11 @@
                                             <input type="number" x-model="item.quantity" @input="calculateTotals"
                                                    class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px] border-b border-gray-200 focus:border-blue-500" min="1" step="1" style="min-width: 50px;">
                                         </td>
-                                        <td class="px-6 py-4 text-right" style="width: 16%;">
+                                        <td class="px-6 py-4 text-right" style="width: 14%;">
                                             <input type="number" x-model="item.unit_price" @input="calculateTotals"
                                                    class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px] border-b border-gray-200 focus:border-blue-500" min="0" step="0.01" style="min-width: 80px;">
                                         </td>
-                                        <td class="px-6 py-4 text-right text-sm font-medium" style="width: 16%;">
+                                        <td class="px-6 py-4 text-right text-sm font-medium" style="width: 14%;">
                                             RM <span x-text="(item.quantity * item.unit_price).toFixed(2)">0.00</span>
                                         </td>
                                         <td class="px-6 py-4 text-center" style="width: 6%;">
