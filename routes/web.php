@@ -43,6 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/company', [CompanyController::class, 'show'])->name('company.show');
     Route::get('/company/edit', [CompanyController::class, 'edit'])->name('company.edit');
     Route::patch('/company', [CompanyController::class, 'update'])->name('company.update');
+    Route::get('/company/logo', [CompanyController::class, 'serveLogo'])->name('company.logo');
     
     // Settings Management
     Route::prefix('settings')->name('settings.')->group(function () {

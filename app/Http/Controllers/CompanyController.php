@@ -187,12 +187,46 @@ class CompanyController extends Controller
     }
 
     /**
+     * Serve company logo file directly (works without symlink)
+     */
+    public function serveLogo()
+    {
+        $company = auth()->user()->company;
+
+        if (!$company || !$company->logo_path) {
+            abort(404, 'Logo not found');
+        }
+
+        $path = Storage::disk('public')->path($company->logo_path);
+
+        if (!file_exists($path)) {
+            abort(404, 'Logo file not found');
+        }
+
+        // Determine MIME type from extension (avoiding fileinfo dependency)
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $mimeTypes = [
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'svg' => 'image/svg+xml',
+        ];
+        $mimeType = $mimeTypes[$extension] ?? 'application/octet-stream';
+
+        return response()->file($path, [
+            'Content-Type' => $mimeType,
+            'Cache-Control' => 'public, max-age=31536000',
+        ]);
+    }
+
+    /**
      * Get company logo URL
      */
     public function logoUrl(): string
     {
         $company = auth()->user()->company;
-        
+
         if ($company && $company->logo_path && Storage::disk('public')->exists($company->logo_path)) {
             return Storage::disk('public')->url($company->logo_path);
         }
