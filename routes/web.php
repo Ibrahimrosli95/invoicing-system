@@ -209,6 +209,7 @@ Route::middleware('auth')->group(function () {
     // Invoice Note Template Management
     Route::resource('invoice-note-templates', \App\Http\Controllers\InvoiceNoteTemplateController::class);
     Route::post('invoice-note-templates/{invoiceNoteTemplate}/set-default', [\App\Http\Controllers\InvoiceNoteTemplateController::class, 'setDefault'])->name('invoice-note-templates.set-default');
+    Route::post('invoice-note-templates/quick-save', [\App\Http\Controllers\InvoiceNoteTemplateController::class, 'quickSave'])->name('invoice-note-templates.quick-save');
     Route::get('api/invoice-note-templates/by-type', [\App\Http\Controllers\InvoiceNoteTemplateController::class, 'getByType'])->name('api.invoice-note-templates.by-type');
     
     // Service Template Management

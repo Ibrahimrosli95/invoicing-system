@@ -474,8 +474,21 @@
                                     <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
                                         <span class="font-medium text-gray-900">Payment Instructions</span>
                                         <div class="flex items-center space-x-2">
-                                            <button @click="loadPaymentInstructionTemplates()" class="bg-blue-100 hover:bg-blue-200 border border-blue-300 rounded-full px-3 py-1 text-xs text-blue-700 transition-colors">
-                                                Templates
+                                            <button @click="loadPaymentInstructionTemplates()"
+                                                    class="bg-blue-100 hover:bg-blue-200 border border-blue-300 rounded-full px-3 py-1 text-xs text-blue-700 transition-colors"
+                                                    title="Load existing template">
+                                                <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                                </svg>
+                                                Load
+                                            </button>
+                                            <button @click="saveAsTemplate('payment_instructions', paymentInstructions)"
+                                                    class="bg-green-100 hover:bg-green-200 border border-green-300 rounded-full px-3 py-1 text-xs text-green-700 transition-colors"
+                                                    title="Save current content as template">
+                                                <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                                                </svg>
+                                                Save
                                             </button>
                                             <span class="text-xs text-gray-600">(Optional)</span>
                                         </div>
@@ -491,9 +504,24 @@
                                 <div class="bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
                                     <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
                                         <span class="font-medium text-gray-900">Terms & Conditions</span>
-                                        <button @click="loadTermsTemplates()" class="bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-full px-3 py-1 text-xs text-amber-700 transition-colors">
-                                            Templates
-                                        </button>
+                                        <div class="flex items-center space-x-2">
+                                            <button @click="loadTermsTemplates()"
+                                                    class="bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-full px-3 py-1 text-xs text-amber-700 transition-colors"
+                                                    title="Load existing template">
+                                                <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                                </svg>
+                                                Load
+                                            </button>
+                                            <button @click="saveAsTemplate('terms', terms)"
+                                                    class="bg-green-100 hover:bg-green-200 border border-green-300 rounded-full px-3 py-1 text-xs text-green-700 transition-colors"
+                                                    title="Save current content as template">
+                                                <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                                                </svg>
+                                                Save
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="px-5 py-4">
                                         <textarea x-model="terms" placeholder="Add terms and conditions..."
@@ -507,8 +535,21 @@
                                     <div class="flex items-center justify-between bg-gray-200 px-5 py-4">
                                         <span class="font-medium text-gray-900">Notes</span>
                                         <div class="flex items-center space-x-2">
-                                            <button @click="loadNotesTemplates()" class="bg-green-100 hover:bg-green-200 border border-green-300 rounded-full px-3 py-1 text-xs text-green-700 transition-colors">
-                                                Templates
+                                            <button @click="loadNotesTemplates()"
+                                                    class="bg-purple-100 hover:bg-purple-200 border border-purple-300 rounded-full px-3 py-1 text-xs text-purple-700 transition-colors"
+                                                    title="Load existing template">
+                                                <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                                </svg>
+                                                Load
+                                            </button>
+                                            <button @click="saveAsTemplate('notes', notes)"
+                                                    class="bg-green-100 hover:bg-green-200 border border-green-300 rounded-full px-3 py-1 text-xs text-green-700 transition-colors"
+                                                    title="Save current content as template">
+                                                <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                                                </svg>
+                                                Save
                                             </button>
                                             <span class="text-xs text-gray-600">(Optional)</span>
                                         </div>
@@ -2244,6 +2285,58 @@ function invoiceBuilder() {
                 type: 'success',
                 message: 'Logo selected successfully!'
             });
+        },
+
+        // Save current content as template
+        async saveAsTemplate(type, content) {
+            if (!content || content.trim() === '') {
+                this.$dispatch('notify', {
+                    type: 'error',
+                    message: 'Please enter some content before saving as template.'
+                });
+                return;
+            }
+
+            // Ask for template name
+            const name = prompt('Enter a name for this template (leave empty for auto-generated name):');
+
+            // User cancelled
+            if (name === null) {
+                return;
+            }
+
+            try {
+                const response = await fetch('{{ route("invoice-note-templates.quick-save") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        type: type,
+                        content: content,
+                        name: name || null,
+                        set_as_default: false
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    this.$dispatch('notify', {
+                        type: 'success',
+                        message: data.message || 'Template saved successfully!'
+                    });
+                } else {
+                    throw new Error(data.message || 'Failed to save template');
+                }
+            } catch (error) {
+                console.error('Error saving template:', error);
+                this.$dispatch('notify', {
+                    type: 'error',
+                    message: error.message || 'Failed to save template. Please try again.'
+                });
+            }
         }
     };
 }

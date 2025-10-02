@@ -320,7 +320,7 @@
         }
 
         .payment-block {
-            padding-right: 12mm;
+            padding-right: 18mm;
         }
 
         .payment-text {
@@ -332,6 +332,7 @@
             background: #fafafa;
             font-size: 11px;
             line-height: 1.5;
+            margin-right: 6mm;
         }
 
         .totals-table {

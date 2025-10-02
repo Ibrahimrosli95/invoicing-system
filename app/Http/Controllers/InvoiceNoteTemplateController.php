@@ -220,4 +220,64 @@ class InvoiceNoteTemplateController extends Controller
             'default' => InvoiceNoteTemplate::getDefaultForType($request->type)
         ]);
     }
+
+    /**
+     * Quick save a template from the invoice builder.
+     * Creates a new template from current content without navigating away.
+     */
+    public function quickSave(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'type' => 'required|in:' . implode(',', array_keys(InvoiceNoteTemplate::getTypes())),
+            'content' => 'required|string|max:10000',
+            'name' => 'nullable|string|max:255',
+            'set_as_default' => 'nullable|boolean',
+        ]);
+
+        // Generate name if not provided
+        if (empty($validated['name'])) {
+            $typeDisplay = InvoiceNoteTemplate::getTypes()[$validated['type']];
+            $validated['name'] = $typeDisplay . ' - ' . now()->format('M d, Y H:i');
+        }
+
+        try {
+            // Create new template
+            $template = InvoiceNoteTemplate::create([
+                'company_id' => auth()->user()->company_id,
+                'name' => $validated['name'],
+                'type' => $validated['type'],
+                'content' => $validated['content'],
+                'is_default' => false,
+                'is_active' => true,
+            ]);
+
+            // Set as default if requested
+            if ($request->boolean('set_as_default')) {
+                $template->setAsDefault();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Template saved successfully!',
+                'template' => [
+                    'id' => $template->id,
+                    'name' => $template->name,
+                    'type' => $template->type,
+                    'content' => $template->content,
+                    'is_default' => $template->is_default,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to quick save template', [
+                'error' => $e->getMessage(),
+                'type' => $validated['type'],
+                'user_id' => auth()->id(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save template. Please try again.',
+            ], 500);
+        }
+    }
 }
