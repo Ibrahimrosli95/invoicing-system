@@ -130,17 +130,16 @@
                             <!-- Country -->
                             <div>
                                 <x-input-label for="country" :value="__('Country')" />
-                                <select id="country" name="country" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                    <option value="">Select Country</option>
-                                    <option value="MY" {{ old('country', $company->country) == 'MY' ? 'selected' : '' }}>Malaysia</option>
-                                    <option value="SG" {{ old('country', $company->country) == 'SG' ? 'selected' : '' }}>Singapore</option>
-                                    <option value="TH" {{ old('country', $company->country) == 'TH' ? 'selected' : '' }}>Thailand</option>
-                                    <option value="ID" {{ old('country', $company->country) == 'ID' ? 'selected' : '' }}>Indonesia</option>
-                                    <option value="PH" {{ old('country', $company->country) == 'PH' ? 'selected' : '' }}>Philippines</option>
-                                    <option value="VN" {{ old('country', $company->country) == 'VN' ? 'selected' : '' }}>Vietnam</option>
-                                    <option value="US" {{ old('country', $company->country) == 'US' ? 'selected' : '' }}>United States</option>
-                                    <option value="GB" {{ old('country', $company->country) == 'GB' ? 'selected' : '' }}>United Kingdom</option>
-                                    <option value="AU" {{ old('country', $company->country) == 'AU' ? 'selected' : '' }}>Australia</option>
+                                <select id="country" name="country" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                    <option value="Malaysia" {{ old('country', $company->country) == 'Malaysia' ? 'selected' : '' }}>Malaysia</option>
+                                    <option value="Singapore" {{ old('country', $company->country) == 'Singapore' ? 'selected' : '' }}>Singapore</option>
+                                    <option value="Thailand" {{ old('country', $company->country) == 'Thailand' ? 'selected' : '' }}>Thailand</option>
+                                    <option value="Indonesia" {{ old('country', $company->country) == 'Indonesia' ? 'selected' : '' }}>Indonesia</option>
+                                    <option value="Philippines" {{ old('country', $company->country) == 'Philippines' ? 'selected' : '' }}>Philippines</option>
+                                    <option value="Vietnam" {{ old('country', $company->country) == 'Vietnam' ? 'selected' : '' }}>Vietnam</option>
+                                    <option value="United States" {{ old('country', $company->country) == 'United States' ? 'selected' : '' }}>United States</option>
+                                    <option value="United Kingdom" {{ old('country', $company->country) == 'United Kingdom' ? 'selected' : '' }}>United Kingdom</option>
+                                    <option value="Australia" {{ old('country', $company->country) == 'Australia' ? 'selected' : '' }}>Australia</option>
                                 </select>
                                 <x-input-error class="mt-2" :messages="$errors->get('country')" />
                             </div>

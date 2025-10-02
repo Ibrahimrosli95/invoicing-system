@@ -85,7 +85,7 @@ class CompanyController extends Controller
             'city' => 'nullable|string|max:100',
             'state' => 'nullable|string|max:100',
             'postal_code' => 'nullable|string|max:20',
-            'country' => 'nullable|string|max:100',
+            'country' => 'required|string|max:100',
             'tax_number' => 'nullable|string|max:50',
             'registration_number' => 'nullable|string|max:50',
             'website' => 'nullable|url|max:255',
