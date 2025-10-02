@@ -124,12 +124,30 @@ class LogoBankController extends Controller
     {
         // Ensure logo belongs to user's company
         if ($logo->company_id !== auth()->user()->company_id) {
+            \Log::warning('Logo access denied', [
+                'logo_id' => $logo->id,
+                'logo_company_id' => $logo->company_id,
+                'user_company_id' => auth()->user()->company_id,
+            ]);
             abort(403, 'Unauthorized');
         }
 
         $path = Storage::disk('public')->path($logo->file_path);
 
+        \Log::info('Logo serve attempt', [
+            'logo_id' => $logo->id,
+            'file_path' => $logo->file_path,
+            'full_path' => $path,
+            'exists' => file_exists($path),
+            'storage_path' => storage_path('app/public'),
+        ]);
+
         if (!file_exists($path)) {
+            \Log::error('Logo file not found', [
+                'logo_id' => $logo->id,
+                'expected_path' => $path,
+                'file_path' => $logo->file_path,
+            ]);
             abort(404, 'Logo file not found');
         }
 
@@ -160,14 +178,27 @@ class LogoBankController extends Controller
     public function getLogos()
     {
         $logos = auth()->user()->company->logos()->get()->map(function ($logo) {
+            $url = route('logo-bank.serve', $logo->id) . '?v=' . $logo->updated_at->timestamp;
+
+            \Log::info('Logo URL generated', [
+                'logo_id' => $logo->id,
+                'url' => $url,
+                'file_path' => $logo->file_path,
+            ]);
+
             return [
                 'id' => $logo->id,
                 'name' => $logo->name,
-                'url' => route('logo-bank.serve', $logo->id) . '?v=' . $logo->updated_at->timestamp,
+                'url' => $url,
                 'is_default' => $logo->is_default,
                 'notes' => $logo->notes,
             ];
         });
+
+        \Log::info('GetLogos response', [
+            'count' => $logos->count(),
+            'company_id' => auth()->user()->company_id,
+        ]);
 
         return response()->json(['logos' => $logos]);
     }
