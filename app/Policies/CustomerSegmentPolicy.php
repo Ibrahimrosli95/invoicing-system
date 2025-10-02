@@ -50,20 +50,8 @@ class CustomerSegmentPolicy
     }
 
     /**
-     * Determine whether the user can edit the customer segment (show edit form).
-     */
-    public function edit(User $user, CustomerSegment $segment): bool
-    {
-        // Superadmin bypass in before() method
-        if ($user->company_id !== $segment->company_id) {
-            return false;
-        }
-
-        return $user->can('edit customer segments');
-    }
-
-    /**
      * Determine whether the user can update the customer segment.
+     * Note: Laravel's authorizeResource() uses this for both edit and update routes.
      */
     public function update(User $user, CustomerSegment $segment): bool
     {
