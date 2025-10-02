@@ -62,12 +62,13 @@
     // Logo path - check invoice company logo first, then settings
     $logoPath = null;
     if ($sections['show_company_logo']) {
-        // Try invoice company logo first
-        $logoFile = $invoice->company?->logo ?? $settings['company_logo'] ?? null;
+        // Try invoice company logo first (check both logo and logo_path columns)
+        $logoFile = $invoice->company?->logo_path ?? $invoice->company?->logo ?? $settings['company_logo'] ?? null;
 
         // Debug logging - always log for troubleshooting
         \Log::info('Invoice PDF Logo Debug', [
             'invoice_id' => $invoice->id,
+            'company_logo_path' => $invoice->company?->logo_path,
             'company_logo' => $invoice->company?->logo,
             'settings_logo' => $settings['company_logo'] ?? null,
             'logo_file_empty' => empty($logoFile),
