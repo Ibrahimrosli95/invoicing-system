@@ -308,7 +308,7 @@
                                                 <!-- Segment Pricing Selector -->
                                                 <div x-show="item.segment_pricing && Object.keys(item.segment_pricing).length > 0"
                                                      class="relative">
-                                                    <label class="block text-[10px] font-medium text-gray-500 mb-0.5">Pricing Tier</label>
+                                                    <label class="block text-[9px] font-medium text-gray-400 mb-0.5">Pricing Tier</label>
                                                     <select x-model="item.selected_segment"
                                                             @change="changeSegmentPricing(index, item.selected_segment)"
                                                             class="w-full text-xs py-1 pr-6 border-0 bg-gray-50 text-gray-600 rounded focus:ring-1 focus:ring-blue-500 cursor-pointer">
@@ -420,7 +420,7 @@
                                             <!-- Segment Pricing Selector -->
                                             <div x-show="item.segment_pricing && Object.keys(item.segment_pricing).length > 0"
                                                  class="mt-2">
-                                                <label class="block text-xs font-medium text-gray-700 mb-1">Pricing Tier</label>
+                                                <label class="block text-[10px] font-medium text-gray-500 mb-1">Pricing Tier</label>
                                                 <select x-model="item.selected_segment"
                                                         @change="changeSegmentPricing(index, item.selected_segment)"
                                                         class="w-full text-sm py-1.5 px-2 border border-gray-300 bg-white text-gray-700 rounded focus:ring-1 focus:ring-blue-500 cursor-pointer">
