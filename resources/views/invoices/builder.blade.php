@@ -1621,62 +1621,48 @@ function invoiceBuilder() {
         },
 
         selectPricingItem(index, pricingItem) {
-            // Store the selected item and index
-            this.selectedPricingItem = pricingItem;
-            this.selectedPricingItemIndex = index;
+            // Auto-apply customer's segment price if available, otherwise use base price
+            let selectedPrice = parseFloat(pricingItem.unit_price_raw || pricingItem.unit_price);
+            let selectedSegment = 'Standard';
 
-            // Auto-select customer's segment price if available
             if (this.customerSegmentName && pricingItem.segment_pricing && pricingItem.segment_pricing[this.customerSegmentName]) {
-                this.selectedSegmentPrice = {
-                    segment: this.customerSegmentName,
-                    price: parseFloat(pricingItem.segment_pricing[this.customerSegmentName])
-                };
-                this.customPrice = this.selectedSegmentPrice.price;
-            } else {
-                // Default to standard price
-                this.selectedSegmentPrice = {
-                    segment: 'Standard',
-                    price: parseFloat(pricingItem.unit_price_raw || pricingItem.unit_price)
-                };
-                this.customPrice = this.selectedSegmentPrice.price;
+                selectedPrice = parseFloat(pricingItem.segment_pricing[this.customerSegmentName]);
+                selectedSegment = this.customerSegmentName;
             }
 
-            // Hide dropdown and show pricing options modal
+            // Update line item immediately
+            this.lineItems[index].description = pricingItem.name;
+            this.lineItems[index].unit_price = selectedPrice;
+            this.lineItems[index].pricing_item_id = pricingItem.id;
+            this.lineItems[index].item_code = pricingItem.item_code;
+            this.lineItems[index].selected_segment = selectedSegment;
+
+            // Store full segment pricing data for inline switching
+            this.lineItems[index].segment_pricing = pricingItem.segment_pricing || {};
+            this.lineItems[index].base_price = parseFloat(pricingItem.unit_price_raw || pricingItem.unit_price);
+
+            // Hide dropdown and recalculate
             this.showPricingDropdown[index] = false;
-            this.showPricingOptionsModal = true;
+            this.calculateTotals();
         },
 
-        selectSegmentPrice(segmentName, price) {
-            this.selectedSegmentPrice = {
-                segment: segmentName,
-                price: parseFloat(price)
-            };
-            this.customPrice = this.selectedSegmentPrice.price;
-        },
+        changeSegmentPricing(index, segmentName) {
+            const item = this.lineItems[index];
 
-        closePricingOptions() {
-            this.showPricingOptionsModal = false;
-            this.selectedPricingItem = {};
-            this.selectedPricingItemIndex = null;
-            this.selectedSegmentPrice = { segment: '', price: 0 };
-            this.customPrice = 0;
-        },
+            if (segmentName === 'Standard') {
+                // Use base price
+                item.unit_price = item.base_price;
+                item.selected_segment = 'Standard';
+            } else if (segmentName === 'Custom') {
+                // Keep current price but mark as custom
+                item.selected_segment = 'Custom';
+                // Don't change price - user will manually edit
+            } else if (item.segment_pricing && item.segment_pricing[segmentName]) {
+                // Use segment price
+                item.unit_price = parseFloat(item.segment_pricing[segmentName]);
+                item.selected_segment = segmentName;
+            }
 
-        applyPricingSelection() {
-            const index = this.selectedPricingItemIndex;
-            const item = this.selectedPricingItem;
-
-            // Update line item with selected pricing
-            this.lineItems[index].description = item.name;
-            this.lineItems[index].unit_price = this.selectedSegmentPrice.price;
-            this.lineItems[index].pricing_item_id = item.id;
-            this.lineItems[index].item_code = item.item_code;
-
-            // Store the selected segment for reference (optional metadata)
-            this.lineItems[index].selected_segment = this.selectedSegmentPrice.segment;
-
-            // Close modal and recalculate
-            this.closePricingOptions();
             this.calculateTotals();
         },
 
