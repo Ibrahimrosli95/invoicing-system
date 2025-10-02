@@ -116,13 +116,6 @@ class CustomerSegmentController extends Controller
     {
         $this->authorize('view', $customerSegment);
 
-        \Log::info('CustomerSegmentController@show called', [
-            'segment_id' => $customerSegment->id,
-            'user_id' => auth()->id(),
-            'user_company_id' => auth()->user()->company_id,
-            'segment_company_id' => $customerSegment->company_id,
-        ]);
-
         $customerSegment->load(['createdBy', 'updatedBy']);
 
         // Get customers in this segment
