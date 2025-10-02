@@ -164,9 +164,22 @@
 
     if ($salesRep?->signature_path) {
         $salesRepSigPath = public_path('storage/' . ltrim($salesRep->signature_path, '/'));
+
+        \Log::info('PDF Signature Debug', [
+            'signature_path' => $salesRep->signature_path,
+            'full_path' => $salesRepSigPath,
+            'file_exists' => file_exists($salesRepSigPath),
+            'public_path' => public_path(),
+        ]);
+
         if (file_exists($salesRepSigPath)) {
             $salesRepSignature = 'file://' . str_replace('\\', '/', $salesRepSigPath);
         }
+    } else {
+        \Log::info('PDF Signature Debug - No signature path', [
+            'has_salesRep' => !is_null($salesRep),
+            'signature_path' => $salesRep?->signature_path,
+        ]);
     }
 
     // Company Signature (from invoice settings - optional)
