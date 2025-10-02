@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\CustomerSegment;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class CustomerSegmentPolicy
 {
@@ -21,7 +20,10 @@ class CustomerSegmentPolicy
      */
     public function view(User $user, CustomerSegment $segment): bool
     {
-        // Must be same company
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
         if ($user->company_id !== $segment->company_id) {
             return false;
         }
@@ -34,6 +36,10 @@ class CustomerSegmentPolicy
      */
     public function create(User $user): bool
     {
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
         return $user->can('create customer segments');
     }
 
@@ -42,7 +48,10 @@ class CustomerSegmentPolicy
      */
     public function edit(User $user, CustomerSegment $segment): bool
     {
-        // Must be same company
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
         if ($user->company_id !== $segment->company_id) {
             return false;
         }
@@ -55,7 +64,10 @@ class CustomerSegmentPolicy
      */
     public function update(User $user, CustomerSegment $segment): bool
     {
-        // Must be same company
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
         if ($user->company_id !== $segment->company_id) {
             return false;
         }
@@ -68,7 +80,10 @@ class CustomerSegmentPolicy
      */
     public function delete(User $user, CustomerSegment $segment): bool
     {
-        // Must be same company
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
         if ($user->company_id !== $segment->company_id) {
             return false;
         }
