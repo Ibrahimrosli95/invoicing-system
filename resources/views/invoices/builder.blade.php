@@ -639,43 +639,119 @@
                              }">
 
                             <!-- Sales Rep Signature (Always shown when signatures enabled) -->
-                            <div>
-                                <template x-if="userSignature.image_path">
-                                    <div class="flex flex-col items-center">
-                                        <img :src="`/storage/${userSignature.image_path}`"
-                                             alt="Sales Rep Signature"
-                                             class="h-12 mb-2">
-                                        <div class="border-t border-gray-400 w-full mt-1"></div>
-                                        <div class="mt-2 text-sm text-gray-900 text-center font-medium" x-text="userSignature.title || 'Sales Representative'"></div>
-                                        <div class="mt-1 text-sm text-gray-600 text-center" x-text="userSignature.name || representativeName">{{ auth()->user()->name }}</div>
+                            <div class="relative group">
+                                <!-- Edit Button -->
+                                <button type="button"
+                                        @click="editingSignature.user = !editingSignature.user"
+                                        class="absolute top-0 right-0 p-1 text-gray-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                    <svg x-show="!editingSignature.user" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                    </svg>
+                                    <svg x-show="editingSignature.user" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </button>
+
+                                <!-- View Mode -->
+                                <div x-show="!editingSignature.user">
+                                    <template x-if="userSignature.image_path">
+                                        <div class="flex flex-col items-center">
+                                            <img :src="`/storage/${userSignature.image_path}`"
+                                                 alt="Sales Rep Signature"
+                                                 class="h-12 mb-2">
+                                            <div class="border-t border-gray-400 w-full mt-1"></div>
+                                            <div class="mt-2 text-sm text-gray-900 text-center font-medium" x-text="userSignature.title || 'Sales Representative'"></div>
+                                            <div class="mt-1 text-sm text-gray-600 text-center" x-text="userSignature.name || representativeName">{{ auth()->user()->name }}</div>
+                                        </div>
+                                    </template>
+                                    <template x-if="!userSignature.image_path">
+                                        <div class="h-16 border-t border-gray-400 mt-4">
+                                            <div class="mt-2 text-sm text-gray-900 text-center font-medium" x-text="userSignature.title || 'Sales Representative'"></div>
+                                            <div class="mt-1 text-sm text-gray-600 text-center" x-text="userSignature.name || representativeName">{{ auth()->user()->name }}</div>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <!-- Edit Mode -->
+                                <div x-show="editingSignature.user" class="space-y-3 p-3 bg-blue-50 rounded-lg border border-blue-200" style="display: none;">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Job Title</label>
+                                        <input type="text"
+                                               x-model="userSignature.title"
+                                               placeholder="Sales Representative"
+                                               class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                                     </div>
-                                </template>
-                                <template x-if="!userSignature.image_path">
-                                    <div class="h-16 border-t border-gray-400 mt-4">
-                                        <div class="mt-2 text-sm text-gray-900 text-center font-medium" x-text="userSignature.title || 'Sales Representative'"></div>
-                                        <div class="mt-1 text-sm text-gray-600 text-center" x-text="userSignature.name || representativeName">{{ auth()->user()->name }}</div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Name</label>
+                                        <input type="text"
+                                               x-model="userSignature.name"
+                                               placeholder="{{ auth()->user()->name }}"
+                                               class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                                     </div>
-                                </template>
+                                    <p class="text-xs text-gray-600">
+                                        <a href="{{ route('profile.signature') }}" target="_blank" class="text-blue-600 hover:text-blue-700 underline">
+                                            Update signature image in profile
+                                        </a>
+                                    </p>
+                                </div>
                             </div>
 
                             <!-- Company Signature (Optional - shown if toggle is ON) -->
-                            <div x-show="optionalSections.show_company_signature">
-                                <template x-if="companySignature.image_path">
-                                    <div class="flex flex-col items-center">
-                                        <img :src="`/storage/${companySignature.image_path}`"
-                                             alt="Company Signature"
-                                             class="h-12 mb-2">
-                                        <div class="border-t border-gray-400 w-full mt-1"></div>
-                                        <div class="mt-2 text-sm text-gray-900 text-center font-medium" x-text="companySignature.title || 'Authorized Signatory'"></div>
-                                        <div class="mt-1 text-sm text-gray-600 text-center" x-text="companySignature.name || 'Company Representative'"></div>
+                            <div x-show="optionalSections.show_company_signature" class="relative group">
+                                <!-- Edit Button -->
+                                <button type="button"
+                                        @click="editingSignature.company = !editingSignature.company"
+                                        class="absolute top-0 right-0 p-1 text-gray-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                    <svg x-show="!editingSignature.company" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                    </svg>
+                                    <svg x-show="editingSignature.company" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </button>
+
+                                <!-- View Mode -->
+                                <div x-show="!editingSignature.company">
+                                    <template x-if="companySignature.image_path">
+                                        <div class="flex flex-col items-center">
+                                            <img :src="`/storage/${companySignature.image_path}`"
+                                                 alt="Company Signature"
+                                                 class="h-12 mb-2">
+                                            <div class="border-t border-gray-400 w-full mt-1"></div>
+                                            <div class="mt-2 text-sm text-gray-900 text-center font-medium" x-text="companySignature.title || 'Authorized Signatory'"></div>
+                                            <div class="mt-1 text-sm text-gray-600 text-center" x-text="companySignature.name || 'Company Representative'"></div>
+                                        </div>
+                                    </template>
+                                    <template x-if="!companySignature.image_path">
+                                        <div class="h-16 border-t border-gray-400 mt-4">
+                                            <div class="mt-2 text-sm text-gray-900 text-center font-medium" x-text="companySignature.title || 'Authorized Signatory'"></div>
+                                            <div class="mt-1 text-sm text-gray-600 text-center" x-text="companySignature.name || 'Company Representative'"></div>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <!-- Edit Mode -->
+                                <div x-show="editingSignature.company" class="space-y-3 p-3 bg-blue-50 rounded-lg border border-blue-200" style="display: none;">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Job Title</label>
+                                        <input type="text"
+                                               x-model="companySignature.title"
+                                               placeholder="Authorized Signatory"
+                                               class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                                     </div>
-                                </template>
-                                <template x-if="!companySignature.image_path">
-                                    <div class="h-16 border-t border-gray-400 mt-4">
-                                        <div class="mt-2 text-sm text-gray-900 text-center font-medium" x-text="companySignature.title || 'Authorized Signatory'"></div>
-                                        <div class="mt-1 text-sm text-gray-600 text-center" x-text="companySignature.name || 'Company Representative'"></div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Name</label>
+                                        <input type="text"
+                                               x-model="companySignature.name"
+                                               placeholder="Company Representative"
+                                               class="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
                                     </div>
-                                </template>
+                                    <p class="text-xs text-gray-600">
+                                        <a href="{{ route('invoice-settings.index') }}" target="_blank" class="text-blue-600 hover:text-blue-700 underline">
+                                            Update company signature in settings
+                                        </a>
+                                    </p>
+                                </div>
                             </div>
 
                             <!-- Customer Signature (Optional - shown if toggle is ON) -->
@@ -1387,6 +1463,12 @@ function invoiceBuilder() {
             name: '',
             title: '',
             image_path: ''
+        },
+
+        // Signature Edit State
+        editingSignature: {
+            user: false,
+            company: false
         },
 
         init() {
