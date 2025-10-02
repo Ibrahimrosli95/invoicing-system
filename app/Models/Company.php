@@ -109,4 +109,20 @@ class Company extends Model
     {
         return $this->hasMany(\App\Models\CustomerSegment::class);
     }
+
+    /**
+     * Get all logos in the logo bank for this company.
+     */
+    public function logos(): HasMany
+    {
+        return $this->hasMany(\App\Models\CompanyLogo::class);
+    }
+
+    /**
+     * Get the default logo for this company.
+     */
+    public function defaultLogo()
+    {
+        return $this->logos()->where('is_default', true)->first();
+    }
 }

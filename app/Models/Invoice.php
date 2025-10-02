@@ -41,6 +41,7 @@ class Invoice extends Model
 
     protected $fillable = [
         'company_id',
+        'company_logo_id',
         'team_id',
         'assigned_to',
         'created_by',
@@ -189,6 +190,11 @@ class Invoice extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function companyLogo(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\CompanyLogo::class, 'company_logo_id');
     }
 
     public function team(): BelongsTo
