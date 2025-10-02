@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserSignatureController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\CustomerController;
@@ -38,7 +39,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [UserController::class, 'profile'])->name('profile');
     Route::patch('/profile', [UserController::class, 'updateProfile'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
+
+    // User Signature Management (Sales Rep Personal Signatures)
+    Route::get('/profile/signature', [UserSignatureController::class, 'index'])->name('profile.signature');
+    Route::get('/profile/signature/show', [UserSignatureController::class, 'show'])->name('profile.signature.show');
+    Route::post('/profile/signature', [UserSignatureController::class, 'update'])->name('profile.signature.update');
+    Route::delete('/profile/signature', [UserSignatureController::class, 'destroy'])->name('profile.signature.destroy');
+
     // Company Settings
     Route::get('/company', [CompanyController::class, 'show'])->name('company.show');
     Route::get('/company/edit', [CompanyController::class, 'edit'])->name('company.edit');
@@ -205,6 +212,7 @@ Route::middleware('auth')->group(function () {
     Route::get('invoice-settings/columns', [InvoiceSettingsController::class, 'getColumns'])->name('invoice-settings.columns');
     Route::put('invoice-settings/columns', [InvoiceSettingsController::class, 'updateColumns'])->name('invoice-settings.columns.update');
     Route::put('invoice-settings/appearance', [InvoiceSettingsController::class, 'updateAppearance'])->name('invoice-settings.appearance.update');
+    Route::post('invoice-settings/company-signature', [InvoiceSettingsController::class, 'updateCompanySignature'])->name('invoice-settings.company-signature.update');
 
     // Invoice Note Template Management
     Route::resource('invoice-note-templates', \App\Http\Controllers\InvoiceNoteTemplateController::class);

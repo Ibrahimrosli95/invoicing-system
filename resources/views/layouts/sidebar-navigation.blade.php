@@ -24,6 +24,7 @@
                 'customers' => '<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 7.5a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 20.25v-.75a6 6 0 016-6h3a6 6 0 016 6v.75" />',
                 'customer-segments' => '<path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM9 9a2 2 0 11-4 0 2 2 0 014 0z" />',
                 'users' => '<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 7.5a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 20.25v-.75a6 6 0 016-6h3a6 6 0 016 6v.75" />',
+                'signature' => '<path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />',
                 'company' => '<path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />',
                 'numbering' => '<path stroke-linecap="round" stroke-linejoin="round" d="M5.25 9h13.5m-15 6h13.5M9 3.75L7.5 20.25M16.5 3.75L15 20.25" />',
                 'documents' => '<path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.75h6a1.5 1.5 0 011.5 1.5v12a1.5 1.5 0 01-1.5 1.5H9.75a1.5 1.5 0 01-1.5-1.5v-12a1.5 1.5 0 011.5-1.5z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h-1.5a1.5 1.5 0 00-1.5 1.5v11.25a1.5 1.5 0 001.5 1.5h8.25" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 9.75h3M12 12.75h3M12 15.75h3" />',
@@ -390,6 +391,13 @@
                     'route' => 'profile',
                     'patterns' => ['profile*'],
                     'icon' => 'users',
+                    'visible' => ['type' => 'auth'],
+                ],
+                [
+                    'label' => 'My Signature',
+                    'route' => 'profile.signature',
+                    'patterns' => ['profile.signature*'],
+                    'icon' => 'signature',
                     'visible' => ['type' => 'auth'],
                 ],
                 [

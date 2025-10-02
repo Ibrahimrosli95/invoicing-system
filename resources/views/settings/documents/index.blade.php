@@ -7,7 +7,7 @@
     <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
             <h2 class="text-xl font-semibold text-gray-800">{{ __('Document Settings') }}</h2>
-            <p class="mt-1 text-sm text-gray-500">{{ __('Manage default terms, notes, banking details, and signatures for quotations and invoices.') }}</p>
+            <p class="mt-1 text-sm text-gray-500">{{ __('Manage default terms, notes, and banking details for quotations and invoices.') }}</p>
         </div>
         <a href="{{ route('settings.documents.bank-accounts') }}"
            class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 shadow-sm transition hover:bg-indigo-100">
@@ -122,60 +122,6 @@
                                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                                 <p class="mt-2 text-xs text-gray-500">{{ __('Use the Bank Accounts manager for structured account lists.') }}</p>
-                            </div>
-                        </div>
-                    </section>
-
-                    {{-- Signature Block --}}
-                    <section>
-                        <div class="mb-4">
-                            <h4 class="text-base font-semibold text-gray-900">{{ __('Company Signature') }}</h4>
-                            <p class="mt-1 text-sm text-gray-500">{{ __('Upload an optional company signature and provide the default signatory details.') }}</p>
-                        </div>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            <div>
-                                <label for="signature_name" class="block text-sm font-medium text-gray-700">{{ __('Signature Name') }}</label>
-                                <input id="signature_name" name="signature_name" type="text" value="{{ old('signature_name', $documentSettings['signature_name'] ?? '') }}"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                @error('signature_name')
-                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label for="signature_title" class="block text-sm font-medium text-gray-700">{{ __('Signature Title / Role') }}</label>
-                                <input id="signature_title" name="signature_title" type="text" value="{{ old('signature_title', $documentSettings['signature_title'] ?? '') }}"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                @error('signature_title')
-                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            <div>
-                                <label for="signature_image" class="block text-sm font-medium text-gray-700">{{ __('Signature Image') }}</label>
-                                <input id="signature_image" name="signature_image" type="file" accept="image/*"
-                                       class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-indigo-700 hover:file:bg-indigo-100">
-                                @error('signature_image')
-                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                                @if(!empty($documentSettings['signature_path']))
-                                    <div class="mt-4 flex items-center space-x-4">
-                                        <img src="{{ Storage::url($documentSettings['signature_path']) }}" alt="{{ __('Signature') }}"
-                                             class="h-20 w-auto rounded border border-gray-200 bg-white p-2">
-                                        <label class="inline-flex items-center">
-                                            <input type="checkbox" name="remove_signature" value="1" class="rounded border-gray-300 text-red-600 focus:ring-red-500">
-                                            <span class="ml-2 text-sm text-gray-600">{{ __('Remove signature') }}</span>
-                                        </label>
-                                    </div>
-                                @endif
-                            </div>
-                            <div class="rounded border border-dashed border-gray-300 bg-gray-50 p-4">
-                                <p class="text-sm font-medium text-gray-700">{{ __('Preview') }}</p>
-                                <div class="mt-3 space-y-1 text-sm text-gray-600">
-                                    <p>{{ old('signature_name', $documentSettings['signature_name'] ?? 'Your Name') }}</p>
-                                    <p>{{ old('signature_title', $documentSettings['signature_title'] ?? 'Title / Role') }}</p>
-                                    <p class="text-xs text-gray-500">{{ __('Signature image displays above when uploaded.') }}</p>
-                                </div>
                             </div>
                         </div>
                     </section>

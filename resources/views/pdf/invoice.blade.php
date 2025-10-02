@@ -156,15 +156,29 @@
         $invoice->customer_state,
     ]);
 
-    // Signature configuration
-    $author = $invoice->createdBy;
-    $authorName = $author?->name ?? 'Authorized Representative';
-    $authorTitle = 'Authorized Representative';
-    $authorSignature = null;
-    if ($author?->signature_path) {
-        $sigPath = public_path('storage/' . ltrim($author->signature_path, '/'));
-        if (file_exists($sigPath)) {
-            $authorSignature = 'file://' . str_replace('\\', '/', $sigPath);
+    // Sales Rep Signature (from user profile)
+    $salesRep = $invoice->createdBy;
+    $salesRepName = $salesRep?->signature_name ?: ($salesRep?->name ?? 'Sales Representative');
+    $salesRepTitle = $salesRep?->signature_title ?: 'Sales Representative';
+    $salesRepSignature = null;
+
+    if ($salesRep?->signature_path) {
+        $salesRepSigPath = public_path('storage/' . ltrim($salesRep->signature_path, '/'));
+        if (file_exists($salesRepSigPath)) {
+            $salesRepSignature = 'file://' . str_replace('\\', '/', $salesRepSigPath);
+        }
+    }
+
+    // Company Signature (from invoice settings - optional)
+    $companySignatureConfig = $settings['company_signature'] ?? [];
+    $companySignatoryName = $companySignatureConfig['name'] ?? '';
+    $companySignatoryTitle = $companySignatureConfig['title'] ?? '';
+    $companySignature = null;
+
+    if (!empty($companySignatureConfig['image_path'])) {
+        $companySigPath = public_path('storage/' . ltrim($companySignatureConfig['image_path'], '/'));
+        if (file_exists($companySigPath)) {
+            $companySignature = 'file://' . str_replace('\\', '/', $companySigPath);
         }
     }
 
@@ -587,21 +601,43 @@
         </div>
     @endif
 
-    {{-- Dual Signature Lines --}}
+    {{-- Signature Lines (1-3 columns: Sales Rep + Optional Company + Optional Customer) --}}
     @if($sections['show_signatures'])
+        @php
+            $showCompanySig = $sections['show_company_signature'] ?? false;
+            $showCustomerSig = $sections['show_customer_signature'] ?? false;
+            $columnCount = 1 + ($showCompanySig ? 1 : 0) + ($showCustomerSig ? 1 : 0);
+        @endphp
+
         <table class="signature-table">
             <tr>
-                <td>
-                    @if($authorSignature)
-                        <img src="{{ $authorSignature }}" alt="Signature" style="max-height:40px; margin-bottom:4mm;">
+                {{-- Sales Rep Signature (Always shown when signatures enabled) --}}
+                <td style="width: {{ 100 / $columnCount }}%; vertical-align: top;">
+                    @if($salesRepSignature)
+                        <img src="{{ $salesRepSignature }}" alt="Signature" style="max-height:40px; margin-bottom:4mm;">
                     @endif
-                    <div class="signature-line">{{ $authorTitle }}</div>
-                    <div class="signature-name">{{ $authorName }}</div>
+                    <div class="signature-line">{{ $salesRepTitle }}</div>
+                    <div class="signature-name">{{ $salesRepName }}</div>
                 </td>
-                <td>
-                    <div class="signature-line">Customer Acceptance</div>
-                    <div class="signature-name">{{ $invoice->customer_name ?? 'Customer' }}</div>
-                </td>
+
+                {{-- Company Signature (Optional) --}}
+                @if($showCompanySig)
+                    <td style="width: {{ 100 / $columnCount }}%; vertical-align: top;">
+                        @if($companySignature)
+                            <img src="{{ $companySignature }}" alt="Company Signature" style="max-height:40px; margin-bottom:4mm;">
+                        @endif
+                        <div class="signature-line">{{ $companySignatoryTitle ?: 'Authorized Signatory' }}</div>
+                        <div class="signature-name">{{ $companySignatoryName ?: 'Company Representative' }}</div>
+                    </td>
+                @endif
+
+                {{-- Customer Signature (Optional) --}}
+                @if($showCustomerSig)
+                    <td style="width: {{ 100 / $columnCount }}%; vertical-align: top;">
+                        <div class="signature-line">Customer Acceptance</div>
+                        <div class="signature-name">{{ $invoice->customer_name ?? 'Customer' }}</div>
+                    </td>
+                @endif
             </tr>
         </table>
     @endif

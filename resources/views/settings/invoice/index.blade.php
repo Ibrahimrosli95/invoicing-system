@@ -213,6 +213,26 @@
                         <div class="text-sm text-gray-600">Display signature blocks at the bottom of the invoice</div>
                     </div>
                 </label>
+
+                <label class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100">
+                    <input type="checkbox"
+                           x-model="settings.sections.show_company_signature"
+                           class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                    <div>
+                        <div class="font-medium text-gray-900">Show Company Signature (Optional)</div>
+                        <div class="text-sm text-gray-600">Display authorized company signatory signature (in addition to sales rep signature)</div>
+                    </div>
+                </label>
+
+                <label class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100">
+                    <input type="checkbox"
+                           x-model="settings.sections.show_customer_signature"
+                           class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                    <div>
+                        <div class="font-medium text-gray-900">Show Customer Signature (Optional)</div>
+                        <div class="text-sm text-gray-600">Display customer acceptance signature line</div>
+                    </div>
+                </label>
             </div>
         </div>
 
@@ -261,6 +281,63 @@
             </div>
         </div>
 
+        <!-- 5. Company Signature (Optional Authorized Signatory) -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+                Company Signature (Optional)
+            </h2>
+            <p class="text-sm text-gray-600 mb-6">
+                Upload authorized company signatory signature for official invoices.
+                <span class="text-orange-600 font-medium">Note:</span> Sales rep signatures are managed in their individual profiles. This is for company-level authorized signatories (MD, Finance Manager, etc.)
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Authorized Signatory Name</label>
+                    <input type="text"
+                           x-model="settings.company_signature.name"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="e.g., Tan Sri Ahmad">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Signatory Title</label>
+                    <input type="text"
+                           x-model="settings.company_signature.title"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="e.g., Managing Director">
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Signature Image</label>
+                <input type="file"
+                       @change="handleCompanySignatureUpload"
+                       accept="image/jpeg,image/jpg,image/png"
+                       class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                <p class="text-xs text-gray-500 mt-1">Accepted formats: JPG, PNG. Max size: 2MB.</p>
+
+                <!-- Current Signature Preview -->
+                <template x-if="settings.company_signature.image_path">
+                    <div class="mt-4 flex items-start gap-4">
+                        <div class="border border-gray-300 rounded-lg p-3 bg-gray-50">
+                            <img :src="`/storage/${settings.company_signature.image_path}`"
+                                 alt="Current Signature"
+                                 class="h-16 max-w-xs">
+                        </div>
+                        <button @click="removeCompanySignature"
+                                type="button"
+                                class="px-3 py-1 bg-red-50 text-red-700 border border-red-200 rounded-lg hover:bg-red-100 text-sm">
+                            Remove Signature
+                        </button>
+                    </div>
+                </template>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -287,12 +364,19 @@ function invoiceSettings() {
                 show_company_logo: true,
                 show_payment_instructions: true,
                 show_signatures: true,
+                show_company_signature: false,
+                show_customer_signature: false,
             },
             payment_instructions: {
                 bank_name: '',
                 account_number: '',
                 account_holder: '',
                 additional_info: 'Please include invoice number in payment reference.',
+            },
+            company_signature: {
+                name: '',
+                title: '',
+                image_path: '',
             }
         },
 
@@ -329,6 +413,9 @@ function invoiceSettings() {
                         }
                         if (data.settings.payment_instructions) {
                             this.settings.payment_instructions = { ...this.settings.payment_instructions, ...data.settings.payment_instructions };
+                        }
+                        if (data.settings.company_signature) {
+                            this.settings.company_signature = { ...this.settings.company_signature, ...data.settings.company_signature };
                         }
                     }
                 })
@@ -426,6 +513,88 @@ function invoiceSettings() {
             setTimeout(() => {
                 this.message.show = false;
             }, 5000);
+        },
+
+        async handleCompanySignatureUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validate file
+            if (!['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+                this.showMessage('error', 'Please upload a JPG or PNG image.');
+                event.target.value = '';
+                return;
+            }
+
+            if (file.size > 2 * 1024 * 1024) { // 2MB
+                this.showMessage('error', 'File size must be less than 2MB.');
+                event.target.value = '';
+                return;
+            }
+
+            // Upload company signature
+            const formData = new FormData();
+            formData.append('signature_image', file);
+            formData.append('signature_name', this.settings.company_signature.name);
+            formData.append('signature_title', this.settings.company_signature.title);
+
+            try {
+                const response = await fetch('/invoice-settings/company-signature', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    this.settings.company_signature = data.company_signature;
+                    this.showMessage('success', 'Company signature uploaded successfully!');
+                } else {
+                    throw new Error(data.message || 'Failed to upload company signature');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                this.showMessage('error', error.message || 'Failed to upload company signature');
+            }
+
+            // Clear file input
+            event.target.value = '';
+        },
+
+        async removeCompanySignature() {
+            if (!confirm('Are you sure you want to remove the company signature?')) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('signature_name', this.settings.company_signature.name);
+            formData.append('signature_title', this.settings.company_signature.title);
+            formData.append('remove_signature', '1');
+
+            try {
+                const response = await fetch('/invoice-settings/company-signature', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    this.settings.company_signature.image_path = '';
+                    this.showMessage('success', 'Company signature removed successfully!');
+                } else {
+                    throw new Error(data.message || 'Failed to remove company signature');
+                }
+            } catch (error) {
+                console.error('Remove error:', error);
+                this.showMessage('error', error.message || 'Failed to remove company signature');
+            }
         }
     }
 }

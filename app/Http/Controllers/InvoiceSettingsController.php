@@ -149,6 +149,57 @@ class InvoiceSettingsController extends Controller
     }
 
     /**
+     * Update company signature configuration (optional authorized signatory)
+     */
+    public function updateCompanySignature(Request $request): JsonResponse
+    {
+        $this->authorize('manage settings');
+
+        $validated = $request->validate([
+            'signature_name' => 'nullable|string|max:100',
+            'signature_title' => 'nullable|string|max:100',
+            'signature_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'remove_signature' => 'nullable|boolean',
+        ]);
+
+        // Get current company signature settings
+        $signature = $this->settingsService->getCompanySignature();
+
+        // Handle signature image upload
+        if ($request->hasFile('signature_image')) {
+            // Delete old signature if exists
+            if (!empty($signature['image_path'])) {
+                \Storage::disk('public')->delete($signature['image_path']);
+            }
+
+            // Store new signature
+            $path = $request->file('signature_image')->store('signatures/company', 'public');
+            $signature['image_path'] = $path;
+        }
+
+        // Handle signature removal
+        if ($request->boolean('remove_signature')) {
+            if (!empty($signature['image_path'])) {
+                \Storage::disk('public')->delete($signature['image_path']);
+            }
+            $signature['image_path'] = '';
+        }
+
+        // Update name and title
+        $signature['name'] = $validated['signature_name'] ?? '';
+        $signature['title'] = $validated['signature_title'] ?? '';
+
+        // Save to settings
+        $success = $this->settingsService->updateCompanySignature($signature);
+
+        return response()->json([
+            'success' => $success,
+            'message' => $success ? 'Company signature updated successfully.' : 'Failed to update company signature.',
+            'company_signature' => $success ? $this->settingsService->getCompanySignature() : null
+        ]);
+    }
+
+    /**
      * Update default settings
      */
     public function updateDefaults(Request $request): JsonResponse

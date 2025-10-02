@@ -37,6 +37,8 @@ class InvoiceSettingsService
                 'show_company_logo' => true,
                 'show_payment_instructions' => true,
                 'show_signatures' => true,
+                'show_company_signature' => false, // Company authorized signatory (optional, default OFF)
+                'show_customer_signature' => false, // Customer acceptance placeholder (optional, default OFF)
             ],
 
             // Payment instructions for PDF
@@ -45,6 +47,13 @@ class InvoiceSettingsService
                 'account_number' => '',
                 'account_holder' => '',
                 'additional_info' => 'Please include invoice number in payment reference.',
+            ],
+
+            // Company signature configuration (optional authorized signatory)
+            'company_signature' => [
+                'name' => '',
+                'title' => '',
+                'image_path' => '',
             ],
         ];
     }
@@ -209,6 +218,7 @@ class InvoiceSettingsService
             'columns' => $settings['columns'] ?? $this->getDefaultSettings()['columns'],
             'sections' => $settings['sections'] ?? $this->getDefaultSettings()['sections'],
             'payment_instructions' => $settings['payment_instructions'] ?? $this->getDefaultSettings()['payment_instructions'],
+            'company_signature' => $settings['company_signature'] ?? $this->getDefaultSettings()['company_signature'],
         ];
     }
 
@@ -269,7 +279,7 @@ class InvoiceSettingsService
 
         // Validate sections (simple booleans)
         if (isset($settings['sections'])) {
-            foreach (['show_company_logo', 'show_payment_instructions', 'show_signatures'] as $field) {
+            foreach (['show_company_logo', 'show_payment_instructions', 'show_signatures', 'show_company_signature', 'show_customer_signature'] as $field) {
                 if (isset($settings['sections'][$field]) && !is_bool($settings['sections'][$field])) {
                     $errors["sections.{$field}"] = 'Must be true or false.';
                 }
@@ -350,5 +360,39 @@ class InvoiceSettingsService
         }
 
         return $merged;
+    }
+
+    /**
+     * Get company signature configuration (optional authorized signatory)
+     */
+    public function getCompanySignature(?int $companyId = null): array
+    {
+        return $this->getSetting('company_signature', $this->getDefaultSettings()['company_signature'], $companyId);
+    }
+
+    /**
+     * Update company signature configuration
+     */
+    public function updateCompanySignature(array $signature, ?int $companyId = null): bool
+    {
+        return $this->setSetting('company_signature', $signature, $companyId);
+    }
+
+    /**
+     * Get company signature image path
+     */
+    public function getCompanySignatureImagePath(?int $companyId = null): ?string
+    {
+        $signature = $this->getCompanySignature($companyId);
+        return $signature['image_path'] ?? null;
+    }
+
+    /**
+     * Check if company has a signature image
+     */
+    public function hasCompanySignatureImage(?int $companyId = null): bool
+    {
+        $imagePath = $this->getCompanySignatureImagePath($companyId);
+        return !empty($imagePath);
     }
 }

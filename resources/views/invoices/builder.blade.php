@@ -629,20 +629,61 @@
                         </div>
                     </div>
 
-                    <!-- Signatures (if enabled) -->
+                    <!-- Signatures (if enabled) - Dynamic 1-3 Column Layout -->
                     <div x-show="optionalSections.show_signatures" class="px-4 md:px-6 lg:px-8 py-6 border-t border-gray-200">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <div class="grid gap-4 md:gap-6"
+                             :class="{
+                                 'grid-cols-1': !optionalSections.show_company_signature && !optionalSections.show_customer_signature,
+                                 'grid-cols-1 md:grid-cols-2': (optionalSections.show_company_signature && !optionalSections.show_customer_signature) || (!optionalSections.show_company_signature && optionalSections.show_customer_signature),
+                                 'grid-cols-1 md:grid-cols-3': optionalSections.show_company_signature && optionalSections.show_customer_signature
+                             }">
+
+                            <!-- Sales Rep Signature (Always shown when signatures enabled) -->
                             <div>
-                                <div class="h-16 border-t border-gray-400 mt-4">
-                                    <div class="mt-2 text-sm text-gray-900 text-center font-medium" x-text="representativeName">{{ auth()->user()->name }}</div>
-                                    <div class="mt-1 text-sm text-gray-600 text-center" x-text="representativeTitle">Sales Representative</div>
-                                    <div class="mt-1 text-xs text-gray-500 text-center">{{ auth()->user()->company->name }}</div>
-                                </div>
+                                <template x-if="userSignature.image_path">
+                                    <div class="flex flex-col items-center">
+                                        <img :src="`/storage/${userSignature.image_path}`"
+                                             alt="Sales Rep Signature"
+                                             class="h-12 mb-2">
+                                        <div class="border-t border-gray-400 w-full mt-1"></div>
+                                        <div class="mt-2 text-sm text-gray-900 text-center font-medium" x-text="userSignature.title || 'Sales Representative'"></div>
+                                        <div class="mt-1 text-sm text-gray-600 text-center" x-text="userSignature.name || representativeName">{{ auth()->user()->name }}</div>
+                                    </div>
+                                </template>
+                                <template x-if="!userSignature.image_path">
+                                    <div class="h-16 border-t border-gray-400 mt-4">
+                                        <div class="mt-2 text-sm text-gray-900 text-center font-medium" x-text="userSignature.title || 'Sales Representative'"></div>
+                                        <div class="mt-1 text-sm text-gray-600 text-center" x-text="userSignature.name || representativeName">{{ auth()->user()->name }}</div>
+                                    </div>
+                                </template>
                             </div>
-                            <div>
+
+                            <!-- Company Signature (Optional - shown if toggle is ON) -->
+                            <div x-show="optionalSections.show_company_signature">
+                                <template x-if="companySignature.image_path">
+                                    <div class="flex flex-col items-center">
+                                        <img :src="`/storage/${companySignature.image_path}`"
+                                             alt="Company Signature"
+                                             class="h-12 mb-2">
+                                        <div class="border-t border-gray-400 w-full mt-1"></div>
+                                        <div class="mt-2 text-sm text-gray-900 text-center font-medium" x-text="companySignature.title || 'Authorized Signatory'"></div>
+                                        <div class="mt-1 text-sm text-gray-600 text-center" x-text="companySignature.name || 'Company Representative'"></div>
+                                    </div>
+                                </template>
+                                <template x-if="!companySignature.image_path">
+                                    <div class="h-16 border-t border-gray-400 mt-4">
+                                        <div class="mt-2 text-sm text-gray-900 text-center font-medium" x-text="companySignature.title || 'Authorized Signatory'"></div>
+                                        <div class="mt-1 text-sm text-gray-600 text-center" x-text="companySignature.name || 'Company Representative'"></div>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- Customer Signature (Optional - shown if toggle is ON) -->
+                            <div x-show="optionalSections.show_customer_signature">
                                 <div class="h-16 border-t border-gray-400 mt-4">
                                     <div class="mt-2 text-sm text-gray-600 text-center">Customer Acceptance</div>
-                                    <div class="mt-1 text-sm text-gray-500 text-center">Date: _______________</div>
+                                    <div class="mt-1 text-sm text-gray-500 text-center" x-text="customerName || 'Customer'"></div>
+                                    <div class="mt-1 text-xs text-gray-400 text-center">Date: _______________</div>
                                 </div>
                             </div>
                         </div>
@@ -1230,7 +1271,9 @@ function invoiceBuilder() {
             show_shipping: true,
             show_payment_instructions: true,
             show_signatures: true,
-            show_company_logo: true
+            show_company_logo: true,
+            show_company_signature: false,  // Optional company authorized signatory (default OFF)
+            show_customer_signature: false  // Optional customer acceptance (default OFF)
         },
 
         // Table Columns Configuration
@@ -1331,6 +1374,20 @@ function invoiceBuilder() {
         // Representative Information
         representativeName: '{{ auth()->user()->name }}',
         representativeTitle: 'Sales Representative',
+
+        // User Signature (Sales Rep)
+        userSignature: {
+            name: '{{ auth()->user()->signature_name ?? auth()->user()->name }}',
+            title: '{{ auth()->user()->signature_title ?? "Sales Representative" }}',
+            image_path: '{{ auth()->user()->signature_path ?? "" }}'
+        },
+
+        // Company Signature (Optional Authorized Signatory)
+        companySignature: {
+            name: '',
+            title: '',
+            image_path: ''
+        },
 
         init() {
             // Set default dates in DD/MM/YYYY format
@@ -2002,9 +2059,21 @@ function invoiceBuilder() {
                 .then(data => {
                     if (data.success && data.settings) {
                         // Apply default settings
-                        this.optionalSections = { ...this.optionalSections, ...data.settings.optional_sections };
+                        this.optionalSections = { ...this.optionalSections, ...data.settings.sections };
                         this.notes = data.settings.default_notes || this.notes;
                         this.terms = data.settings.default_terms || this.terms;
+
+                        // Load company signature settings (optional authorized signatory)
+                        if (data.settings.company_signature) {
+                            this.companySignature = {
+                                name: data.settings.company_signature.name || '',
+                                title: data.settings.company_signature.title || '',
+                                image_path: data.settings.company_signature.image_path || ''
+                            };
+                        }
+
+                        // Note: User signature is already loaded from auth()->user() in data initialization
+                        // Company signature toggles (show_company_signature, show_customer_signature) are loaded via sections
                     }
                 })
                 .catch(error => {
