@@ -59,12 +59,35 @@
         $paymentText = implode("\n", array_filter($lines));
     }
 
-    // Logo path
+    // Logo path - check invoice company logo first, then settings
     $logoPath = null;
-    if ($sections['show_company_logo'] && !empty($invoice->company?->logo)) {
-        $path = public_path('storage/' . ltrim($invoice->company->logo, '/'));
-        if (file_exists($path)) {
-            $logoPath = 'file://' . str_replace('\\', '/', $path);
+    if ($sections['show_company_logo']) {
+        // Try invoice company logo first
+        $logoFile = $invoice->company?->logo ?? $settings['company_logo'] ?? null;
+
+        if (!empty($logoFile)) {
+            // Handle both storage/ prefixed and non-prefixed paths
+            $logoFile = ltrim($logoFile, '/');
+            if (!str_starts_with($logoFile, 'storage/')) {
+                $logoFile = 'storage/' . $logoFile;
+            }
+
+            $path = public_path($logoFile);
+
+            // Debug logging
+            \Log::info('Invoice PDF Logo Debug', [
+                'invoice_id' => $invoice->id,
+                'company_logo' => $invoice->company?->logo,
+                'settings_logo' => $settings['company_logo'] ?? null,
+                'final_logo_file' => $logoFile,
+                'full_path' => $path,
+                'file_exists' => file_exists($path),
+                'public_path' => public_path(),
+            ]);
+
+            if (file_exists($path)) {
+                $logoPath = 'file://' . str_replace('\\', '/', $path);
+            }
         }
     }
 
