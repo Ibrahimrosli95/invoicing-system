@@ -30,25 +30,6 @@ Route::get('/', function () {
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
-// Debug route - remove after testing
-Route::get('/debug-auth', function () {
-    $user = auth()->user();
-    $segment = \App\Models\CustomerSegment::find(1);
-
-    return response()->json([
-        'user_id' => $user->id,
-        'user_email' => $user->email,
-        'user_company_id' => $user->company_id,
-        'segment_company_id' => $segment ? $segment->company_id : 'not found',
-        'roles' => $user->getRoleNames(),
-        'has_superadmin' => $user->hasRole('superadmin'),
-        'can_view_segments' => $user->can('view customer segments'),
-        'can_edit_segments' => $user->can('edit customer segments'),
-        'can_edit_segment_1' => $user->can('edit', $segment),
-        'policy_edit_result' => app(\App\Policies\CustomerSegmentPolicy::class)->edit($user, $segment ?? new \App\Models\CustomerSegment()),
-    ]);
-})->middleware(['auth']);
-
 // Public Shared Proof Pack Routes (no auth required)
 Route::get('shared/proof-pack/{token}', [\App\Http\Controllers\ProofController::class, 'sharedProofPack'])->name('proofs.shared-pack');
 Route::get('shared/proof-pack/{token}/download', [\App\Http\Controllers\ProofController::class, 'downloadSharedProofPack'])->name('proofs.shared-pack.download');
