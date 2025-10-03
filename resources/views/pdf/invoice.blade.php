@@ -648,21 +648,17 @@
         </div>
     @endif
 
-    {{-- Signature Lines (Only show enabled signatures) --}}
+    {{-- Signature Lines (Always 3 columns at 33% - hide disabled content) --}}
     @if($sections['show_signatures'])
         @php
             $showCompanySig = $sections['show_company_signature'] ?? false;
             $showCustomerSig = $sections['show_customer_signature'] ?? false;
-
-            // Calculate column count and width
-            $sigColumnCount = 1 + ($showCompanySig ? 1 : 0) + ($showCustomerSig ? 1 : 0);
-            $sigColumnWidth = number_format(100 / $sigColumnCount, 2) . '%';
         @endphp
 
         <table class="signature-table">
             <tr>
                 {{-- Sales Rep Signature (Always shown when signatures enabled) --}}
-                <td style="width: {{ $sigColumnWidth }}; vertical-align: top;">
+                <td style="width: 33.33%; vertical-align: top;">
                     @if($salesRepSignature)
                         <img src="{{ $salesRepSignature }}" alt="Signature" style="max-height:40px; margin-bottom:4mm;">
                     @endif
@@ -670,24 +666,24 @@
                     <div class="signature-name">{{ $salesRepName }}</div>
                 </td>
 
-                {{-- Company Signature (Only show if enabled) --}}
-                @if($showCompanySig)
-                    <td style="width: {{ $sigColumnWidth }}; vertical-align: top;">
+                {{-- Company Signature (Empty cell if disabled) --}}
+                <td style="width: 33.33%; vertical-align: top;">
+                    @if($showCompanySig)
                         @if($companySignature)
                             <img src="{{ $companySignature }}" alt="Company Signature" style="max-height:40px; margin-bottom:4mm;">
                         @endif
                         <div class="signature-line">{{ $companySignatoryTitle ?: 'Authorized Signatory' }}</div>
                         <div class="signature-name">{{ $companySignatoryName ?: 'Company Representative' }}</div>
-                    </td>
-                @endif
+                    @endif
+                </td>
 
-                {{-- Customer Signature (Only show if enabled) --}}
-                @if($showCustomerSig)
-                    <td style="width: {{ $sigColumnWidth }}; vertical-align: top;">
+                {{-- Customer Signature (Empty cell if disabled) --}}
+                <td style="width: 33.33%; vertical-align: top;">
+                    @if($showCustomerSig)
                         <div class="signature-line">Customer Acceptance</div>
                         <div class="signature-name">{{ $invoice->customer_name ?? 'Customer' }}</div>
-                    </td>
-                @endif
+                    @endif
+                </td>
             </tr>
         </table>
     @endif
