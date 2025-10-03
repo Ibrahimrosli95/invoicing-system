@@ -50,10 +50,5 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
         $testUser->assignRole('sales_executive');
-
-        // Seed default invoice note templates for all companies
-        $this->call([
-            InvoiceNoteTemplateSeeder::class,
-        ]);
     }
 }

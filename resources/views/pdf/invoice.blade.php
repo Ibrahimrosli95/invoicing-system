@@ -366,11 +366,11 @@
             border: 1px solid {{ $borderColor }};
             padding: 8px 10px;
             border-radius: 4px;
-            white-space: pre-line;
+            white-space: normal;
             color: {{ $textColor }};
             background: #fafafa;
             font-size: 11px;
-            line-height: 1.5;
+            line-height: 1.3;
             margin-right: 6mm;
         }
 
