@@ -805,7 +805,7 @@
 
                                 <div class="h-16 border-t border-gray-400 mt-4">
                                     <div class="mt-2 text-sm text-gray-600 text-center">Customer Acceptance</div>
-                                    <div class="mt-1 text-sm text-gray-500 text-center" x-text="customerName || 'Customer'"></div>
+                                    <div class="mt-1 text-sm text-gray-500 text-center" x-text="selectedCustomer.name || 'Customer'"></div>
                                     <div class="mt-1 text-xs text-gray-400 text-center">Date: _______________</div>
                                 </div>
                             </div>
