@@ -188,6 +188,7 @@ Route::middleware('auth')->group(function () {
     // Invoice Management
     Route::get('invoices/builder', [InvoiceController::class, 'builder'])->name('invoices.builder');
     Route::post('api/invoices', [InvoiceController::class, 'storeApi'])->name('api.invoices.store');
+    Route::put('api/invoices/{invoice}', [InvoiceController::class, 'updateApi'])->name('api.invoices.update');
     Route::resource('invoices', InvoiceController::class);
 
     // Enhanced Invoice Builders

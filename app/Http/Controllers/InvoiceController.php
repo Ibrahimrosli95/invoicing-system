@@ -422,6 +422,115 @@ class InvoiceController extends Controller
     }
 
     /**
+     * Update invoice via API (for builder/edit interface).
+     */
+    public function updateApi(Request $request, Invoice $invoice): JsonResponse
+    {
+        $this->authorize('update', $invoice);
+
+        // Check if invoice can be edited
+        if (!$invoice->canBeEdited()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This invoice cannot be edited in its current status.'
+            ], 403);
+        }
+
+        try {
+            $validated = $request->validate([
+                'customer_segment_id' => 'nullable|exists:customer_segments,id',
+                'customer_name' => 'required|string|max:100',
+                'customer_phone' => 'required|string|max:20',
+                'customer_email' => 'nullable|email|max:100',
+                'customer_address' => 'nullable|string',
+                'customer_city' => 'nullable|string|max:100',
+                'customer_state' => 'nullable|string|max:100',
+                'customer_postal_code' => 'nullable|string|max:20',
+                'customer_company' => 'nullable|string|max:150',
+                'title' => 'nullable|string|max:150',
+                'description' => 'nullable|string',
+                'terms_conditions' => 'nullable|string',
+                'notes' => 'nullable|string',
+                'payment_instructions' => 'nullable|string',
+                'invoice_date' => 'required|date',
+                'due_date' => 'required|date|after_or_equal:invoice_date',
+                'tax_percentage' => 'nullable|numeric|min:0|max:100',
+                'discount_percentage' => 'nullable|numeric|min:0|max:100',
+                'discount_amount' => 'nullable|numeric|min:0',
+                'items' => 'required|array|min:1',
+                'items.*.description' => 'required|string|max:500',
+                'items.*.unit' => 'nullable|string|max:20',
+                'items.*.quantity' => 'required|numeric|min:0.01',
+                'items.*.unit_price' => 'required|numeric|min:0',
+                'items.*.item_code' => 'nullable|string|max:100',
+                'items.*.specifications' => 'nullable|string',
+                'items.*.notes' => 'nullable|string',
+                'items.*.source_type' => 'nullable|string|in:pricing_item,service_template_item,manual',
+                'items.*.source_id' => 'nullable|integer',
+            ]);
+
+            // Update invoice data
+            $items = $validated['items'];
+            unset($validated['items']);
+
+            $invoice->update($validated);
+
+            // Delete existing items and recreate them
+            $invoice->items()->delete();
+
+            foreach ($items as $index => $item) {
+                InvoiceItem::create([
+                    'invoice_id' => $invoice->id,
+                    'description' => $item['description'],
+                    'unit' => $item['unit'] ?? 'pcs',
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'item_code' => $item['item_code'] ?? null,
+                    'specifications' => $item['specifications'] ?? null,
+                    'notes' => $item['notes'] ?? null,
+                    'source_type' => $item['source_type'] ?? null,
+                    'source_id' => $item['source_id'] ?? null,
+                    'sort_order' => $index,
+                ]);
+            }
+
+            // Recalculate totals
+            $invoice->fresh()->calculateTotals();
+            $invoice->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Invoice updated successfully.',
+                'invoice' => [
+                    'id' => $invoice->id,
+                    'number' => $invoice->number,
+                    'status' => $invoice->status,
+                    'total' => $invoice->total,
+                ]
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Invoice update failed', [
+                'error' => $e->getMessage(),
+                'invoice_id' => $invoice->id,
+                'user_id' => auth()->id(),
+                'request_data' => $request->all()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update invoice. Please try again.'
+            ], 500);
+        }
+    }
+
+    /**
      * Display the specified invoice.
      */
     public function show(Invoice $invoice): View
