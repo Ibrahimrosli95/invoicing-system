@@ -2,14 +2,21 @@
 
 @section('content')
 @php
-    // Check if current user is the owner OR has role that allows editing all invoices
+    // Check if current user is the owner (created by them) - ONLY owner can edit
     $isOwner = $invoice->created_by === auth()->id();
-    $isSuperadmin = auth()->user()->hasRole('superadmin');
-    $isCompanyManager = auth()->user()->hasRole('company_manager');
-    $isFinanceManager = auth()->user()->hasRole('finance_manager');
+    $canFullyEdit = $isOwner && $invoice->canBeEdited();
 
-    // Users who can fully edit: owner, superadmin, company manager, or finance manager
-    $canFullyEdit = ($isOwner || $isSuperadmin || $isCompanyManager || $isFinanceManager) && $invoice->canBeEdited();
+    // Debug info (you can remove this after testing)
+    \Log::info('Edit page debug', [
+        'invoice_id' => $invoice->id,
+        'invoice_created_by' => $invoice->created_by,
+        'invoice_created_by_type' => gettype($invoice->created_by),
+        'auth_id' => auth()->id(),
+        'auth_id_type' => gettype(auth()->id()),
+        'isOwner' => $isOwner,
+        'canBeEdited' => $invoice->canBeEdited(),
+        'canFullyEdit' => $canFullyEdit
+    ]);
 
     // Prepare line items data
     $lineItemsData = $invoice->items->map(function($item) {
@@ -1506,7 +1513,7 @@ function invoiceBuilder() {
         // Invoice Data
         currentInvoiceId: {{ $invoice->id }}, // Track the current draft invoice to avoid duplicates
         isEditMode: true,
-        canEdit: {{ $canFullyEdit ? 'true' : 'false' }}, // Can user edit this invoice (owner OR superadmin/company manager/finance manager)
+        canEdit: {{ $canFullyEdit ? 'true' : 'false' }}, // ONLY owner can edit
         invoiceNumber: @json($invoice->number),
         invoiceDate: @json($invoice->invoice_date?->format('Y-m-d') ?? date('Y-m-d')),
         invoiceDateDisplay: '',
