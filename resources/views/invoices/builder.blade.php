@@ -668,9 +668,10 @@
                                 <div x-show="!editingSignature.user">
                                     <template x-if="userSignature.image_path">
                                         <div class="flex flex-col items-center">
-                                            <img :src="userSignature.image_path.startsWith('data:') ? userSignature.image_path : `/storage/${userSignature.image_path}`"
+                                            <img :src="getSignatureImageUrl(userSignature.image_path)"
                                                  alt="Sales Rep Signature"
-                                                 class="h-12 mb-2">
+                                                 class="h-12 mb-2"
+                                                 @error="console.error('Image failed to load:', userSignature.image_path)">
                                             <div class="border-t border-gray-400 w-full mt-1"></div>
                                             <div class="mt-2 text-sm text-gray-900 text-center font-medium" x-text="userSignature.title || 'Sales Representative'"></div>
                                             <div class="mt-1 text-sm text-gray-600 text-center" x-text="userSignature.name || representativeName">{{ auth()->user()->name }}</div>
@@ -744,7 +745,7 @@
                                 <div x-show="!editingSignature.company">
                                     <template x-if="companySignature.image_path">
                                         <div class="flex flex-col items-center">
-                                            <img :src="companySignature.image_path.startsWith('data:') ? companySignature.image_path : `/storage/${companySignature.image_path}`"
+                                            <img :src="getSignatureImageUrl(companySignature.image_path)"
                                                  alt="Company Signature"
                                                  class="h-12 mb-2">
                                             <div class="border-t border-gray-400 w-full mt-1"></div>
@@ -1444,6 +1445,7 @@ function invoiceBuilder() {
         },
 
         // Invoice Data
+        currentInvoiceId: null, // Track the current draft invoice to avoid duplicates
         invoiceNumber: 'INV-2025-000001',
         invoiceDate: new Date().toISOString().split('T')[0],
         invoiceDateDisplay: '',
@@ -1804,7 +1806,8 @@ function invoiceBuilder() {
 
                     if (data.success) {
                         // Update with server path instead of data URL
-                        this.userSignature.image_path = data.signature.image_path;
+                        // Add cache buster to force image reload
+                        this.userSignature.image_path = data.signature.image_path + '?t=' + Date.now();
                         this.userSignature.name = data.signature.name;
                         this.userSignature.title = data.signature.title;
 
@@ -2397,6 +2400,19 @@ function invoiceBuilder() {
             }
         },
 
+        // Get Signature Image URL (handles both data URLs and storage paths with cache buster)
+        getSignatureImageUrl(path) {
+            if (!path) return '';
+            if (path.startsWith('data:')) {
+                return path; // Base64 data URL
+            }
+            // Storage path - extract filename and cache buster separately
+            const parts = path.split('?');
+            const filename = parts[0];
+            const cacheBuster = parts[1] || '';
+            return `/storage/${filename}${cacheBuster ? '?' + cacheBuster : ''}`;
+        },
+
         // Computed Properties
         get balanceDue() {
             return this.total - this.paidAmount;
@@ -2461,6 +2477,13 @@ function invoiceBuilder() {
                 return;
             }
 
+            // If we already have a draft invoice, just open the preview
+            if (this.currentInvoiceId) {
+                window.open(`/invoices/${this.currentInvoiceId}/preview`, '_blank');
+                this.$dispatch('notify', { type: 'success', message: 'Opening PDF preview...' });
+                return;
+            }
+
             // Save as draft first, then open preview
             const invoiceData = this.getInvoiceData();
             invoiceData.status = 'DRAFT'; // Ensure it's marked as draft
@@ -2476,6 +2499,9 @@ function invoiceBuilder() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // Store the invoice ID to avoid creating duplicates
+                    this.currentInvoiceId = data.invoice.id;
+
                     // Open PDF preview in new tab
                     window.open(`/invoices/${data.invoice.id}/preview`, '_blank');
                     this.$dispatch('notify', { type: 'success', message: 'Opening PDF preview...' });
