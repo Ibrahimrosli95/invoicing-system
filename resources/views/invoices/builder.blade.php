@@ -1803,19 +1803,28 @@ function invoiceBuilder() {
 
                     const data = await response.json();
 
+                    console.log('Signature save response:', data);
+
                     if (data.success) {
                         // Update with server path instead of data URL
                         // Add cache buster to force image reload
-                        this.userSignature.image_path = data.signature.image_path + '?t=' + Date.now();
+                        const newPath = data.signature.image_path + '?t=' + Date.now();
+                        console.log('New signature path:', newPath);
+                        console.log('Full URL will be:', this.getSignatureImageUrl(newPath));
+
+                        this.userSignature.image_path = newPath;
                         this.userSignature.name = data.signature.name;
                         this.userSignature.title = data.signature.title;
 
                         // Show success message
                         this.showNotification('Signature saved successfully', 'success');
+                    } else {
+                        console.error('Save failed:', data);
+                        this.showNotification('Error: ' + (data.message || 'Unknown error'), 'error');
                     }
                 } catch (error) {
                     console.error('Error saving signature:', error);
-                    this.showNotification('Error saving signature', 'error');
+                    this.showNotification('Error saving signature: ' + error.message, 'error');
                 }
             } else if (this.signaturePad.type === 'company') {
                 // For company signature, keep as data URL for now
