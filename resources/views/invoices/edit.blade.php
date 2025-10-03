@@ -2,9 +2,14 @@
 
 @section('content')
 @php
-    // Check if current user is the owner (created by them)
+    // Check if current user is the owner OR has role that allows editing all invoices
     $isOwner = $invoice->created_by === auth()->id();
-    $canFullyEdit = $isOwner && $invoice->canBeEdited();
+    $isSuperadmin = auth()->user()->hasRole('superadmin');
+    $isCompanyManager = auth()->user()->hasRole('company_manager');
+    $isFinanceManager = auth()->user()->hasRole('finance_manager');
+
+    // Users who can fully edit: owner, superadmin, company manager, or finance manager
+    $canFullyEdit = ($isOwner || $isSuperadmin || $isCompanyManager || $isFinanceManager) && $invoice->canBeEdited();
 
     // Prepare line items data
     $lineItemsData = $invoice->items->map(function($item) {
@@ -30,9 +35,9 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
                 </a>
-                <h1 class="text-lg font-semibold text-gray-900">{{ $isOwner ? 'Edit' : 'View' }} Invoice {{ $invoice->number }}</h1>
+                <h1 class="text-lg font-semibold text-gray-900">{{ $canFullyEdit ? 'Edit' : 'View' }} Invoice {{ $invoice->number }}</h1>
                 <span class="px-2 py-1 text-xs font-medium {{ $invoice->status === 'DRAFT' ? 'bg-gray-100 text-gray-800' : ($invoice->status === 'SENT' ? 'bg-blue-100 text-blue-800' : ($invoice->status === 'PAID' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')) }} rounded">{{ $invoice->status }}</span>
-                @if(!$isOwner)
+                @if(!$canFullyEdit)
                     <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded">View Only</span>
                 @endif
             </div>
@@ -40,7 +45,7 @@
                 <button type="button" @click="previewPDF" class="relative z-50 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
                     Preview PDF
                 </button>
-                @if($isOwner && $invoice->canBeEdited())
+                @if($canFullyEdit)
                     <button type="button" @click="updateInvoice" class="relative z-50 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
                         Update Invoice
                     </button>
@@ -49,7 +54,7 @@
         </div>
 
         <!-- View Only Notice -->
-        @if(!$isOwner)
+        @if(!$canFullyEdit)
             <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mt-4">
                 <div class="flex">
                     <div class="flex-shrink-0">
@@ -1501,7 +1506,7 @@ function invoiceBuilder() {
         // Invoice Data
         currentInvoiceId: {{ $invoice->id }}, // Track the current draft invoice to avoid duplicates
         isEditMode: true,
-        isOwner: {{ $isOwner ? 'true' : 'false' }},
+        canEdit: {{ $canFullyEdit ? 'true' : 'false' }}, // Can user edit this invoice (owner OR superadmin/company manager/finance manager)
         invoiceNumber: @json($invoice->number),
         invoiceDate: @json($invoice->invoice_date?->format('Y-m-d') ?? date('Y-m-d')),
         invoiceDateDisplay: '',
@@ -2542,8 +2547,8 @@ function invoiceBuilder() {
 
             // In edit mode, update first then preview
             if (this.isEditMode && this.currentInvoiceId) {
-                // If owner, save changes first
-                if (this.isOwner) {
+                // If user can edit, save changes first
+                if (this.canEdit) {
                     const invoiceData = this.getInvoiceData();
 
                     fetch(`/api/invoices/${this.currentInvoiceId}`, {
@@ -2581,8 +2586,8 @@ function invoiceBuilder() {
         },
 
         updateInvoice() {
-            // Check if user is owner
-            if (!this.isOwner) {
+            // Check if user can edit (owner OR superadmin/company manager/finance manager)
+            if (!this.canEdit) {
                 this.$dispatch('notify', { type: 'error', message: 'You do not have permission to edit this invoice' });
                 return;
             }
