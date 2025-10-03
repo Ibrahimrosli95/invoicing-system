@@ -1437,155 +1437,127 @@
 
                 <!-- Invoice Preview Content -->
                 <div class="p-6">
-                    <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
-                        <!-- Invoice Title -->
-                        <div class="px-6 md:px-8 lg:px-12 py-6">
-                            <div class="text-center mb-6">
-                                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 tracking-wide">INVOICE</h1>
-                                <p class="text-sm text-amber-600 mt-2">⚠️ PREVIEW MODE - Not Saved</p>
-                            </div>
+                    <style>
+                        .preview-invoice * { box-sizing: border-box; }
+                        .preview-invoice { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #000000; background: #ffffff; line-height: 1.5; max-width: 800px; margin: 0 auto; padding: 20px; }
+                        .preview-title { text-align: center; font-size: 26px; letter-spacing: 2px; margin-bottom: 30px; font-weight: 600; }
+                        .preview-separator { border: none; border-top: 2px solid #0b57d0; margin: 30px 0 20px; }
+                        .preview-section-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+                        .preview-card { border: 1px solid #d0d5dd; border-radius: 4px; padding: 10px; background: #fafafa; }
+                        .preview-company-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; color: #0b57d0; }
+                        .preview-company-line { color: #4b5563; font-size: 12px; line-height: 1.4; }
+                        .preview-items-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        .preview-items-table thead th { background: #0b57d0; color: #ffffff; padding: 8px; font-weight: 600; text-align: left; border: 1px solid #0b57d0; }
+                        .preview-items-table tbody td { padding: 6px 8px; border: 1px solid #d0d5dd; }
+                        .preview-totals-table { width: 100%; font-size: 12px; }
+                        .preview-totals-table td { padding: 3px 0; }
+                        .preview-totals-table td:first-child { text-align: left; color: #4b5563; padding-right: 12px; }
+                        .preview-totals-table td:last-child { text-align: right; width: 110px; font-weight: 500; }
+                        .preview-total-row td { font-weight: 600; padding-top: 4px; border-top: 1px solid #d0d5dd; }
+                        .preview-balance-row td { font-weight: 700; color: #dc2626; }
+                        .preview-footer { margin-top: 30px; text-align: center; font-size: 10px; color: #4b5563; border-top: 1px solid #d0d5dd; padding-top: 15px; }
+                    </style>
 
-                            <!-- Company Info & Logo -->
-                            <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-6">
-                                <!-- Company Details -->
-                                <div class="w-full lg:w-2/3 pr-0 lg:pr-12 space-y-4 mb-4 lg:mb-0 order-2 lg:order-1">
-                                    <h2 class="text-2xl font-bold text-blue-600 leading-tight">
-                                        {{ auth()->user()->company->name ?? 'Company Name' }}
-                                    </h2>
-                                    <div class="text-sm text-gray-700 space-y-2 leading-relaxed">
-                                        <div class="font-medium">{{ auth()->user()->company->address ?? '123 Business Street' }}</div>
-                                        <div>{{ auth()->user()->company->city ?? 'City' }}, {{ auth()->user()->company->state ?? 'State' }} {{ auth()->user()->company->postal_code ?? '12345' }}</div>
-                                        <div class="pt-2 space-y-1">
-                                            <div>
-                                                <span class="inline-block w-16 text-gray-500 text-xs uppercase tracking-wide">Phone:</span>
-                                                <span class="font-medium">{{ auth()->user()->company->phone ?? '+60 12-345 6789' }}</span>
-                                            </div>
-                                            <div>
-                                                <span class="inline-block w-16 text-gray-500 text-xs uppercase tracking-wide">Email:</span>
-                                                <span class="font-medium">{{ auth()->user()->company->email ?? 'info@company.com' }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                    <div class="preview-invoice">
+                        <div class="bg-amber-50 border-l-4 border-amber-400 p-3 mb-4"><p class="text-sm text-amber-700">⚠️ <strong>PREVIEW MODE</strong> - Not saved. Save to generate PDF.</p></div>
+
+                        <h1 class="preview-title">INVOICE</h1>
+
+                        <table style="width: 100%;"><tr><td style="width: 70%; vertical-align: top;">
+                            <div class="preview-company-name">{{ auth()->user()->company->name ?? 'Company Name' }}</div>
+                            <div class="preview-company-line">{{ auth()->user()->company->address ?? '123 Business Street' }}</div>
+                            <div class="preview-company-line">{{ auth()->user()->company->postal_code ?? '12345' }} {{ auth()->user()->company->city ?? 'City' }}</div>
+                            <div class="preview-company-line">{{ auth()->user()->company->state ?? 'State' }}</div>
+                            <div class="preview-company-line">Email: {{ auth()->user()->company->email ?? 'info@company.com' }}</div>
+                            <div class="preview-company-line">Mobile: {{ auth()->user()->company->phone ?? '+60 12-345 6789' }}</div>
+                        </td><td style="width: 30%; vertical-align: top; text-align: right;">
+                            <img :src="selectedLogoUrl" alt="Company Logo" style="max-width: 120px; max-height: 60px; object-fit: contain;">
+                        </td></tr></table>
+
+                        <hr class="preview-separator">
+
+                        <table style="width: 100%;"><tr>
+                            <td style="width: 50%; vertical-align: top; padding-right: 20px;">
+                                <div class="preview-section-label">Bill To</div>
+                                <div class="preview-card">
+                                    <div x-text="selectedCustomer.name || 'Customer Name'" style="font-weight: 500;"></div>
+                                    <div x-show="selectedCustomer.company_name" x-text="selectedCustomer.company_name"></div>
+                                    <div x-show="selectedCustomer.address" x-text="selectedCustomer.address"></div>
+                                    <div><span x-show="selectedCustomer.postal_code" x-text="selectedCustomer.postal_code"></span><span x-show="selectedCustomer.city" x-text="' ' + selectedCustomer.city"></span></div>
+                                    <div x-show="selectedCustomer.state" x-text="selectedCustomer.state"></div>
+                                    <div x-show="selectedCustomer.email" x-text="'Email: ' + selectedCustomer.email"></div>
+                                    <div x-show="selectedCustomer.phone" x-text="'Phone: ' + selectedCustomer.phone"></div>
                                 </div>
+                            </td>
+                            <td style="width: 50%; vertical-align: top;">
+                                <div class="preview-section-label">Invoice Info</div>
+                                <div class="preview-card"><table style="width: 100%;">
+                                    <tr><td style="font-weight: 600; color: #4b5563; padding: 2px 0;">Invoice No :</td><td style="padding: 2px 0;" x-text="invoiceNumber"></td></tr>
+                                    <tr><td style="font-weight: 600; color: #4b5563; padding: 2px 0;">Invoice Date :</td><td style="padding: 2px 0;" x-text="invoiceDateDisplay"></td></tr>
+                                    <tr><td style="font-weight: 600; color: #4b5563; padding: 2px 0;">Due Date :</td><td style="padding: 2px 0;" x-text="dueDateDisplay"></td></tr>
+                                </table></div>
+                            </td>
+                        </tr></table>
 
-                                <!-- Company Logo -->
-                                <div class="flex flex-col items-center lg:items-end w-full lg:w-1/3 order-1 lg:order-2">
-                                    <div class="mb-4">
-                                        <img :src="selectedLogoUrl" alt="Company Logo" class="h-20">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <table class="preview-items-table"><thead><tr>
+                            <th style="width: 8%; text-align: center;">Sl</th>
+                            <th style="width: auto; text-align: left;">Description</th>
+                            <th style="width: 10%; text-align: center;">Quantity</th>
+                            <th style="width: 18%; text-align: right;">Rate</th>
+                            <th style="width: 18%; text-align: right;">Amount</th>
+                        </tr></thead><tbody>
+                            <template x-for="(item, index) in lineItems.filter(i => i.description.trim() !== '')" :key="index"><tr>
+                                <td style="text-align: center;" x-text="index + 1"></td>
+                                <td x-text="item.description"></td>
+                                <td style="text-align: center;" x-text="item.quantity"></td>
+                                <td style="text-align: right;" x-text="'RM ' + parseFloat(item.unit_price).toFixed(2)"></td>
+                                <td style="text-align: right;" x-text="'RM ' + (item.quantity * item.unit_price).toFixed(2)"></td>
+                            </tr></template>
+                        </tbody></table>
 
-                        <!-- Gap -->
-                        <div class="h-2 bg-gray-50"></div>
-
-                        <!-- Customer & Invoice Details -->
-                        <div class="px-4 md:px-6 lg:px-8 py-6 bg-white border border-gray-200 rounded-lg mx-2 md:mx-4 lg:mx-6">
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                <!-- Bill To -->
-                                <div>
-                                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Bill To</h3>
-                                    <div class="space-y-1 text-sm">
-                                        <div class="font-medium text-gray-900" x-text="selectedCustomer.name || 'Customer Name'"></div>
-                                        <div class="text-gray-600" x-show="selectedCustomer.company_name" x-text="selectedCustomer.company_name"></div>
-                                        <div class="text-gray-600" x-show="selectedCustomer.address" x-text="selectedCustomer.address"></div>
-                                        <div class="text-gray-600">
-                                            <span x-show="selectedCustomer.city" x-text="selectedCustomer.city"></span>
-                                            <span x-show="selectedCustomer.city && selectedCustomer.state">, </span>
-                                            <span x-show="selectedCustomer.state" x-text="selectedCustomer.state"></span>
-                                            <span x-show="selectedCustomer.postal_code" x-text="' ' + selectedCustomer.postal_code"></span>
-                                        </div>
-                                        <div class="text-gray-600">
-                                            <span x-show="selectedCustomer.phone" x-text="selectedCustomer.phone"></span>
-                                            <span x-show="selectedCustomer.phone && selectedCustomer.email"> • </span>
-                                            <span x-show="selectedCustomer.email" x-text="selectedCustomer.email"></span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Invoice Details -->
-                                <div>
-                                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Invoice Details</h3>
-                                    <div class="space-y-3 text-sm">
-                                        <div class="flex justify-between">
-                                            <span class="text-gray-600">Invoice #:</span>
-                                            <span class="font-mono font-semibold" x-text="invoiceNumber"></span>
-                                        </div>
-                                        <div class="flex justify-between">
-                                            <span class="text-gray-600">Invoice Date:</span>
-                                            <span class="font-mono font-semibold" x-text="invoiceDateDisplay"></span>
-                                        </div>
-                                        <div class="flex justify-between">
-                                            <span class="text-gray-600">Due Date:</span>
-                                            <span class="font-mono font-semibold" x-text="dueDateDisplay"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Gap -->
-                        <div class="h-2 bg-gray-50"></div>
-
-                        <!-- Line Items -->
-                        <div class="px-4 md:px-6 lg:px-8 py-6 bg-white border border-gray-200 rounded-lg mx-2 md:mx-4 lg:mx-6">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Invoice Items</h3>
-
-                            <div class="overflow-hidden rounded-xl border border-gray-200">
-                                <table class="w-full">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Qty</th>
-                                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Rate</th>
-                                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-200">
-                                        <template x-for="(item, index) in lineItems.filter(i => i.description.trim() !== '')" :key="index">
-                                            <tr>
-                                                <td class="px-4 py-3 text-sm text-gray-900" x-text="item.description"></td>
-                                                <td class="px-4 py-3 text-sm text-right" x-text="item.quantity"></td>
-                                                <td class="px-4 py-3 text-sm text-right" x-text="'RM ' + parseFloat(item.unit_price).toFixed(2)"></td>
-                                                <td class="px-4 py-3 text-sm text-right font-medium" x-text="'RM ' + (item.quantity * item.unit_price).toFixed(2)"></td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
+                        <table style="width: 100%; margin-top: 20px;"><tr>
+                            <td style="width: 50%; vertical-align: top; padding-right: 20px;" x-show="optionalSections.show_payment_instructions && paymentInstructions">
+                                <div class="preview-section-label">Payment Instructions</div>
+                                <div style="border: 1px solid #d0d5dd; padding: 8px 10px; border-radius: 4px; background: #fafafa; font-size: 11px; line-height: 1.3; white-space: pre-line;" x-text="paymentInstructions"></div>
+                            </td>
+                            <td :style="optionalSections.show_payment_instructions && paymentInstructions ? 'width: 50%;' : 'width: 100%;'" style="vertical-align: top;">
+                                <table class="preview-totals-table">
+                                    <tr><td>Subtotal</td><td x-text="'RM ' + subtotal.toFixed(2)"></td></tr>
+                                    <tr x-show="discountAmount > 0"><td>Discount</td><td x-text="'-RM ' + discountAmount.toFixed(2)"></td></tr>
+                                    <tr x-show="taxAmount > 0"><td>Tax</td><td x-text="'RM ' + taxAmount.toFixed(2)"></td></tr>
+                                    <tr class="preview-total-row"><td>Total</td><td x-text="'RM ' + total.toFixed(2)"></td></tr>
+                                    <tr><td>Paid</td><td x-text="'RM ' + paidAmount.toFixed(2)"></td></tr>
+                                    <tr class="preview-balance-row"><td>Balance Due</td><td x-text="'RM ' + (total - paidAmount).toFixed(2)"></td></tr>
                                 </table>
-                            </div>
+                            </td>
+                        </tr></table>
+
+                        <div x-show="notes && notes.trim() !== ''" style="margin-top: 20px;">
+                            <div class="preview-section-label">Notes</div>
+                            <div style="font-size: 11px; line-height: 1.4; white-space: pre-line;" x-text="notes"></div>
                         </div>
 
-                        <!-- Gap -->
-                        <div class="h-2 bg-gray-50"></div>
-
-                        <!-- Totals -->
-                        <div class="px-4 md:px-6 lg:px-8 py-6">
-                            <div class="flex justify-end">
-                                <div class="w-full lg:w-1/2">
-                                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 space-y-4">
-                                        <div class="flex justify-between">
-                                            <span class="text-gray-600">Subtotal:</span>
-                                            <span class="font-medium" x-text="'RM ' + subtotal.toFixed(2)"></span>
-                                        </div>
-                                        <div x-show="discountAmount > 0" class="flex justify-between text-sm text-gray-600">
-                                            <span>Discount:</span>
-                                            <span x-text="'-RM ' + discountAmount.toFixed(2)"></span>
-                                        </div>
-                                        <div x-show="taxAmount > 0" class="flex justify-between text-sm text-gray-600">
-                                            <span>Tax:</span>
-                                            <span x-text="'RM ' + taxAmount.toFixed(2)"></span>
-                                        </div>
-                                        <div class="border-t border-gray-200 pt-4">
-                                            <div class="flex justify-between text-lg font-semibold">
-                                                <span>Total:</span>
-                                                <span x-text="'RM ' + total.toFixed(2)"></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div x-show="termsConditions && termsConditions.trim() !== ''" style="margin-top: 20px;">
+                            <div class="preview-section-label">Terms & Conditions</div>
+                            <div style="font-size: 11px; line-height: 1.4; white-space: pre-line;" x-text="termsConditions"></div>
                         </div>
+
+                        <table x-show="optionalSections.show_signatures" style="width: 100%; margin-top: 40px; font-size: 12px;"><tr>
+                            <td style="width: 33.33%; text-align: center; vertical-align: top; padding-top: 40px;">
+                                <div style="border-top: 1px solid #d0d5dd; padding-top: 4px; width: 75%; margin: 0 auto; font-weight: 600; color: #4b5563;">Sales Representative</div>
+                                <div style="margin-top: 2px;">{{ auth()->user()->name ?? 'Sales Rep' }}</div>
+                            </td>
+                            <td x-show="optionalSections.show_company_signature" style="width: 33.33%; text-align: center; vertical-align: top; padding-top: 40px;">
+                                <div style="border-top: 1px solid #d0d5dd; padding-top: 4px; width: 75%; margin: 0 auto; font-weight: 600; color: #4b5563;">Authorized Signatory</div>
+                                <div style="margin-top: 2px;">Company Representative</div>
+                            </td>
+                            <td x-show="optionalSections.show_customer_signature" style="width: 33.33%; text-align: center; vertical-align: top; padding-top: 40px;">
+                                <div style="border-top: 1px solid #d0d5dd; padding-top: 4px; width: 75%; margin: 0 auto; font-weight: 600; color: #4b5563;">Customer Acceptance</div>
+                                <div style="margin-top: 2px;" x-text="selectedCustomer.name || 'Customer'"></div>
+                            </td>
+                        </tr></table>
+
+                        <div class="preview-footer">{{ auth()->user()->company->name ?? 'Company' }} • Invoice <span x-text="invoiceNumber"></span> • Preview Generated</div>
                     </div>
                 </div>
 
