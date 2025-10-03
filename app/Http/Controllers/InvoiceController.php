@@ -455,7 +455,7 @@ class InvoiceController extends Controller
                 ->with('error', 'This invoice cannot be edited in its current status.');
         }
 
-        $invoice->load(['items', 'payments', 'customerSegment', 'createdBy']);
+        $invoice->load(['items', 'paymentRecords', 'customerSegment', 'createdBy']);
 
         $teams = Team::forCompany()
             ->select('id', 'name')

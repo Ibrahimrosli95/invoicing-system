@@ -1547,7 +1547,7 @@ function invoiceBuilder() {
         taxPercentage: {{ $invoice->tax_percentage ?? 0 }},
         taxAmount: {{ $invoice->tax_amount ?? 0 }},
         total: {{ $invoice->total ?? 0 }},
-        paidAmount: {{ $invoice->payments->sum('amount') ?? 0 }},
+        paidAmount: {{ $invoice->paymentRecords->sum('amount') ?? 0 }},
 
         // UI State for Totals Section
         showDiscountInput: false,
