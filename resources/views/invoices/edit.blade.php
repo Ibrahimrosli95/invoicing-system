@@ -5,6 +5,19 @@
     // Check if current user is the owner (created by them)
     $isOwner = $invoice->created_by === auth()->id();
     $canFullyEdit = $isOwner && $invoice->canBeEdited();
+
+    // Prepare line items data
+    $lineItemsData = $invoice->items->map(function($item) {
+        return [
+            'description' => $item->description,
+            'quantity' => $item->quantity,
+            'unit_price' => $item->unit_price,
+            'pricing_item_id' => $item->pricing_item_id,
+            'item_code' => $item->item_code ?? '',
+            'specifications' => $item->specifications ?? '',
+            'notes' => $item->notes ?? ''
+        ];
+    })->toArray();
 @endphp
 
 <div class="min-h-screen bg-gray-50" x-data="invoiceBuilder()">
@@ -1525,17 +1538,7 @@ function invoiceBuilder() {
         shippingSameAsBilling: true,
 
         // Line Items
-        lineItems: @json($invoice->items->map(function($item) {
-            return [
-                'description' => $item->description,
-                'quantity' => $item->quantity,
-                'unit_price' => $item->unit_price,
-                'pricing_item_id' => $item->pricing_item_id,
-                'item_code' => $item->item_code ?? '',
-                'specifications' => $item->specifications ?? '',
-                'notes' => $item->notes ?? ''
-            ];
-        })->toArray()),
+        lineItems: @json($lineItemsData),
 
         // Financial Calculations
         subtotal: {{ $invoice->subtotal ?? 0 }},
