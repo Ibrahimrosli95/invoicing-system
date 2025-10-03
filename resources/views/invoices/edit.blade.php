@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    // Check if current user is the owner (created by them)
+    $isOwner = $invoice->created_by === auth()->id();
+    $canFullyEdit = $isOwner && $invoice->canBeEdited();
+@endphp
+
 <div class="min-h-screen bg-gray-50" x-data="invoiceEditor()">
     <!-- Header Bar -->
     <div class="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40">
@@ -11,36 +17,59 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
                 </a>
-                <h1 class="text-lg font-semibold text-gray-900">Edit Invoice {{ $invoice->number }}</h1>
+                <h1 class="text-lg font-semibold text-gray-900">{{ $isOwner ? 'Edit' : 'View' }} Invoice {{ $invoice->number }}</h1>
                 <span class="px-2 py-1 text-xs font-medium {{ $invoice->status === 'DRAFT' ? 'bg-gray-100 text-gray-800' : 'bg-blue-100 text-blue-800' }} rounded">{{ $invoice->status }}</span>
+                @if(!$isOwner)
+                    <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded">View Only</span>
+                @endif
             </div>
             <div class="flex items-center space-x-3 relative z-50">
                 <button type="button" @click="previewPDF" class="relative z-50 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
                     Preview PDF
                 </button>
-                <button type="button" @click="updateInvoice" class="relative z-50 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
-                    Update Invoice
-                </button>
+                @if($isOwner && $invoice->canBeEdited())
+                    <button type="button" @click="updateInvoice" class="relative z-50 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
+                        Update Invoice
+                    </button>
+                @endif
             </div>
         </div>
     </div>
 
     <!-- Status Notice -->
-    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mx-6 mt-4">
-        <div class="flex">
-            <div class="flex-shrink-0">
-                <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                </svg>
-            </div>
-            <div class="ml-3">
-                <p class="text-sm text-yellow-700">
-                    Limited editing is available for invoices with status: <strong>{{ $invoice->status }}</strong>.
-                    Line items cannot be modified. Only customer information, notes, and terms can be updated.
-                </p>
+    @if(!$isOwner)
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mx-6 mt-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-700">
+                        <strong>View Only Mode:</strong> This invoice was created by another user. You can view details but cannot make any changes.
+                        Created by: <strong>{{ $invoice->createdBy->name ?? 'Unknown' }}</strong>
+                    </p>
+                </div>
             </div>
         </div>
-    </div>
+    @elseif($isOwner && !$invoice->canBeEdited())
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mx-6 mt-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-700">
+                        Limited editing is available for invoices with status: <strong>{{ $invoice->status }}</strong>.
+                        Line items cannot be modified. Only customer information, notes, and terms can be updated.
+                    </p>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <!-- Main Content Area -->
     <div>
@@ -98,38 +127,44 @@
                                     <div>
                                         <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Company/Customer Name</label>
                                         <input type="text" x-model="customerName"
+                                               {{ !$isOwner ? 'readonly' : '' }}
                                                class="w-full border-0 border-b border-gray-300 focus:border-blue-500 focus:ring-0 px-0 py-2 text-sm font-medium text-gray-900 bg-transparent"
                                                placeholder="Enter customer name">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Email</label>
                                         <input type="email" x-model="customerEmail"
-                                               class="w-full border-0 border-b border-gray-300 focus:border-blue-500 focus:ring-0 px-0 py-2 text-sm text-gray-700 bg-transparent"
+                                               {{ !$isOwner ? 'readonly' : '' }}
+                                               class="w-full border-0 border-b border-gray-300 focus:border-blue-500 focus:ring-0 px-0 py-2 text-sm text-gray-700 bg-transparent {{ !$isOwner ? 'cursor-not-allowed bg-gray-50' : '' }}"
                                                placeholder="customer@email.com">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Phone</label>
                                         <input type="tel" x-model="customerPhone"
-                                               class="w-full border-0 border-b border-gray-300 focus:border-blue-500 focus:ring-0 px-0 py-2 text-sm text-gray-700 bg-transparent"
+                                               {{ !$isOwner ? 'readonly' : '' }}
+                                               class="w-full border-0 border-b border-gray-300 focus:border-blue-500 focus:ring-0 px-0 py-2 text-sm text-gray-700 bg-transparent {{ !$isOwner ? 'cursor-not-allowed bg-gray-50' : '' }}"
                                                placeholder="+60 12-345 6789">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Address</label>
                                         <textarea x-model="customerAddress"
-                                                  class="w-full border-0 border-b border-gray-300 focus:border-blue-500 focus:ring-0 px-0 py-2 text-sm text-gray-700 bg-transparent resize-none"
+                                                  {{ !$isOwner ? 'readonly' : '' }}
+                                                  class="w-full border-0 border-b border-gray-300 focus:border-blue-500 focus:ring-0 px-0 py-2 text-sm text-gray-700 bg-transparent resize-none {{ !$isOwner ? 'cursor-not-allowed bg-gray-50' : '' }}"
                                                   rows="3" placeholder="Customer address"></textarea>
                                     </div>
                                     <div class="grid grid-cols-2 gap-4">
                                         <div>
                                             <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">City</label>
                                             <input type="text" x-model="customerCity"
-                                                   class="w-full border-0 border-b border-gray-300 focus:border-blue-500 focus:ring-0 px-0 py-2 text-sm text-gray-700 bg-transparent"
+                                                   {{ !$isOwner ? 'readonly' : '' }}
+                                                   class="w-full border-0 border-b border-gray-300 focus:border-blue-500 focus:ring-0 px-0 py-2 text-sm text-gray-700 bg-transparent {{ !$isOwner ? 'cursor-not-allowed bg-gray-50' : '' }}"
                                                    placeholder="City">
                                         </div>
                                         <div>
                                             <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Postal Code</label>
                                             <input type="text" x-model="customerPostalCode"
-                                                   class="w-full border-0 border-b border-gray-300 focus:border-blue-500 focus:ring-0 px-0 py-2 text-sm text-gray-700 bg-transparent"
+                                                   {{ !$isOwner ? 'readonly' : '' }}
+                                                   class="w-full border-0 border-b border-gray-300 focus:border-blue-500 focus:ring-0 px-0 py-2 text-sm text-gray-700 bg-transparent {{ !$isOwner ? 'cursor-not-allowed bg-gray-50' : '' }}"
                                                    placeholder="12345">
                                         </div>
                                     </div>
@@ -153,18 +188,21 @@
                                             <div class="flex justify-between items-center">
                                                 <span class="text-sm font-medium text-gray-500">Due Date:</span>
                                                 <input type="date" x-model="dueDate"
-                                                       class="text-sm text-gray-700 border-0 border-b border-gray-300 focus:border-blue-500 focus:ring-0 px-0 py-1 bg-transparent">
+                                                       {{ !$isOwner ? 'readonly' : '' }}
+                                                       class="text-sm text-gray-700 border-0 border-b border-gray-300 focus:border-blue-500 focus:ring-0 px-0 py-1 bg-transparent {{ !$isOwner ? 'cursor-not-allowed' : '' }}">
                                             </div>
                                             <div class="flex justify-between items-center">
                                                 <span class="text-sm font-medium text-gray-500">Payment Terms:</span>
                                                 <input type="number" x-model="paymentTerms"
-                                                       class="text-sm text-gray-700 border-0 border-b border-gray-300 focus:border-blue-500 focus:ring-0 px-0 py-1 bg-transparent w-16">
+                                                       {{ !$isOwner ? 'readonly' : '' }}
+                                                       class="text-sm text-gray-700 border-0 border-b border-gray-300 focus:border-blue-500 focus:ring-0 px-0 py-1 bg-transparent w-16 {{ !$isOwner ? 'cursor-not-allowed' : '' }}">
                                                 <span class="text-xs text-gray-500 ml-1">days</span>
                                             </div>
                                             <div>
                                                 <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">PO Number</label>
                                                 <input type="text" x-model="poNumber"
-                                                       class="w-full text-sm text-gray-700 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 px-2 py-1"
+                                                       {{ !$isOwner ? 'readonly' : '' }}
+                                                       class="w-full text-sm text-gray-700 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500 px-2 py-1 {{ !$isOwner ? 'cursor-not-allowed bg-gray-50' : '' }}"
                                                        placeholder="Optional">
                                             </div>
                                             <div class="flex justify-between items-center">
@@ -303,7 +341,8 @@
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Description/Notes</h3>
                                 <textarea x-model="description"
-                                          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                          {{ !$isOwner ? 'readonly' : '' }}
+                                          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ !$isOwner ? 'cursor-not-allowed bg-gray-50' : '' }}"
                                           rows="6" placeholder="Add description or notes..."></textarea>
                             </div>
 
@@ -311,7 +350,8 @@
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Terms & Conditions</h3>
                                 <textarea x-model="termsConditions"
-                                          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                          {{ !$isOwner ? 'readonly' : '' }}
+                                          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 {{ !$isOwner ? 'cursor-not-allowed bg-gray-50' : '' }}"
                                           rows="6" placeholder="Add terms and conditions..."></textarea>
                             </div>
                         </div>
