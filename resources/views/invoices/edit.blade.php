@@ -42,9 +42,14 @@
                     Preview PDF
                 </button>
                 @if($canFullyEdit)
-                    <button type="button" @click="updateInvoice" class="relative z-50 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
+                    <button type="button" @click="updateInvoice" @click.capture="console.log('Button clicked!')" class="relative z-50 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
                         Update Invoice
                     </button>
+                @else
+                    <!-- Debug: Show why button is hidden -->
+                    <div class="text-xs text-red-600">
+                        Debug: canFullyEdit = {{ $canFullyEdit ? 'true' : 'false' }}
+                    </div>
                 @endif
             </div>
         </div>
@@ -2582,13 +2587,20 @@ function invoiceBuilder() {
         },
 
         updateInvoice() {
+            console.log('updateInvoice() called');
+            console.log('canEdit:', this.canEdit);
+            console.log('currentInvoiceId:', this.currentInvoiceId);
+
             // Check if user can edit (owner OR superadmin/company manager/finance manager)
             if (!this.canEdit) {
+                console.error('User cannot edit - canEdit is false');
                 this.$dispatch('notify', { type: 'error', message: 'You do not have permission to edit this invoice' });
                 return;
             }
 
+            console.log('Getting invoice data...');
             const invoiceData = this.getInvoiceData();
+            console.log('Invoice data:', invoiceData);
 
             fetch(`/api/invoices/${this.currentInvoiceId}`, {
                 method: 'PUT',
