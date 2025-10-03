@@ -163,23 +163,37 @@
     $salesRepSignature = null;
 
     if ($salesRep?->signature_path) {
-        $salesRepSigPath = public_path('storage/' . ltrim($salesRep->signature_path, '/'));
+        // Use same method as logo - storage_path with base64 encoding
+        $signatureFile = ltrim($salesRep->signature_path, '/');
+
+        // Remove 'storage/' prefix if present
+        if (str_starts_with($signatureFile, 'storage/')) {
+            $signatureFile = substr($signatureFile, 8);
+        }
+
+        $sigPath = storage_path('app/public/' . $signatureFile);
 
         \Log::info('PDF Signature Debug', [
-            'signature_path' => $salesRep->signature_path,
-            'full_path' => $salesRepSigPath,
-            'file_exists' => file_exists($salesRepSigPath),
-            'public_path' => public_path(),
+            'original_path' => $salesRep->signature_path,
+            'cleaned_path' => $signatureFile,
+            'full_path' => $sigPath,
+            'file_exists' => file_exists($sigPath),
         ]);
 
-        if (file_exists($salesRepSigPath)) {
-            $salesRepSignature = 'file://' . str_replace('\\', '/', $salesRepSigPath);
+        if (file_exists($sigPath)) {
+            $extension = strtolower(pathinfo($sigPath, PATHINFO_EXTENSION));
+            $mimeType = $extension === 'png' ? 'image/png' : 'image/jpeg';
+
+            try {
+                $signatureData = base64_encode(file_get_contents($sigPath));
+                $salesRepSignature = 'data:' . $mimeType . ';base64,' . $signatureData;
+            } catch (\Throwable $exception) {
+                \Log::warning('PDF Signature Encoding Failed', [
+                    'path' => $sigPath,
+                    'exception' => $exception->getMessage(),
+                ]);
+            }
         }
-    } else {
-        \Log::info('PDF Signature Debug - No signature path', [
-            'has_salesRep' => !is_null($salesRep),
-            'signature_path' => $salesRep?->signature_path,
-        ]);
     }
 
     // Company Signature (from invoice settings - optional)
@@ -189,9 +203,29 @@
     $companySignature = null;
 
     if (!empty($companySignatureConfig['image_path'])) {
-        $companySigPath = public_path('storage/' . ltrim($companySignatureConfig['image_path'], '/'));
+        // Use same method as logo - storage_path with base64 encoding
+        $companySignatureFile = ltrim($companySignatureConfig['image_path'], '/');
+
+        // Remove 'storage/' prefix if present
+        if (str_starts_with($companySignatureFile, 'storage/')) {
+            $companySignatureFile = substr($companySignatureFile, 8);
+        }
+
+        $companySigPath = storage_path('app/public/' . $companySignatureFile);
+
         if (file_exists($companySigPath)) {
-            $companySignature = 'file://' . str_replace('\\', '/', $companySigPath);
+            $extension = strtolower(pathinfo($companySigPath, PATHINFO_EXTENSION));
+            $mimeType = $extension === 'png' ? 'image/png' : 'image/jpeg';
+
+            try {
+                $companySignatureData = base64_encode(file_get_contents($companySigPath));
+                $companySignature = 'data:' . $mimeType . ';base64,' . $companySignatureData;
+            } catch (\Throwable $exception) {
+                \Log::warning('PDF Company Signature Encoding Failed', [
+                    'path' => $companySigPath,
+                    'exception' => $exception->getMessage(),
+                ]);
+            }
         }
     }
 
