@@ -1721,7 +1721,7 @@ function invoiceBuilder() {
 
             // Set drawing style
             this.signaturePad.ctx.strokeStyle = '#000';
-            this.signaturePad.ctx.lineWidth = 2;
+            this.signaturePad.ctx.lineWidth = 4;
             this.signaturePad.ctx.lineCap = 'round';
             this.signaturePad.ctx.lineJoin = 'round';
 
