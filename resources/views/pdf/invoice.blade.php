@@ -25,38 +25,16 @@
     // Currency formatter
     $format = fn($value) => trim(($currency ? $currency . ' ' : '') . number_format((float) $value, 2));
 
-    // Payment instructions fallback
+    // Payment instructions - use invoice field directly (plain text)
     $paymentText = trim($invoice->payment_instructions ?? '');
+
+    // Simple fallback if invoice doesn't have payment instructions
     if ($paymentText === '') {
-        // Safely extract payment instructions, ensuring they're strings
-        $paymentInstructions = $settings['payment_instructions'] ?? [];
-        if (!is_array($paymentInstructions)) {
-            $paymentInstructions = [];
-        }
-
-        $holder = $paymentInstructions['account_holder'] ?? $invoice->company->name ?? '';
-        $holder = is_string($holder) ? $holder : '';
-
-        $bank = $paymentInstructions['bank_name'] ?? '';
-        $bank = is_string($bank) ? $bank : '';
-
-        $account = $paymentInstructions['account_number'] ?? '';
-        $account = is_string($account) ? $account : '';
-
-        $additionalInfo = $paymentInstructions['additional_info'] ?? 'Please include invoice number in payment reference.';
-        $additionalInfo = is_string($additionalInfo) ? $additionalInfo : 'Please include invoice number in payment reference.';
-
-        $lines = [];
-        if ($holder) {
-            $lines[] = 'Pay Cheque to ' . $holder;
-        }
-        if ($bank && $account) {
-            $lines[] = 'Send to bank (' . $bank . ') ' . $account;
-        } elseif ($bank) {
-            $lines[] = 'Bank: ' . $bank;
-        }
-        $lines[] = $additionalInfo;
-        $paymentText = implode("\n", array_filter($lines));
+        $paymentText = "Please make payment to:\n\n" .
+                       "Company: " . ($invoice->company->name ?? 'Company Name') . "\n" .
+                       "Bank: (Bank details to be provided)\n" .
+                       "Account: (Account number to be provided)\n\n" .
+                       "Please include invoice number in payment reference.";
     }
 
     // Logo path - check invoice-specific logo first, then company default logo, then settings
