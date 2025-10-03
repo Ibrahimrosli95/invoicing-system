@@ -184,6 +184,29 @@ class InvoiceController extends Controller
     }
 
     /**
+     * Show the service invoice builder interface.
+     */
+    public function serviceBuilder(Request $request): View
+    {
+        $this->authorize('create', Invoice::class);
+
+        // Load default templates
+        $defaultTemplates = [
+            'notes' => \App\Models\InvoiceNoteTemplate::getDefaultForType('notes'),
+            'terms' => \App\Models\InvoiceNoteTemplate::getDefaultForType('terms'),
+            'payment_instructions' => \App\Models\InvoiceNoteTemplate::getDefaultForType('payment_instructions'),
+        ];
+
+        // Get customer segments for pricing
+        $customerSegments = CustomerSegment::forCompany()
+            ->active()
+            ->orderBy('name')
+            ->get();
+
+        return view('invoices.service-builder', compact('defaultTemplates', 'customerSegments'));
+    }
+
+    /**
      * Show the form for creating a new invoice.
      *
      * Redirects to the appropriate builder based on feature flag and quotation type.

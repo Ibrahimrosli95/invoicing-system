@@ -442,4 +442,54 @@ class ServiceTemplateController extends Controller
             ]
         ]);
     }
+
+    /**
+     * Get service templates as JSON for API calls (used in invoice builder).
+     */
+    public function getTemplates(Request $request): JsonResponse
+    {
+        $templates = ServiceTemplate::query()
+            ->forCompany()
+            ->forUserTeams()
+            ->active()
+            ->with(['sections.items'])
+            ->orderBy('name', 'asc')
+            ->get()
+            ->map(function ($template) {
+                return [
+                    'id' => $template->id,
+                    'name' => $template->name,
+                    'description' => $template->description,
+                    'category' => $template->category,
+                    'base_price' => $template->base_price,
+                    'is_active' => $template->is_active,
+                    'sections_count' => $template->sections->count(),
+                    'items_count' => $template->sections->sum(function ($section) {
+                        return $section->items->count();
+                    }),
+                    'sections' => $template->sections->map(function ($section) {
+                        return [
+                            'id' => $section->id,
+                            'name' => $section->name,
+                            'description' => $section->description,
+                            'sort_order' => $section->sort_order,
+                            'items' => $section->items->map(function ($item) {
+                                return [
+                                    'id' => $item->id,
+                                    'description' => $item->description,
+                                    'default_quantity' => $item->default_quantity,
+                                    'unit_price' => $item->unit_price,
+                                    'sort_order' => $item->sort_order,
+                                ];
+                            }),
+                        ];
+                    }),
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'templates' => $templates
+        ]);
+    }
 }

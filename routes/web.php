@@ -187,6 +187,7 @@ Route::middleware('auth')->group(function () {
     
     // Invoice Management
     Route::get('invoices/builder', [InvoiceController::class, 'builder'])->name('invoices.builder');
+    Route::get('invoices/service-builder', [InvoiceController::class, 'serviceBuilder'])->name('invoices.service-builder');
     Route::post('api/invoices', [InvoiceController::class, 'storeApi'])->name('api.invoices.store');
     Route::put('api/invoices/{invoice}', [InvoiceController::class, 'updateApi'])->name('api.invoices.update');
     Route::resource('invoices', InvoiceController::class);
@@ -226,6 +227,7 @@ Route::middleware('auth')->group(function () {
     Route::post('service-templates/{serviceTemplate}/duplicate', [ServiceTemplateController::class, 'duplicate'])->name('service-templates.duplicate');
     Route::patch('service-templates/{serviceTemplate}/toggle-status', [ServiceTemplateController::class, 'toggleStatus'])->name('service-templates.toggle-status');
     Route::post('service-templates/{serviceTemplate}/convert', [ServiceTemplateController::class, 'convertToQuotation'])->name('service-templates.convert');
+    Route::get('api/service-templates', [ServiceTemplateController::class, 'getTemplates'])->name('api.service-templates.list');
     
     // Pricing Book Management
     // Bulk Import/Export Routes (must come before resource routes to avoid conflicts)
