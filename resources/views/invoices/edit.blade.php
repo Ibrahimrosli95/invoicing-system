@@ -3,20 +3,9 @@
 @section('content')
 @php
     // Check if current user is the owner (created by them) - ONLY owner can edit
-    $isOwner = $invoice->created_by === auth()->id();
+    // Use == instead of === to handle type coercion (string "1" vs integer 1)
+    $isOwner = $invoice->created_by == auth()->id();
     $canFullyEdit = $isOwner && $invoice->canBeEdited();
-
-    // Debug info (you can remove this after testing)
-    \Log::info('Edit page debug', [
-        'invoice_id' => $invoice->id,
-        'invoice_created_by' => $invoice->created_by,
-        'invoice_created_by_type' => gettype($invoice->created_by),
-        'auth_id' => auth()->id(),
-        'auth_id_type' => gettype(auth()->id()),
-        'isOwner' => $isOwner,
-        'canBeEdited' => $invoice->canBeEdited(),
-        'canFullyEdit' => $canFullyEdit
-    ]);
 
     // Prepare line items data
     $lineItemsData = $invoice->items->map(function($item) {
