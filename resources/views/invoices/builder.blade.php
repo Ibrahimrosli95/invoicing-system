@@ -1409,6 +1409,209 @@
         </div>
     </div>
 
+    <!-- Preview Modal -->
+    <div x-show="modals.preview"
+         x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto"
+         @keydown.escape.window="modals.preview = false">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+             @click="modals.preview = false"></div>
+
+        <!-- Modal Content -->
+        <div class="relative min-h-screen flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+                <!-- Header -->
+                <div class="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Invoice Preview</h3>
+                        <p class="text-sm text-gray-500 mt-1">Save invoice to generate PDF version</p>
+                    </div>
+                    <button @click="modals.preview = false"
+                            class="text-gray-400 hover:text-gray-500">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Invoice Preview Content -->
+                <div class="p-6">
+                    <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
+                        <!-- Invoice Title -->
+                        <div class="px-6 md:px-8 lg:px-12 py-6">
+                            <div class="text-center mb-6">
+                                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 tracking-wide">INVOICE</h1>
+                                <p class="text-sm text-amber-600 mt-2">⚠️ PREVIEW MODE - Not Saved</p>
+                            </div>
+
+                            <!-- Company Info & Logo -->
+                            <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-6">
+                                <!-- Company Details -->
+                                <div class="w-full lg:w-2/3 pr-0 lg:pr-12 space-y-4 mb-4 lg:mb-0 order-2 lg:order-1">
+                                    <h2 class="text-2xl font-bold text-blue-600 leading-tight">
+                                        {{ auth()->user()->company->name ?? 'Company Name' }}
+                                    </h2>
+                                    <div class="text-sm text-gray-700 space-y-2 leading-relaxed">
+                                        <div class="font-medium">{{ auth()->user()->company->address ?? '123 Business Street' }}</div>
+                                        <div>{{ auth()->user()->company->city ?? 'City' }}, {{ auth()->user()->company->state ?? 'State' }} {{ auth()->user()->company->postal_code ?? '12345' }}</div>
+                                        <div class="pt-2 space-y-1">
+                                            <div>
+                                                <span class="inline-block w-16 text-gray-500 text-xs uppercase tracking-wide">Phone:</span>
+                                                <span class="font-medium">{{ auth()->user()->company->phone ?? '+60 12-345 6789' }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="inline-block w-16 text-gray-500 text-xs uppercase tracking-wide">Email:</span>
+                                                <span class="font-medium">{{ auth()->user()->company->email ?? 'info@company.com' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Company Logo -->
+                                <div class="flex flex-col items-center lg:items-end w-full lg:w-1/3 order-1 lg:order-2">
+                                    <div class="mb-4">
+                                        <img :src="selectedLogoUrl" alt="Company Logo" class="h-20">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gap -->
+                        <div class="h-2 bg-gray-50"></div>
+
+                        <!-- Customer & Invoice Details -->
+                        <div class="px-4 md:px-6 lg:px-8 py-6 bg-white border border-gray-200 rounded-lg mx-2 md:mx-4 lg:mx-6">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <!-- Bill To -->
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Bill To</h3>
+                                    <div class="space-y-1 text-sm">
+                                        <div class="font-medium text-gray-900" x-text="selectedCustomer.name || 'Customer Name'"></div>
+                                        <div class="text-gray-600" x-show="selectedCustomer.company_name" x-text="selectedCustomer.company_name"></div>
+                                        <div class="text-gray-600" x-show="selectedCustomer.address" x-text="selectedCustomer.address"></div>
+                                        <div class="text-gray-600">
+                                            <span x-show="selectedCustomer.city" x-text="selectedCustomer.city"></span>
+                                            <span x-show="selectedCustomer.city && selectedCustomer.state">, </span>
+                                            <span x-show="selectedCustomer.state" x-text="selectedCustomer.state"></span>
+                                            <span x-show="selectedCustomer.postal_code" x-text="' ' + selectedCustomer.postal_code"></span>
+                                        </div>
+                                        <div class="text-gray-600">
+                                            <span x-show="selectedCustomer.phone" x-text="selectedCustomer.phone"></span>
+                                            <span x-show="selectedCustomer.phone && selectedCustomer.email"> • </span>
+                                            <span x-show="selectedCustomer.email" x-text="selectedCustomer.email"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Invoice Details -->
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Invoice Details</h3>
+                                    <div class="space-y-3 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Invoice #:</span>
+                                            <span class="font-mono font-semibold" x-text="invoiceNumber"></span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Invoice Date:</span>
+                                            <span class="font-mono font-semibold" x-text="invoiceDateDisplay"></span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Due Date:</span>
+                                            <span class="font-mono font-semibold" x-text="dueDateDisplay"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gap -->
+                        <div class="h-2 bg-gray-50"></div>
+
+                        <!-- Line Items -->
+                        <div class="px-4 md:px-6 lg:px-8 py-6 bg-white border border-gray-200 rounded-lg mx-2 md:mx-4 lg:mx-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Invoice Items</h3>
+
+                            <div class="overflow-hidden rounded-xl border border-gray-200">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+                                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Qty</th>
+                                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Rate</th>
+                                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        <template x-for="(item, index) in lineItems.filter(i => i.description.trim() !== '')" :key="index">
+                                            <tr>
+                                                <td class="px-4 py-3 text-sm text-gray-900" x-text="item.description"></td>
+                                                <td class="px-4 py-3 text-sm text-right" x-text="item.quantity"></td>
+                                                <td class="px-4 py-3 text-sm text-right" x-text="'RM ' + parseFloat(item.unit_price).toFixed(2)"></td>
+                                                <td class="px-4 py-3 text-sm text-right font-medium" x-text="'RM ' + (item.quantity * item.unit_price).toFixed(2)"></td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Gap -->
+                        <div class="h-2 bg-gray-50"></div>
+
+                        <!-- Totals -->
+                        <div class="px-4 md:px-6 lg:px-8 py-6">
+                            <div class="flex justify-end">
+                                <div class="w-full lg:w-1/2">
+                                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 space-y-4">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600">Subtotal:</span>
+                                            <span class="font-medium" x-text="'RM ' + subtotal.toFixed(2)"></span>
+                                        </div>
+                                        <div x-show="discountAmount > 0" class="flex justify-between text-sm text-gray-600">
+                                            <span>Discount:</span>
+                                            <span x-text="'-RM ' + discountAmount.toFixed(2)"></span>
+                                        </div>
+                                        <div x-show="taxAmount > 0" class="flex justify-between text-sm text-gray-600">
+                                            <span>Tax:</span>
+                                            <span x-text="'RM ' + taxAmount.toFixed(2)"></span>
+                                        </div>
+                                        <div class="border-t border-gray-200 pt-4">
+                                            <div class="flex justify-between text-lg font-semibold">
+                                                <span>Total:</span>
+                                                <span x-text="'RM ' + total.toFixed(2)"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <p class="text-sm text-gray-600">
+                        <svg class="inline w-4 h-4 text-amber-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        This is a preview only. Save invoice to generate PDF.
+                    </p>
+                    <div class="flex space-x-3">
+                        <button @click="modals.preview = false"
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                            Close
+                        </button>
+                        <button @click="modals.preview = false; saveInvoice()"
+                                class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                            Save Invoice
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     </div>
 
 <script>
@@ -1503,7 +1706,8 @@ function invoiceBuilder() {
         modals: {
             discount: false,
             tax: false,
-            round: false
+            round: false,
+            preview: false
         },
 
         // Modal Settings
@@ -2475,6 +2679,7 @@ function invoiceBuilder() {
 
         // Actions
         previewPDF() {
+            // Validation
             if (!this.selectedCustomer.id) {
                 this.$dispatch('notify', { type: 'error', message: 'Please select a customer first' });
                 return;
@@ -2485,48 +2690,16 @@ function invoiceBuilder() {
                 return;
             }
 
-            // If we already have a draft invoice, just open the preview
+            // If already saved as draft, open PDF preview in new tab
             if (this.currentInvoiceId) {
                 window.open(`/invoices/${this.currentInvoiceId}/preview`, '_blank');
                 this.$dispatch('notify', { type: 'success', message: 'Opening PDF preview...' });
                 return;
             }
 
-            // Save as draft first, then open preview
-            const invoiceData = this.getInvoiceData();
-            invoiceData.status = 'DRAFT'; // Ensure it's marked as draft
-
-            fetch('/api/invoices', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify(invoiceData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Store the invoice ID to avoid creating duplicates
-                    this.currentInvoiceId = data.invoice.id;
-
-                    // Open PDF preview in new tab
-                    window.open(`/invoices/${data.invoice.id}/preview`, '_blank');
-
-                    // Redirect to edit page to show ID in URL (security best practice)
-                    setTimeout(() => {
-                        window.location.href = `/invoices/${data.invoice.id}/edit`;
-                    }, 500); // Small delay to ensure preview opens first
-
-                    this.$dispatch('notify', { type: 'success', message: 'Draft saved! Redirecting to edit page...' });
-                } else {
-                    this.$dispatch('notify', { type: 'error', message: data.message || 'Failed to create preview' });
-                }
-            })
-            .catch(error => {
-                console.error('Preview error:', error);
-                this.$dispatch('notify', { type: 'error', message: 'Failed to create preview' });
-            });
+            // Show HTML preview modal (no database save)
+            this.modals.preview = true;
+            this.$dispatch('notify', { type: 'info', message: 'Showing preview. Save invoice to generate PDF.' });
         },
 
         saveInvoice() {
