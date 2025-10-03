@@ -2512,7 +2512,13 @@ function invoiceBuilder() {
 
                     // Open PDF preview in new tab
                     window.open(`/invoices/${data.invoice.id}/preview`, '_blank');
-                    this.$dispatch('notify', { type: 'success', message: 'Opening PDF preview...' });
+
+                    // Redirect to edit page to show ID in URL (security best practice)
+                    setTimeout(() => {
+                        window.location.href = `/invoices/${data.invoice.id}/edit`;
+                    }, 500); // Small delay to ensure preview opens first
+
+                    this.$dispatch('notify', { type: 'success', message: 'Draft saved! Redirecting to edit page...' });
                 } else {
                     this.$dispatch('notify', { type: 'error', message: data.message || 'Failed to create preview' });
                 }
