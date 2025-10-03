@@ -133,11 +133,11 @@
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-sm font-medium text-gray-600">Invoice Date:</span>
-                        <span class="text-sm font-mono font-semibold">{{ $invoice->issued_date ? $invoice->issued_date->format('d/m/Y') : now()->format('d/m/Y') }}</span>
+                        <span class="text-sm font-mono font-semibold">@displayDate($invoice->issued_date ?? now())</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-sm font-medium text-gray-600">Due Date:</span>
-                        <span class="text-sm font-mono font-semibold">{{ $invoice->due_date ? $invoice->due_date->format('d/m/Y') : now()->addDays(30)->format('d/m/Y') }}</span>
+                        <span class="text-sm font-mono font-semibold">@displayDate($invoice->due_date ?? now()->addDays(30))</span>
                     </div>
                     @if($invoice->po_number ?? false)
                     <div class="flex justify-between items-center">
