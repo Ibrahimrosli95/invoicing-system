@@ -2602,6 +2602,8 @@ function invoiceBuilder() {
             const invoiceData = this.getInvoiceData();
             console.log('Invoice data:', invoiceData);
 
+            console.log('Sending PUT request to:', `/api/invoices/${this.currentInvoiceId}`);
+
             fetch(`/api/invoices/${this.currentInvoiceId}`, {
                 method: 'PUT',
                 headers: {
@@ -2610,16 +2612,26 @@ function invoiceBuilder() {
                 },
                 body: JSON.stringify(invoiceData)
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response OK:', response.ok);
+                return response.json();
+            })
             .then(data => {
+                console.log('Response data:', data);
                 if (data.success) {
+                    console.log('Success! Dispatching notification...');
+                    alert('Invoice updated successfully!'); // Temporary alert
                     this.$dispatch('notify', { type: 'success', message: 'Invoice updated successfully!' });
                 } else {
+                    console.error('Update failed:', data.message);
+                    alert('Failed: ' + (data.message || 'Unknown error')); // Temporary alert
                     this.$dispatch('notify', { type: 'error', message: data.message || 'Failed to update invoice' });
                 }
             })
             .catch(error => {
                 console.error('Update invoice error:', error);
+                alert('Error: ' + error.message); // Temporary alert
                 this.$dispatch('notify', { type: 'error', message: 'Failed to update invoice' });
             });
         },
