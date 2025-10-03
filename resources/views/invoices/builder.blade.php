@@ -670,8 +670,7 @@
                                         <div class="flex flex-col items-center">
                                             <img :src="getSignatureImageUrl(userSignature.image_path)"
                                                  alt="Sales Rep Signature"
-                                                 class="h-12 mb-2"
-                                                 @error="console.error('Image failed to load:', userSignature.image_path)">
+                                                 class="h-12 mb-2">
                                             <div class="border-t border-gray-400 w-full mt-1"></div>
                                             <div class="mt-2 text-sm text-gray-900 text-center font-medium" x-text="userSignature.title || 'Sales Representative'"></div>
                                             <div class="mt-1 text-sm text-gray-600 text-center" x-text="userSignature.name || representativeName">{{ auth()->user()->name }}</div>
