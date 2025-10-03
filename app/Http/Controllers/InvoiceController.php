@@ -455,7 +455,7 @@ class InvoiceController extends Controller
                 ->with('error', 'This invoice cannot be edited in its current status.');
         }
 
-        $invoice->load(['items']);
+        $invoice->load(['items', 'payments', 'customerSegment', 'createdBy']);
 
         $teams = Team::forCompany()
             ->select('id', 'name')
@@ -470,7 +470,20 @@ class InvoiceController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('invoices.edit', compact('invoice', 'teams', 'assignees'));
+        // Load default templates (same as builder)
+        $defaultTemplates = [
+            'notes' => \App\Models\InvoiceNoteTemplate::getDefaultForType('notes'),
+            'terms' => \App\Models\InvoiceNoteTemplate::getDefaultForType('terms'),
+            'payment_instructions' => \App\Models\InvoiceNoteTemplate::getDefaultForType('payment_instructions'),
+        ];
+
+        // Get customer segments for pricing (same as builder)
+        $customerSegments = CustomerSegment::forCompany()
+            ->active()
+            ->orderBy('name')
+            ->get();
+
+        return view('invoices.edit', compact('invoice', 'teams', 'assignees', 'defaultTemplates', 'customerSegments'));
     }
 
     /**
