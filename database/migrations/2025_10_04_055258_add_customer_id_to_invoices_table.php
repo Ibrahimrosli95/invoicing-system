@@ -12,16 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('invoices', function (Blueprint $table) {
-            // Add customer_id column after lead_id for logical grouping
-            // Nullable because existing invoices won't have a customer record yet
-            $table->foreignId('customer_id')
-                ->nullable()
-                ->after('lead_id')
-                ->constrained()
-                ->nullOnDelete();
+            // Only add customer_id if it doesn't exist (production already has this column)
+            if (!Schema::hasColumn('invoices', 'customer_id')) {
+                // Add customer_id column after lead_id for logical grouping
+                // Nullable because existing invoices won't have a customer record yet
+                $table->foreignId('customer_id')
+                    ->nullable()
+                    ->after('lead_id')
+                    ->constrained()
+                    ->nullOnDelete();
 
-            // Add index for customer lookup queries
-            $table->index(['customer_id', 'status']);
+                // Add index for customer lookup queries
+                $table->index(['customer_id', 'status']);
+            }
         });
     }
 

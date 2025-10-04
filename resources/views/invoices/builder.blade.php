@@ -1537,9 +1537,9 @@
                             <div style="font-size: 11px; line-height: 1.4; white-space: pre-line;" x-text="notes"></div>
                         </div>
 
-                        <div x-show="termsConditions && termsConditions.trim() !== ''" style="margin-top: 20px;">
+                        <div x-show="terms && terms.trim() !== ''" style="margin-top: 20px;">
                             <div class="preview-section-label">Terms & Conditions</div>
-                            <div style="font-size: 11px; line-height: 1.4; white-space: pre-line;" x-text="termsConditions"></div>
+                            <div style="font-size: 11px; line-height: 1.4; white-space: pre-line;" x-text="terms"></div>
                         </div>
 
                         <table x-show="optionalSections.show_signatures" style="width: 100%; margin-top: 40px; font-size: 12px;"><tr>

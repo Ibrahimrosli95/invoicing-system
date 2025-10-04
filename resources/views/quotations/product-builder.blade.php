@@ -1537,9 +1537,9 @@
                             <div style="font-size: 11px; line-height: 1.4; white-space: pre-line;" x-text="notes"></div>
                         </div>
 
-                        <div x-show="termsConditions && termsConditions.trim() !== ''" style="margin-top: 20px;">
+                        <div x-show="terms && terms.trim() !== ''" style="margin-top: 20px;">
                             <div class="preview-section-label">Terms & Conditions</div>
-                            <div style="font-size: 11px; line-height: 1.4; white-space: pre-line;" x-text="termsConditions"></div>
+                            <div style="font-size: 11px; line-height: 1.4; white-space: pre-line;" x-text="terms"></div>
                         </div>
 
                         <table x-show="optionalSections.show_signatures" style="width: 100%; margin-top: 40px; font-size: 12px;"><tr>
@@ -2695,7 +2695,6 @@ function quotationBuilder() {
                 customer_state: this.selectedCustomer.state || '',
                 customer_postal_code: this.selectedCustomer.postal_code || '',
                 customer_segment_id: this.selectedCustomer.customer_segment_id || null,
-                company_logo_id: this.selectedLogoId || null,
 
                 // Quotation details
                 title: `Quotation for ${this.selectedCustomer.name || 'Customer'}`,
@@ -2708,27 +2707,8 @@ function quotationBuilder() {
                 tax_percentage: this.taxPercentage,
                 tax_amount: this.taxAmount,
                 total: this.total,
-                amount_due: this.total, // Initially equal to total
                 notes: this.notes,
                 terms_conditions: this.terms,
-                payment_instructions: this.paymentInstructions,
-
-                // Shipping information
-                shipping_info: this.shippingSameAsBilling ? {
-                    same_as_billing: true,
-                    name: this.selectedCustomer.name || '',
-                    address: this.selectedCustomer.address || '',
-                    city: this.selectedCustomer.city || '',
-                    state: this.selectedCustomer.state || '',
-                    postal_code: this.selectedCustomer.postal_code || ''
-                } : {
-                    same_as_billing: false,
-                    name: this.shippingInfo.name,
-                    address: this.shippingInfo.address,
-                    city: this.shippingInfo.city,
-                    state: this.shippingInfo.state,
-                    postal_code: this.shippingInfo.postal_code
-                },
 
                 // Line items
                 items: this.lineItems.filter(item => item.description.trim() !== '').map(item => ({
