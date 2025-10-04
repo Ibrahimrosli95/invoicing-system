@@ -529,6 +529,11 @@ class Lead extends Model
      */
     protected function notifyTeamOnStatusChange($oldStatus, $newStatus)
     {
+        // Skip notification if lead has no team assigned
+        if (!$this->team) {
+            return;
+        }
+
         // Get team members who should be notified
         $teamMembers = $this->team->users()->get();
 
