@@ -232,6 +232,14 @@ class LeadController extends Controller
     {
         $this->authorize('view', $lead);
 
+        // Track contact if transparency tracking is enabled
+        // Only track if current user is not the assigned user (to track when OTHER reps view the lead)
+        if (config('lead_tracking.enabled') &&
+            config('lead_tracking.contact_tracking.track_contacts') &&
+            $lead->assigned_to !== auth()->id()) {
+            $lead->recordContact(auth()->user());
+        }
+
         $lead->load([
             'team',
             'assignedTo',
@@ -349,6 +357,21 @@ class LeadController extends Controller
 
         return redirect()->route('leads.index')
             ->with('success', 'Lead deleted successfully.');
+    }
+
+    /**
+     * Clear review flags for a lead (manager/coordinator action)
+     */
+    public function clearFlags(Lead $lead): RedirectResponse
+    {
+        // Only managers and coordinators can clear flags
+        if (!auth()->user()->hasAnyRole(['superadmin', 'company_manager', 'sales_manager', 'sales_coordinator'])) {
+            abort(403, 'Unauthorized to clear review flags.');
+        }
+
+        $lead->clearReviewFlags();
+
+        return back()->with('success', 'Review flags cleared successfully.');
     }
 
     /**

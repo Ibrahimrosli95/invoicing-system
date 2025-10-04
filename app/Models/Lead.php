@@ -42,6 +42,12 @@ class Lead extends Model
         'lost_notes',
         'metadata',
         'notes',
+        // Contact tracking fields
+        'contacted_by',
+        'quote_count',
+        'last_quote_amount',
+        'flagged_for_review',
+        'review_flags',
     ];
 
     protected function casts(): array
@@ -56,6 +62,12 @@ class Lead extends Model
             'last_contacted_at' => 'datetime',
             'next_follow_up_at' => 'datetime',
             'converted_at' => 'datetime',
+            // Contact tracking casts
+            'contacted_by' => 'array',
+            'quote_count' => 'integer',
+            'last_quote_amount' => 'decimal:2',
+            'flagged_for_review' => 'boolean',
+            'review_flags' => 'array',
         ];
     }
 
@@ -648,5 +660,248 @@ class Lead extends Model
         ]);
 
         return $lead;
+    }
+
+    /**
+     * ========================================================================
+     * CONTACT TRANSPARENCY TRACKING METHODS
+     * ========================================================================
+     */
+
+    /**
+     * Record a contact from a sales rep (with optional quote amount)
+     */
+    public function recordContact(User $user, ?float $quoteAmount = null): void
+    {
+        // Skip if tracking is disabled
+        if (!config('lead_tracking.enabled')) {
+            return;
+        }
+
+        if (!config('lead_tracking.contact_tracking.track_contacts')) {
+            return;
+        }
+
+        $contacts = $this->contacted_by ?? [];
+
+        // Add new contact record
+        $contacts[] = [
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'contacted_at' => now()->toDateTimeString(),
+            'quoted' => $quoteAmount,
+        ];
+
+        $this->update([
+            'contacted_by' => $contacts,
+            'quote_count' => count(array_filter($contacts, fn($c) => !empty($c['quoted']))),
+            'last_quote_amount' => $quoteAmount ?? $this->last_quote_amount,
+        ]);
+
+        // Check for price war if quote amount provided
+        if ($quoteAmount && config('lead_tracking.price_war_detection.enabled')) {
+            $this->checkPriceWar($quoteAmount, $user);
+        }
+
+        // Alert if multiple reps are quoting
+        if (config('lead_tracking.manager_alerts.multiple_quotes')) {
+            $this->checkMultipleQuotes();
+        }
+    }
+
+    /**
+     * Check if there's a significant price drop (price war)
+     */
+    protected function checkPriceWar(float $newQuoteAmount, User $user): void
+    {
+        if (!$this->last_quote_amount) {
+            return; // First quote, nothing to compare
+        }
+
+        $threshold = config('lead_tracking.price_war_detection.threshold_percentage', 15);
+        $priceDrop = (($this->last_quote_amount - $newQuoteAmount) / $this->last_quote_amount) * 100;
+
+        if ($priceDrop >= $threshold) {
+            // Flag for review
+            if (config('lead_tracking.price_war_detection.auto_flag_for_review')) {
+                $this->flagForReview('price_war', [
+                    'previous_quote' => $this->last_quote_amount,
+                    'new_quote' => $newQuoteAmount,
+                    'drop_percentage' => round($priceDrop, 2),
+                    'user_id' => $user->id,
+                    'user_name' => $user->name,
+                    'threshold' => $threshold,
+                ]);
+            }
+
+            // TODO: Send notification to manager
+            // if (config('lead_tracking.price_war_detection.notify_manager')) {
+            //     // Send notification
+            // }
+        }
+    }
+
+    /**
+     * Check if multiple reps are quoting same customer
+     */
+    protected function checkMultipleQuotes(): void
+    {
+        $threshold = config('lead_tracking.manager_alerts.multiple_quotes_threshold', 2);
+        $uniqueReps = collect($this->contacted_by ?? [])
+            ->pluck('user_id')
+            ->unique()
+            ->count();
+
+        if ($uniqueReps >= $threshold) {
+            $this->flagForReview('multiple_quotes', [
+                'unique_reps' => $uniqueReps,
+                'threshold' => $threshold,
+                'reps' => $this->getActiveReps(),
+            ]);
+        }
+    }
+
+    /**
+     * Flag this lead for manager review
+     */
+    public function flagForReview(string $type, array $details = []): void
+    {
+        $flags = $this->review_flags ?? [];
+
+        $flags[] = [
+            'type' => $type,
+            'details' => $details,
+            'flagged_at' => now()->toDateTimeString(),
+        ];
+
+        $this->update([
+            'flagged_for_review' => true,
+            'review_flags' => $flags,
+        ]);
+    }
+
+    /**
+     * Clear review flags for this lead
+     */
+    public function clearReviewFlags(): void
+    {
+        $this->update([
+            'flagged_for_review' => false,
+            'review_flags' => null,
+        ]);
+    }
+
+    /**
+     * Get all unique sales reps who contacted this customer
+     */
+    public function getActiveReps(): array
+    {
+        return collect($this->contacted_by ?? [])
+            ->map(fn($contact) => [
+                'id' => $contact['user_id'],
+                'name' => $contact['user_name'],
+                'contacted_at' => $contact['contacted_at'],
+                'quoted' => $contact['quoted'] ?? null,
+            ])
+            ->unique('id')
+            ->values()
+            ->toArray();
+    }
+
+    /**
+     * Get active reps as a simple name array
+     */
+    public function getActiveRepNames(): array
+    {
+        return collect($this->contacted_by ?? [])
+            ->map(fn($contact) => $contact['user_name'])
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+
+    /**
+     * Check if multiple reps have contacted/quoted this lead
+     */
+    public function hasMultipleQuotes(): bool
+    {
+        return ($this->quote_count ?? 0) > 1;
+    }
+
+    /**
+     * Check if multiple reps have contacted this lead
+     */
+    public function hasMultipleContacts(): bool
+    {
+        $uniqueReps = collect($this->contacted_by ?? [])
+            ->pluck('user_id')
+            ->unique()
+            ->count();
+
+        return $uniqueReps > 1;
+    }
+
+    /**
+     * Check if current user has already contacted this lead
+     */
+    public function hasBeenContactedByCurrentUser(): bool
+    {
+        if (!auth()->check()) {
+            return false;
+        }
+
+        return collect($this->contacted_by ?? [])
+            ->pluck('user_id')
+            ->contains(auth()->id());
+    }
+
+    /**
+     * Get price drop percentage from last quote
+     */
+    public function getPriceDropPercentage(): ?float
+    {
+        if (!$this->last_quote_amount || count($this->contacted_by ?? []) < 2) {
+            return null;
+        }
+
+        $quotes = collect($this->contacted_by ?? [])
+            ->filter(fn($c) => !empty($c['quoted']))
+            ->pluck('quoted')
+            ->sort()
+            ->values();
+
+        if ($quotes->count() < 2) {
+            return null;
+        }
+
+        $highest = $quotes->last();
+        $lowest = $quotes->first();
+
+        return round((($highest - $lowest) / $highest) * 100, 2);
+    }
+
+    /**
+     * Scope: Get leads flagged for review
+     */
+    public function scopeFlaggedForReview($query)
+    {
+        return $query->where('flagged_for_review', true);
+    }
+
+    /**
+     * Scope: Get leads with price wars
+     */
+    public function scopeWithPriceWars($query)
+    {
+        return $query->where('flagged_for_review', true)
+            ->whereRaw("JSON_EXTRACT(review_flags, '$[*].type') LIKE '%price_war%'");
+    }
+
+    /**
+     * Scope: Get leads with multiple quotes
+     */
+    public function scopeWithMultipleQuotes($query)
+    {
+        return $query->where('quote_count', '>', 1);
     }
 }

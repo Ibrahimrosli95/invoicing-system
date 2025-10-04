@@ -154,6 +154,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('leads', LeadController::class);
     Route::get('leads-kanban', [LeadController::class, 'kanban'])->name('leads.kanban');
     Route::patch('leads/{lead}/status', [LeadController::class, 'updateStatus'])->name('leads.update-status');
+    Route::post('leads/{lead}/clear-flags', [LeadController::class, 'clearFlags'])->name('leads.clear-flags');
     Route::get('leads/{lead}/convert', [QuotationController::class, 'createFromLead'])->name('leads.convert');
 
     // Assessment Management

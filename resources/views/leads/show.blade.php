@@ -47,6 +47,52 @@
 
 @section('content')
 
+    {{-- Contact Transparency Warning --}}
+    @if(config('lead_tracking.enabled') && config('lead_tracking.rep_warnings.show_duplicate_contact_warning') && $lead->hasMultipleContacts())
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+            <div class="bg-yellow-50 border border-yellow-400 rounded-lg p-4 mb-4">
+                <div class="flex items-start">
+                    <svg class="h-6 w-6 text-yellow-600 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div class="flex-1">
+                        <h3 class="text-sm font-medium text-yellow-800">⚠️ Multiple Sales Reps Active on This Lead</h3>
+                        <p class="text-sm text-yellow-700 mt-1">
+                            This customer has been contacted by:
+                            <strong>{{ implode(', ', $lead->getActiveRepNames()) }}</strong>
+                        </p>
+
+                        @if(config('lead_tracking.rep_warnings.show_previous_quotes') && $lead->hasMultipleQuotes())
+                            <div class="mt-3 space-y-1">
+                                <p class="text-xs font-medium text-yellow-800">Previous Quotes:</p>
+                                @foreach($lead->getActiveReps() as $rep)
+                                    @if($rep['quoted'])
+                                        <p class="text-xs text-yellow-700">
+                                            • {{ $rep['name'] }}: <strong>RM {{ number_format($rep['quoted'], 2) }}</strong>
+                                            <span class="text-yellow-600">({{ \Carbon\Carbon::parse($rep['contacted_at'])->diffForHumans() }})</span>
+                                        </p>
+                                    @endif
+                                @endforeach
+
+                                @if($lead->getPriceDropPercentage())
+                                    <p class="text-xs text-red-600 font-medium mt-2">
+                                        ⚠️ Price variance: {{ $lead->getPriceDropPercentage() }}%
+                                    </p>
+                                @endif
+                            </div>
+                        @endif
+
+                        @if(config('lead_tracking.rep_warnings.suggest_coordination'))
+                            <p class="text-xs text-yellow-600 mt-3">
+                                💡 <strong>Tip:</strong> Coordinate with other reps to avoid confusing the customer with different prices or messages. Consider discussing internally before sending your quote.
+                            </p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

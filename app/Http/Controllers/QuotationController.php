@@ -238,7 +238,7 @@ class QuotationController extends Controller
             $lead = Lead::find($quotation->lead_id);
             if ($lead) {
                 $lead->markAsQuoted();
-                
+
                 // Create lead activity
                 LeadActivity::create([
                     'lead_id' => $lead->id,
@@ -252,6 +252,11 @@ class QuotationController extends Controller
                         'quotation_total' => $quotation->total,
                     ],
                 ]);
+
+                // Track quote amount for price war detection
+                if (config('lead_tracking.enabled') && config('lead_tracking.contact_tracking.track_quote_amounts')) {
+                    $lead->recordContact(auth()->user(), $quotation->total);
+                }
             }
         }
 
@@ -419,6 +424,11 @@ class QuotationController extends Controller
                             'quotation_total' => $quotation->total,
                         ],
                     ]);
+
+                    // Track quote amount for price war detection
+                    if (config('lead_tracking.enabled') && config('lead_tracking.contact_tracking.track_quote_amounts')) {
+                        $lead->recordContact(auth()->user(), $quotation->total);
+                    }
                 }
             }
 
