@@ -172,6 +172,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('quotations', QuotationController::class);
 
     // Enhanced Quotation Builders
+    Route::get('quotations/product-builder', [QuotationController::class, 'productBuilder'])->name('quotations.product-builder');
     Route::get('quotations/create/products', [QuotationController::class, 'createProduct'])->name('quotations.create.products');
     Route::get('quotations/create/services', [QuotationController::class, 'createService'])->name('quotations.create.services');
 
