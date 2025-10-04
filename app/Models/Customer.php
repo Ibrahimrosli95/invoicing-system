@@ -322,6 +322,69 @@ class Customer extends Model
     }
 
     /**
+     * Find or create a customer from invoice data.
+     * Creates customer record when invoice is paid to track paying customers.
+     *
+     * @param \App\Models\Invoice $invoice Invoice to create customer from
+     * @return Customer
+     */
+    public static function findOrCreateFromInvoice(\App\Models\Invoice $invoice): self
+    {
+        // First, try to find existing customer by phone number
+        $existingCustomer = static::forCompany($invoice->company_id)
+            ->where('phone', $invoice->customer_phone)
+            ->first();
+
+        if ($existingCustomer) {
+            // Update customer with latest information
+            $existingCustomer->update([
+                'email' => $invoice->customer_email ?? $existingCustomer->email,
+                'company_name' => $invoice->customer_company ?? $existingCustomer->company_name,
+                'address' => $invoice->customer_address ?? $existingCustomer->address,
+                'city' => $invoice->customer_city ?? $existingCustomer->city,
+                'state' => $invoice->customer_state ?? $existingCustomer->state,
+                'postal_code' => $invoice->customer_postal_code ?? $existingCustomer->postal_code,
+                'customer_segment_id' => $invoice->customer_segment_id ?? $existingCustomer->customer_segment_id,
+            ]);
+
+            // Check if customer should be marked as returning
+            $existingCustomer->updateCustomerStatus();
+
+            return $existingCustomer;
+        }
+
+        // Create new customer if not found
+        // If invoice has a lead, create from lead (includes lead status update)
+        if ($invoice->lead_id && $invoice->lead) {
+            $customer = static::createFromLead($invoice->lead, [
+                'company_name' => $invoice->customer_company,
+                'customer_segment_id' => $invoice->customer_segment_id,
+            ]);
+        } else {
+            // Create standalone customer without lead
+            $customerData = [
+                'company_id' => $invoice->company_id,
+                'name' => $invoice->customer_name,
+                'company_name' => $invoice->customer_company,
+                'phone' => $invoice->customer_phone,
+                'email' => $invoice->customer_email,
+                'address' => $invoice->customer_address,
+                'city' => $invoice->customer_city,
+                'state' => $invoice->customer_state,
+                'postal_code' => $invoice->customer_postal_code,
+                'customer_segment_id' => $invoice->customer_segment_id,
+                'is_new_customer' => true,
+                'notes' => "Customer created from invoice #{$invoice->number}",
+                'created_by' => auth()->id() ?? $invoice->created_by,
+            ];
+
+            $customer = static::create($customerData);
+        }
+
+        return $customer;
+    }
+
+    /**
      * Format customer for API response
      */
     public function toSearchResult(): array

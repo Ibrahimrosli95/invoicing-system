@@ -127,10 +127,19 @@ class PaymentRecord extends Model
             // Update invoice payment status when payment is saved
             if ($payment->invoice) {
                 $payment->invoice->updatePaymentStatus();
-                
-                // If invoice is now fully paid, fire InvoicePaid event
+
+                // If invoice is now fully paid, fire InvoicePaid event and create customer
                 if ($payment->invoice->status === 'PAID') {
                     \App\Events\InvoicePaid::dispatch($payment->invoice, $payment, auth()->user());
+
+                    // Automatically create customer record when invoice is paid
+                    if (!$payment->invoice->customer_id) {
+                        $payment->invoice->createOrLinkCustomer();
+                    }
+                }
+                // Also create customer on first partial payment
+                elseif ($payment->invoice->status === 'PARTIAL' && !$payment->invoice->customer_id) {
+                    $payment->invoice->createOrLinkCustomer();
                 }
             }
         });

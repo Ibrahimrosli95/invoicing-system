@@ -156,24 +156,29 @@ class Invoice extends Model
 
         static::updated(function ($invoice) {
             $webhookService = app(WebhookEventService::class);
-            
+
             // Check for status changes that trigger specific webhook events
             if ($invoice->isDirty('status')) {
                 $newStatus = $invoice->status;
-                
+
                 switch ($newStatus) {
                     case 'SENT':
                         $webhookService->invoiceSent($invoice);
                         break;
                     case 'PAID':
                         $webhookService->invoicePaid($invoice);
+
+                        // Automatically create customer record when invoice is marked as paid
+                        if (!$invoice->customer_id) {
+                            $invoice->createOrLinkCustomer();
+                        }
                         break;
                     case 'OVERDUE':
                         $webhookService->invoiceOverdue($invoice);
                         break;
                 }
             }
-            
+
             // Update overdue days when invoice is updated
             $invoice->updateOverdueDays();
         });
@@ -796,6 +801,48 @@ class Invoice extends Model
     public function hasCustomer(): bool
     {
         return !is_null($this->customer_id);
+    }
+
+    /**
+     * Create or link customer record from this invoice.
+     * Called when invoice is paid to create customer record for tracking.
+     *
+     * @return Customer|null
+     */
+    public function createOrLinkCustomer(): ?Customer
+    {
+        // Skip if invoice already has a customer linked
+        if ($this->customer_id) {
+            return $this->customer;
+        }
+
+        // Create or find customer from invoice data
+        $customer = Customer::findOrCreateFromInvoice($this);
+
+        // Link customer to invoice
+        $this->update(['customer_id' => $customer->id]);
+
+        // If invoice has a lead, mark lead as WON
+        if ($this->lead_id && $this->lead) {
+            $this->lead->markAsWon();
+
+            // Create lead activity
+            LeadActivity::create([
+                'lead_id' => $this->lead->id,
+                'user_id' => auth()->id() ?? $this->created_by,
+                'type' => 'converted_to_customer',
+                'title' => 'Converted to Customer',
+                'description' => "Lead converted to customer after invoice #{$this->number} was paid",
+                'metadata' => [
+                    'customer_id' => $customer->id,
+                    'invoice_id' => $this->id,
+                    'invoice_number' => $this->number,
+                    'invoice_total' => $this->total,
+                ],
+            ]);
+        }
+
+        return $customer;
     }
 
     /**
