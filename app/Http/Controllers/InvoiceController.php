@@ -9,6 +9,7 @@ use App\Models\Quotation;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Lead;
+use App\Models\LeadActivity;
 use App\Models\PricingItem;
 use App\Models\ServiceTemplate;
 use App\Models\CustomerSegment;
@@ -347,6 +348,7 @@ class InvoiceController extends Controller
             $validated = $request->validate([
                 'type' => ['nullable', Rule::in(array_keys(Invoice::getTypes()))],
                 'quotation_id' => 'nullable|exists:quotations,id',
+                'lead_id' => 'nullable|exists:leads,id',
                 'team_id' => 'nullable|exists:teams,id',
                 'assigned_to' => 'nullable|exists:users,id',
                 'customer_segment_id' => 'nullable|exists:customer_segments,id',
@@ -357,6 +359,7 @@ class InvoiceController extends Controller
                 'customer_city' => 'nullable|string|max:100',
                 'customer_state' => 'nullable|string|max:100',
                 'customer_postal_code' => 'nullable|string|max:20',
+                'customer_company' => 'nullable|string|max:150',
                 'title' => 'nullable|string|max:150',
                 'description' => 'nullable|string',
                 'terms_conditions' => 'nullable|string',
@@ -389,6 +392,17 @@ class InvoiceController extends Controller
             $validated['created_by'] = auth()->id();
             $validated['status'] = $validated['status'] ?? Invoice::STATUS_DRAFT;
 
+            // Automatic lead creation/matching for invoices without quotation source
+            if (!isset($validated['lead_id']) || empty($validated['lead_id'])) {
+                // Find or create lead from customer data to ensure CRM tracking
+                $lead = Lead::findOrCreateFromCustomerData($validated, Lead::SOURCE_INVOICE_BUILDER);
+                $validated['lead_id'] = $lead->id;
+
+                // Inherit team and assignment from lead if not specified
+                $validated['team_id'] = $validated['team_id'] ?? $lead->team_id;
+                $validated['assigned_to'] = $validated['assigned_to'] ?? $lead->assigned_to;
+            }
+
             $items = $validated['items'];
             unset($validated['items']);
 
@@ -412,6 +426,32 @@ class InvoiceController extends Controller
 
             $invoice->fresh()->calculateTotals();
             $invoice->save();
+
+            // Update lead status and log activity if invoice was created with lead
+            if ($invoice->lead_id) {
+                $lead = Lead::find($invoice->lead_id);
+                if ($lead) {
+                    // Update lead estimated value if not set
+                    if (!$lead->estimated_value) {
+                        $lead->update(['estimated_value' => $invoice->total]);
+                    }
+
+                    // Create lead activity for invoice creation
+                    LeadActivity::create([
+                        'lead_id' => $lead->id,
+                        'user_id' => auth()->id(),
+                        'type' => 'invoice_created',
+                        'title' => 'Invoice Created',
+                        'description' => "Invoice #{$invoice->number} created from this lead",
+                        'metadata' => [
+                            'invoice_id' => $invoice->id,
+                            'invoice_number' => $invoice->number,
+                            'invoice_total' => $invoice->total,
+                            'created_via' => 'invoice_builder',
+                        ],
+                    ]);
+                }
+            }
 
             return response()->json([
                 'success' => true,
@@ -495,6 +535,34 @@ class InvoiceController extends Controller
             // Update invoice data
             $items = $validated['items'];
             unset($validated['items']);
+
+            // Handle lead relationship updates when customer info changes
+            if ($invoice->lead_id) {
+                $lead = $invoice->lead;
+
+                // If phone number changed, find or create different lead
+                if ($validated['customer_phone'] !== $lead->phone) {
+                    $newLead = Lead::findOrCreateFromCustomerData($validated, Lead::SOURCE_INVOICE_BUILDER);
+                    $validated['lead_id'] = $newLead->id;
+                } else {
+                    // Update existing lead with latest information
+                    if (in_array($lead->status, [Lead::STATUS_NEW, Lead::STATUS_CONTACTED, Lead::STATUS_QUOTED])) {
+                        $lead->update([
+                            'name' => $validated['customer_name'],
+                            'email' => $validated['customer_email'] ?? $lead->email,
+                            'address' => $validated['customer_address'] ?? $lead->address,
+                            'city' => $validated['customer_city'] ?? $lead->city,
+                            'state' => $validated['customer_state'] ?? $lead->state,
+                            'postal_code' => $validated['customer_postal_code'] ?? $lead->postal_code,
+                            'last_contacted_at' => now(),
+                        ]);
+                    }
+                }
+            } else {
+                // If invoice doesn't have a lead yet, create one
+                $lead = Lead::findOrCreateFromCustomerData($validated, Lead::SOURCE_INVOICE_BUILDER);
+                $validated['lead_id'] = $lead->id;
+            }
 
             $invoice->update($validated);
 
