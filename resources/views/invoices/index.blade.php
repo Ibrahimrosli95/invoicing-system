@@ -27,24 +27,19 @@
                         <div class="py-1">
                             <a href="{{ route('invoices.builder') }}"
                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 border-l-4 border-blue-500">
-                                <div class="font-medium text-blue-700">🎨 Invoice Builder</div>
-                                <div class="text-xs text-blue-600">NEW: Document-style single-screen builder</div>
+                                <div class="font-medium text-blue-700">📄 Product Invoice Builder</div>
+                                <div class="text-xs text-blue-600">NEW: Document-style builder for product invoices</div>
+                            </a>
+                            <a href="{{ route('invoices.service-builder') }}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 border-l-4 border-green-500">
+                                <div class="font-medium text-green-700">🛠️ Service Invoice Builder</div>
+                                <div class="text-xs text-green-600">NEW: Section-based builder for service invoices</div>
                             </a>
                             <div class="border-t border-gray-200 my-1"></div>
                             <a href="{{ route('invoices.create') }}"
                                class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <div class="font-medium">Basic Invoice</div>
+                                <div class="font-medium">Basic Invoice Form</div>
                                 <div class="text-xs text-gray-500">Simple form-based invoice creation</div>
-                            </a>
-                            <a href="{{ route('invoices.create.products') }}"
-                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <div class="font-medium">Product Invoice</div>
-                                <div class="text-xs text-gray-500">Advanced builder with product catalog</div>
-                            </a>
-                            <a href="{{ route('invoices.create.services') }}"
-                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <div class="font-medium">Service Invoice</div>
-                                <div class="text-xs text-gray-500">Section-based service invoice builder</div>
                             </a>
                         </div>
                     </div>

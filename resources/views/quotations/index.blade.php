@@ -10,10 +10,40 @@
         </h2>
         <div class="flex space-x-2">
             @can('create', App\Models\Quotation::class)
-                <a href="{{ route('quotations.create') }}"
-                   class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Create Quotation
-                </a>
+                <!-- Dropdown for Create Quotation Options -->
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center space-x-2">
+                        <span>Create Quotation</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+
+                    <div x-show="open"
+                         @click.away="open = false"
+                         x-transition
+                         class="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+                        <div class="py-1">
+                            <a href="{{ route('quotations.product-builder') }}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 border-l-4 border-blue-500">
+                                <div class="font-medium text-blue-700">📄 Product Quotation Builder</div>
+                                <div class="text-xs text-blue-600">NEW: Document-style builder for product quotations</div>
+                            </a>
+                            <a href="{{ route('quotations.service-builder') }}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 border-l-4 border-green-500">
+                                <div class="font-medium text-green-700">🛠️ Service Quotation Builder</div>
+                                <div class="text-xs text-green-600">NEW: Section-based builder for service quotations</div>
+                            </a>
+                            <div class="border-t border-gray-200 my-1"></div>
+                            <a href="{{ route('quotations.create') }}"
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <div class="font-medium">Basic Quotation Form</div>
+                                <div class="text-xs text-gray-500">Simple form-based quotation creation</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             @endcan
         </div>
     </div>
