@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
 use App\Services\WebhookEventService;
+use App\Models\LeadActivity;
 
 class Lead extends Model
 {

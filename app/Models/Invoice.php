@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use App\Services\WebhookEventService;
+use App\Models\Customer;
+use App\Models\LeadActivity;
 
 class Invoice extends Model
 {
