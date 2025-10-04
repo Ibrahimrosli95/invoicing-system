@@ -241,6 +241,7 @@ class QuotationController extends Controller
 
                 // Create lead activity
                 LeadActivity::create([
+                    'company_id' => $lead->company_id,
                     'lead_id' => $lead->id,
                     'user_id' => auth()->id(),
                     'type' => 'quotation_created',
@@ -417,6 +418,7 @@ class QuotationController extends Controller
 
                     // Create lead activity
                     LeadActivity::create([
+                        'company_id' => $lead->company_id,
                         'lead_id' => $lead->id,
                         'user_id' => auth()->id(),
                         'type' => 'quotation_created',

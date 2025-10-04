@@ -830,6 +830,7 @@ class Invoice extends Model
 
             // Create lead activity
             LeadActivity::create([
+                'company_id' => $this->lead->company_id,
                 'lead_id' => $this->lead->id,
                 'user_id' => auth()->id() ?? $this->created_by,
                 'type' => 'converted_to_customer',

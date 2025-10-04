@@ -438,6 +438,7 @@ class InvoiceController extends Controller
 
                     // Create lead activity for invoice creation
                     LeadActivity::create([
+                        'company_id' => $lead->company_id,
                         'lead_id' => $lead->id,
                         'user_id' => auth()->id(),
                         'type' => 'invoice_created',

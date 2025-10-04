@@ -653,6 +653,7 @@ class Lead extends Model
 
         // Log activity for auto-created lead
         LeadActivity::create([
+            'company_id' => $lead->company_id,
             'lead_id' => $lead->id,
             'user_id' => auth()->id(),
             'type' => 'lead_created',
