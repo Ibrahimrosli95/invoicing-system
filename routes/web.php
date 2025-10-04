@@ -169,6 +169,8 @@ Route::middleware('auth')->group(function () {
     Route::get('assessments/{assessment}/convert', [QuotationController::class, 'createFromAssessment'])->name('assessments.convert');
     
     // Quotation Management
+    Route::post('api/quotations', [QuotationController::class, 'storeApi'])->name('api.quotations.store');
+    Route::put('api/quotations/{quotation}', [QuotationController::class, 'updateApi'])->name('api.quotations.update');
     Route::resource('quotations', QuotationController::class);
 
     // Enhanced Quotation Builders

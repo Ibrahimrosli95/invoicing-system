@@ -16,6 +16,9 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
 
 class QuotationController extends Controller
 {
@@ -254,6 +257,353 @@ class QuotationController extends Controller
 
         return redirect()->route('quotations.show', $quotation)
             ->with('success', 'Quotation created successfully.');
+    }
+
+    /**
+     * Store a new quotation via API (for quotation builder)
+     */
+    public function storeApi(Request $request): JsonResponse
+    {
+        $this->authorize('create', Quotation::class);
+
+        try {
+            $type = $request->input('type', Quotation::TYPE_PRODUCT);
+
+            $validated = $request->validate([
+                'type' => ['nullable', Rule::in(array_keys(Quotation::getTypes()))],
+                'lead_id' => 'nullable|exists:leads,id',
+                'team_id' => 'nullable|exists:teams,id',
+                'assigned_to' => 'nullable|exists:users,id',
+                'customer_segment_id' => 'nullable|exists:customer_segments,id',
+                'customer_name' => 'required|string|max:100',
+                'customer_phone' => 'required|string|max:20',
+                'customer_email' => 'nullable|email|max:100',
+                'customer_address' => 'nullable|string',
+                'customer_city' => 'nullable|string|max:100',
+                'customer_state' => 'nullable|string|max:100',
+                'customer_postal_code' => 'nullable|string|max:20',
+                'customer_company' => 'nullable|string|max:150',
+                'title' => 'nullable|string|max:150',
+                'description' => 'nullable|string',
+                'terms_conditions' => 'nullable|string',
+                'notes' => 'nullable|string',
+                'quotation_date' => 'required|date',
+                'valid_until' => 'nullable|date|after_or_equal:quotation_date',
+                'validity_period' => 'nullable|integer|min:1|max:365',
+                'reference_number' => 'nullable|string|max:100',
+                'tax_percentage' => 'nullable|numeric|min:0|max:100',
+                'discount_percentage' => 'nullable|numeric|min:0|max:100',
+                'status' => 'nullable|in:DRAFT,SENT',
+                'items' => 'required|array|min:1',
+                'items.*.description' => 'required|string|max:500',
+                'items.*.unit' => 'nullable|string|max:20',
+                'items.*.quantity' => 'required|numeric|min:0.01',
+                'items.*.unit_price' => 'required|numeric|min:0',
+                'items.*.item_code' => 'nullable|string|max:100',
+                'items.*.specifications' => 'nullable|string',
+                'items.*.notes' => 'nullable|string',
+                'items.*.source_type' => 'nullable|string|in:pricing_item,service_template_item,manual',
+                'items.*.source_id' => 'nullable|integer',
+                // Service quotation specific fields
+                'sections' => 'nullable|array',
+                'sections.*.name' => 'required_with:sections|string|max:200',
+                'sections.*.description' => 'nullable|string',
+                'sections.*.sort_order' => 'nullable|integer',
+                'sections.*.items' => 'nullable|array',
+                'sections.*.items.*.description' => 'required|string|max:500',
+                'sections.*.items.*.unit' => 'nullable|string|max:20',
+                'sections.*.items.*.quantity' => 'required|numeric|min:0.01',
+                'sections.*.items.*.unit_price' => 'required|numeric|min:0',
+                'sections.*.items.*.item_code' => 'nullable|string|max:100',
+                'sections.*.items.*.specifications' => 'nullable|string',
+                'sections.*.items.*.notes' => 'nullable|string',
+            ]);
+
+            $validated['type'] = $type;
+
+            // Calculate validity period or valid_until if not provided
+            if (!isset($validated['valid_until']) && isset($validated['validity_period'])) {
+                $quotationDate = new \DateTime($validated['quotation_date']);
+                $quotationDate->modify("+{$validated['validity_period']} days");
+                $validated['valid_until'] = $quotationDate->format('Y-m-d');
+            }
+
+            $validated['company_id'] = auth()->user()->company_id;
+            $validated['created_by'] = auth()->id();
+            $validated['status'] = $validated['status'] ?? Quotation::STATUS_DRAFT;
+
+            $items = $validated['items'] ?? [];
+            $sections = $validated['sections'] ?? [];
+            unset($validated['items'], $validated['sections'], $validated['validity_period']);
+
+            $quotation = Quotation::create($validated);
+
+            // Handle service quotations with sections
+            if ($type === Quotation::TYPE_SERVICE && !empty($sections)) {
+                foreach ($sections as $sectionIndex => $sectionData) {
+                    $section = QuotationSection::create([
+                        'quotation_id' => $quotation->id,
+                        'name' => $sectionData['name'],
+                        'description' => $sectionData['description'] ?? null,
+                        'sort_order' => $sectionData['sort_order'] ?? $sectionIndex,
+                    ]);
+
+                    // Create items for this section
+                    if (!empty($sectionData['items'])) {
+                        foreach ($sectionData['items'] as $itemIndex => $item) {
+                            QuotationItem::create([
+                                'quotation_id' => $quotation->id,
+                                'quotation_section_id' => $section->id,
+                                'description' => $item['description'],
+                                'unit' => $item['unit'] ?? 'pcs',
+                                'quantity' => $item['quantity'],
+                                'unit_price' => $item['unit_price'],
+                                'item_code' => $item['item_code'] ?? null,
+                                'specifications' => $item['specifications'] ?? null,
+                                'notes' => $item['notes'] ?? null,
+                                'sort_order' => $itemIndex,
+                            ]);
+                        }
+                    }
+                }
+            }
+            // Handle product quotations with simple items
+            else {
+                foreach ($items as $index => $item) {
+                    QuotationItem::create([
+                        'quotation_id' => $quotation->id,
+                        'description' => $item['description'],
+                        'unit' => $item['unit'] ?? 'pcs',
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $item['unit_price'],
+                        'item_code' => $item['item_code'] ?? null,
+                        'specifications' => $item['specifications'] ?? null,
+                        'notes' => $item['notes'] ?? null,
+                        'source_type' => $item['source_type'] ?? null,
+                        'source_id' => $item['source_id'] ?? null,
+                        'sort_order' => $index,
+                    ]);
+                }
+            }
+
+            $quotation->fresh()->calculateTotals();
+            $quotation->save();
+
+            // Update lead status if quotation was created from a lead
+            if ($quotation->lead_id) {
+                $lead = Lead::find($quotation->lead_id);
+                if ($lead) {
+                    $lead->markAsQuoted();
+
+                    // Create lead activity
+                    LeadActivity::create([
+                        'lead_id' => $lead->id,
+                        'user_id' => auth()->id(),
+                        'type' => 'quotation_created',
+                        'title' => 'Quotation Created',
+                        'description' => "Quotation #{$quotation->number} created from this lead",
+                        'metadata' => [
+                            'quotation_id' => $quotation->id,
+                            'quotation_number' => $quotation->number,
+                            'quotation_total' => $quotation->total,
+                        ],
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Quotation created successfully.',
+                'quotation' => [
+                    'id' => $quotation->id,
+                    'number' => $quotation->number,
+                    'status' => $quotation->status,
+                    'total' => $quotation->total,
+                ]
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Quotation creation failed', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+                'request_data' => $request->all()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create quotation. Please try again.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Update quotation via API (for builder/edit interface).
+     */
+    public function updateApi(Request $request, Quotation $quotation): JsonResponse
+    {
+        $this->authorize('update', $quotation);
+
+        // Check if quotation can be edited
+        if (!$quotation->canBeEdited()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This quotation cannot be edited in its current status.'
+            ], 403);
+        }
+
+        try {
+            $validated = $request->validate([
+                'customer_segment_id' => 'nullable|exists:customer_segments,id',
+                'customer_name' => 'required|string|max:100',
+                'customer_phone' => 'required|string|max:20',
+                'customer_email' => 'nullable|email|max:100',
+                'customer_address' => 'nullable|string',
+                'customer_city' => 'nullable|string|max:100',
+                'customer_state' => 'nullable|string|max:100',
+                'customer_postal_code' => 'nullable|string|max:20',
+                'customer_company' => 'nullable|string|max:150',
+                'title' => 'nullable|string|max:150',
+                'description' => 'nullable|string',
+                'terms_conditions' => 'nullable|string',
+                'notes' => 'nullable|string',
+                'quotation_date' => 'required|date',
+                'valid_until' => 'nullable|date|after_or_equal:quotation_date',
+                'validity_period' => 'nullable|integer|min:1|max:365',
+                'reference_number' => 'nullable|string|max:100',
+                'tax_percentage' => 'nullable|numeric|min:0|max:100',
+                'discount_percentage' => 'nullable|numeric|min:0|max:100',
+                'discount_amount' => 'nullable|numeric|min:0',
+                'items' => 'required|array|min:1',
+                'items.*.description' => 'required|string|max:500',
+                'items.*.unit' => 'nullable|string|max:20',
+                'items.*.quantity' => 'required|numeric|min:0.01',
+                'items.*.unit_price' => 'required|numeric|min:0',
+                'items.*.item_code' => 'nullable|string|max:100',
+                'items.*.specifications' => 'nullable|string',
+                'items.*.notes' => 'nullable|string',
+                'items.*.source_type' => 'nullable|string|in:pricing_item,service_template_item,manual',
+                'items.*.source_id' => 'nullable|integer',
+                // Service quotation specific fields
+                'sections' => 'nullable|array',
+                'sections.*.name' => 'required_with:sections|string|max:200',
+                'sections.*.description' => 'nullable|string',
+                'sections.*.sort_order' => 'nullable|integer',
+                'sections.*.items' => 'nullable|array',
+                'sections.*.items.*.description' => 'required|string|max:500',
+                'sections.*.items.*.unit' => 'nullable|string|max:20',
+                'sections.*.items.*.quantity' => 'required|numeric|min:0.01',
+                'sections.*.items.*.unit_price' => 'required|numeric|min:0',
+                'sections.*.items.*.item_code' => 'nullable|string|max:100',
+                'sections.*.items.*.specifications' => 'nullable|string',
+                'sections.*.items.*.notes' => 'nullable|string',
+            ]);
+
+            // Calculate validity period or valid_until if not provided
+            if (!isset($validated['valid_until']) && isset($validated['validity_period'])) {
+                $quotationDate = new \DateTime($validated['quotation_date']);
+                $quotationDate->modify("+{$validated['validity_period']} days");
+                $validated['valid_until'] = $quotationDate->format('Y-m-d');
+            }
+
+            // Update quotation data
+            $items = $validated['items'] ?? [];
+            $sections = $validated['sections'] ?? [];
+            unset($validated['items'], $validated['sections'], $validated['validity_period']);
+
+            $quotation->update($validated);
+
+            // Delete existing sections and items
+            $quotation->sections()->delete();
+            $quotation->items()->delete();
+
+            // Handle service quotations with sections
+            if ($quotation->type === Quotation::TYPE_SERVICE && !empty($sections)) {
+                foreach ($sections as $sectionIndex => $sectionData) {
+                    $section = QuotationSection::create([
+                        'quotation_id' => $quotation->id,
+                        'name' => $sectionData['name'],
+                        'description' => $sectionData['description'] ?? null,
+                        'sort_order' => $sectionData['sort_order'] ?? $sectionIndex,
+                    ]);
+
+                    // Create items for this section
+                    if (!empty($sectionData['items'])) {
+                        foreach ($sectionData['items'] as $itemIndex => $item) {
+                            QuotationItem::create([
+                                'quotation_id' => $quotation->id,
+                                'quotation_section_id' => $section->id,
+                                'description' => $item['description'],
+                                'unit' => $item['unit'] ?? 'pcs',
+                                'quantity' => $item['quantity'],
+                                'unit_price' => $item['unit_price'],
+                                'item_code' => $item['item_code'] ?? null,
+                                'specifications' => $item['specifications'] ?? null,
+                                'notes' => $item['notes'] ?? null,
+                                'sort_order' => $itemIndex,
+                            ]);
+                        }
+                    }
+                }
+            }
+            // Handle product quotations with simple items
+            else {
+                foreach ($items as $index => $item) {
+                    QuotationItem::create([
+                        'quotation_id' => $quotation->id,
+                        'description' => $item['description'],
+                        'unit' => $item['unit'] ?? 'pcs',
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $item['unit_price'],
+                        'item_code' => $item['item_code'] ?? null,
+                        'specifications' => $item['specifications'] ?? null,
+                        'notes' => $item['notes'] ?? null,
+                        'source_type' => $item['source_type'] ?? null,
+                        'source_id' => $item['source_id'] ?? null,
+                        'sort_order' => $index,
+                    ]);
+                }
+            }
+
+            // Recalculate totals
+            $quotation->fresh()->calculateTotals();
+            $quotation->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Quotation updated successfully.',
+                'quotation' => [
+                    'id' => $quotation->id,
+                    'number' => $quotation->number,
+                    'status' => $quotation->status,
+                    'total' => $quotation->total,
+                ]
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Quotation update failed', [
+                'error' => $e->getMessage(),
+                'quotation_id' => $quotation->id,
+                'user_id' => auth()->id(),
+                'request_data' => $request->all()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update quotation. Please try again.'
+            ], 500);
+        }
     }
 
     /**
