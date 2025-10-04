@@ -1,728 +1,539 @@
+@php
+    // Extract palette colors with type safety
+    $palette = is_array($palette ?? []) ? ($palette ?? []) : [];
+    $primaryBlue = is_string($palette['accent_color'] ?? null) ? $palette['accent_color'] : '#0b57d0';
+    $primaryContrast = is_string($palette['accent_text_color'] ?? null) ? $palette['accent_text_color'] : '#ffffff';
+    $textColor = is_string($palette['text_color'] ?? null) ? $palette['text_color'] : '#000000';
+    $mutedColor = is_string($palette['muted_text_color'] ?? null) ? $palette['muted_text_color'] : '#4b5563';
+    $headingColor = is_string($palette['heading_color'] ?? null) ? $palette['heading_color'] : '#000000';
+    $borderColor = is_string($palette['border_color'] ?? null) ? $palette['border_color'] : '#d0d5dd';
+    $tableHeaderBg = is_string($palette['table_header_background'] ?? null) ? $palette['table_header_background'] : '#0b57d0';
+    $tableHeaderText = is_string($palette['table_header_text'] ?? null) ? $palette['table_header_text'] : '#ffffff';
+
+    // Ensure sections and currency are properly typed
+    $sections = is_array($sections ?? []) ? ($sections ?? []) : [];
+    $currency = is_string($currency ?? 'RM') ? ($currency ?? 'RM') : 'RM';
+
+    // Calculate financial totals
+    $subtotal = $quotation->subtotal ?? $quotation->items->sum(fn($item) => $item->total_price ?? ($item->quantity * $item->unit_price));
+    $discount = $quotation->discount_amount ?? 0;
+    $tax = $quotation->tax_amount ?? 0;
+    $total = $quotation->total ?? ($subtotal - $discount + $tax);
+
+    // Currency formatter
+    $format = fn($value) => trim(($currency ? $currency . ' ' : '') . number_format((float) $value, 2));
+
+    // Payment instructions - use quotation field directly (plain text)
+    $paymentText = trim($quotation->payment_instructions ?? '');
+
+    // Simple fallback if quotation doesn't have payment instructions
+    if ($paymentText === '') {
+        $paymentText = "Please make payment to:\n\n" .
+                       "Company: " . ($quotation->company->name ?? 'Company Name') . "\n" .
+                       "Bank: (Bank details to be provided)\n" .
+                       "Account: (Account number to be provided)\n\n" .
+                       "Please include quotation number in payment reference.";
+    }
+
+    // Logo path - check quotation-specific logo first, then company default logo
+    $logoPath = null;
+    if ($sections['show_company_logo'] ?? true) {
+        // Priority 1: Quotation-specific logo from logo bank
+        $logoFile = null;
+        if ($quotation->companyLogo ?? null) {
+            $logoFile = $quotation->companyLogo->file_path;
+        }
+
+        // Priority 2: Company default logo from logo bank
+        if (!$logoFile && $quotation->company?->defaultLogo()) {
+            $logoFile = $quotation->company->defaultLogo()->file_path;
+        }
+
+        // Priority 3: Legacy company logo_path
+        if (!$logoFile) {
+            $logoFile = $quotation->company?->logo_path ?? $quotation->company?->logo ?? null;
+        }
+
+        if (!empty($logoFile)) {
+            // Use storage path directly (not public/storage symlink)
+            $logoFile = ltrim($logoFile, '/');
+
+            // Remove 'storage/' prefix if present
+            if (str_starts_with($logoFile, 'storage/')) {
+                $logoFile = substr($logoFile, 8); // Remove 'storage/' prefix
+            }
+
+            $path = storage_path('app/public/' . $logoFile);
+
+            if (file_exists($path)) {
+                $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                $mimeTypes = [
+                    'jpg' => 'image/jpeg',
+                    'jpeg' => 'image/jpeg',
+                    'png' => 'image/png',
+                    'gif' => 'image/gif',
+                    'svg' => 'image/svg+xml',
+                ];
+                $mimeType = $mimeTypes[$extension] ?? 'image/png';
+
+                try {
+                    $logoData = base64_encode(file_get_contents($path));
+                    $logoPath = 'data:' . $mimeType . ';base64,' . $logoData;
+                } catch (\Throwable $exception) {
+                    \Log::warning('Quotation PDF Logo Encoding Failed', [
+                        'path' => $path,
+                        'exception' => $exception->getMessage(),
+                    ]);
+                }
+            }
+        }
+    }
+
+    // Bill address
+    $billAddress = array_filter([
+        $quotation->customer_address,
+        trim(collect([$quotation->customer_postal_code, $quotation->customer_city])->filter()->implode(' ')),
+        $quotation->customer_state,
+    ]);
+
+    // Sales Rep Info
+    $salesRep = $quotation->createdBy ?? $quotation->assignedTo;
+    $salesRepName = $salesRep?->name ?? 'Sales Representative';
+    $salesRepTitle = 'Sales Representative';
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quotation {{ $quotation->number }}</title>
     <style>
-        /* Reset and base styles */
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
-        
+
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 12px;
+            color: {{ $textColor }};
+            background: #ffffff;
+            line-height: 1.5;
+        }
+
+        .page {
+            width: 174mm;
+            margin: 0 auto;
+            padding: 12mm 14mm;
+        }
+
+        h1, h2, h3 {
+            font-weight: 600;
+            color: {{ $headingColor }};
+        }
+
+        .title {
+            text-align: center;
+            font-size: 26px;
+            letter-spacing: 2px;
+            margin-bottom: 10mm;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-table td {
+            vertical-align: top;
+            padding: 0;
+        }
+
+        .company-name {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: {{ $primaryBlue }};
+        }
+
+        .company-line {
+            color: {{ $mutedColor }};
             font-size: 12px;
             line-height: 1.4;
-            color: #1f2937;
-            background: #ffffff;
-        }
-        
-        /* Layout */
-        .page {
-            width: 210mm;
-            min-height: 297mm;
-            padding: 15mm;
-            margin: 0 auto;
-            position: relative;
-        }
-        
-        /* Watermark for draft quotations */
-        .watermark {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 120px;
-            font-weight: bold;
-            color: rgba(239, 68, 68, 0.1);
-            z-index: -1;
-            user-select: none;
-            pointer-events: none;
-        }
-        
-        /* Header */
-        .header {
-            width: 100%;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #e5e7eb;
-            padding-bottom: 20px;
         }
 
-        .header table {
-            width: 100%;
+        .logo {
+            max-width: 120px;
+            max-height: 60px;
+            object-fit: contain;
         }
 
-        .company-info {
-            width: 50%;
-            vertical-align: top;
+        .separator {
+            border: none;
+            border-top: 2px solid {{ $primaryBlue }};
+            margin: 10mm 0 8mm;
         }
-        
-        .company-name {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2563eb;
-            margin-bottom: 10px;
-        }
-        
-        .company-address {
-            font-size: 11px;
-            color: #6b7280;
-            line-height: 1.6;
-        }
-        
-        .quotation-info {
-            text-align: right;
-            width: 50%;
-            vertical-align: top;
-        }
-        
-        .quotation-title {
-            font-size: 28px;
-            font-weight: bold;
-            color: #1f2937;
-            margin-bottom: 10px;
-        }
-        
-        .quotation-details {
-            font-size: 11px;
-            color: #6b7280;
-        }
-        
-        .quotation-details div {
-            margin-bottom: 5px;
-        }
-        
-        /* Customer Information */
-        .customer-section {
-            margin-bottom: 30px;
-        }
-        
-        .section-title {
-            font-size: 14px;
-            font-weight: bold;
-            color: #1f2937;
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .customer-info {
-            background: #f9fafb;
-            padding: 15px;
-            border-radius: 6px;
-            border-left: 4px solid #2563eb;
-        }
-        
-        .customer-name {
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-        
-        .customer-details {
-            font-size: 11px;
-            color: #6b7280;
-            line-height: 1.6;
-        }
-        
-        /* Items Table */
-        .items-section {
-            margin-bottom: 30px;
-        }
-        
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        
-        .items-table th {
-            background: #2563eb;
-            color: white;
-            padding: 12px 8px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .items-table th:first-child {
-            border-radius: 4px 0 0 0;
-        }
-        
-        .items-table th:last-child {
-            border-radius: 0 4px 0 0;
-            text-align: right;
-        }
-        
-        .items-table td {
-            padding: 10px 8px;
-            border-bottom: 1px solid #e5e7eb;
-            vertical-align: top;
-        }
-        
-        .items-table tr:nth-child(even) {
-            background: #f9fafb;
-        }
-        
-        .items-table tr:hover {
-            background: #f3f4f6;
-        }
-        
-        .item-description {
-            font-weight: 500;
-            margin-bottom: 3px;
-        }
-        
-        .item-specifications {
-            font-size: 10px;
-            color: #6b7280;
-            font-style: italic;
-        }
-        
-        .text-right {
-            text-align: right;
-        }
-        
-        .text-center {
-            text-align: center;
-        }
-        
-        /* Sections (for service quotations) */
-        .section-header {
-            background: #1f2937;
-            color: white;
-            padding: 10px;
-            font-weight: bold;
+
+        .section-label {
             font-size: 12px;
-            margin-top: 20px;
-            border-radius: 4px 4px 0 0;
-        }
-        
-        .section-items {
-            border: 1px solid #e5e7eb;
-            border-top: none;
-            border-radius: 0 0 4px 4px;
-        }
-        
-        .section-total {
-            background: #f3f4f6;
-            padding: 8px 10px;
-            font-weight: 600;
-            text-align: right;
-            border-top: 2px solid #d1d5db;
-        }
-        
-        /* Financial Summary */
-        .financial-summary {
-            margin-top: 30px;
-            margin-left: auto;
-            width: 300px;
-        }
-        
-        .summary-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .summary-table td {
-            padding: 8px 10px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .summary-table .label {
-            font-weight: 500;
-            color: #4b5563;
-        }
-        
-        .summary-table .amount {
-            text-align: right;
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-        }
-        
-        .summary-table .total-row {
-            background: #2563eb;
-            color: white;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        
-        .summary-table .total-row td {
-            border-bottom: none;
-            padding: 12px 10px;
-        }
-        
-        /* Terms and Notes */
-        .terms-section {
-            margin-top: 40px;
-            page-break-inside: avoid;
-        }
-        
-        .terms-content {
-            background: #f9fafb;
-            padding: 15px;
-            border-radius: 6px;
-            border: 1px solid #e5e7eb;
-            font-size: 11px;
-            line-height: 1.6;
-        }
-        
-        .notes-section {
-            margin-top: 20px;
-        }
-        
-        .notes-content {
-            padding: 15px;
-            border-left: 4px solid #10b981;
-            background: #ecfdf5;
-            font-size: 11px;
-            line-height: 1.6;
-        }
-        
-        /* Footer */
-        .footer {
-            position: fixed;
-            bottom: 15mm;
-            left: 15mm;
-            right: 15mm;
-            border-top: 1px solid #e5e7eb;
-            padding-top: 10px;
-            font-size: 10px;
-            color: #6b7280;
-        }
-
-        .footer table {
-            width: 100%;
-        }
-
-        .footer-left {
-            width: 50%;
-            vertical-align: top;
-        }
-
-        .footer-right {
-            text-align: right;
-            width: 50%;
-            vertical-align: top;
-        }
-        
-        /* Status Badge */
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 10px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            color: {{ $headingColor }};
         }
-        
-        .status-draft {
-            background: #fef3c7;
-            color: #92400e;
+
+        .card {
+            border: 1px solid {{ $borderColor }};
+            border-radius: 4px;
+            padding: 8px 10px;
+            background: #fafafa;
         }
-        
-        .status-sent {
-            background: #dbeafe;
-            color: #1d4ed8;
+
+        .info-row td {
+            vertical-align: top;
+            padding: 0;
         }
-        
-        .status-viewed {
-            background: #e0e7ff;
-            color: #3730a3;
+
+        .bill-table td {
+            padding: 2px 0;
+            line-height: 1.4;
         }
-        
-        .status-accepted {
-            background: #d1fae5;
-            color: #065f46;
+
+        .meta-table {
+            width: 100%;
+            font-size: 12px;
         }
-        
-        .status-rejected {
-            background: #fee2e2;
-            color: #991b1b;
+
+        .meta-table td {
+            padding: 2px 4px;
         }
-        
-        /* Utilities */
-        .mb-2 { margin-bottom: 8px; }
-        .mb-3 { margin-bottom: 12px; }
-        .mb-4 { margin-bottom: 16px; }
-        .font-bold { font-weight: bold; }
-        .text-sm { font-size: 11px; }
-        .text-xs { font-size: 10px; }
-        
-        /* Print specific styles */
-        @media print {
-            body {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            
-            .page {
-                margin: 0;
-                box-shadow: none;
-            }
-            
-            .page-break {
-                page-break-before: always;
-            }
+
+        .meta-table td:first-child {
+            font-weight: 600;
+            color: {{ $mutedColor }};
+            padding-right: 10px;
+            white-space: nowrap;
         }
+
+        .items-table {
+            margin-top: 8mm;
+            font-size: 12px;
+            width: 100%;
+        }
+
+        .items-table thead th {
+            background: {{ $tableHeaderBg }};
+            color: {{ $tableHeaderText }};
+            padding: 8px;
+            font-weight: 600;
+            text-align: left;
+            border: 1px solid {{ $tableHeaderBg }};
+        }
+
+        .items-table tbody td {
+            padding: 6px 8px;
+            border: 1px solid {{ $borderColor }};
+        }
+
+        .summary-table {
+            margin-top: 8mm;
+            width: 100%;
+        }
+
+        .summary-table td {
+            vertical-align: top;
+            padding: 0;
+        }
+
+        .payment-block {
+            padding-right: 18mm;
+        }
+
+        .payment-text {
+            border: 1px solid {{ $borderColor }};
+            padding: 8px 10px;
+            border-radius: 4px;
+            white-space: normal;
+            color: {{ $textColor }};
+            background: #fafafa;
+            font-size: 11px;
+            line-height: 1.3;
+            margin-right: 6mm;
+        }
+
+        .totals-table {
+            width: 100%;
+            font-size: 12px;
+        }
+
+        .totals-table td {
+            padding: 3px 0;
+        }
+
+        .totals-table td:first-child {
+            text-align: left;
+            color: {{ $mutedColor }};
+            padding-right: 12px;
+        }
+
+        .totals-table td:last-child {
+            text-align: right;
+            width: 110px;
+            font-weight: 500;
+        }
+
+        .totals-table .total-row td {
+            font-weight: 700;
+            padding-top: 4px;
+            border-top: 1px solid {{ $borderColor }};
+            color: {{ $headingColor }};
+        }
+
+        .signature-table {
+            width: 100%;
+            margin-top: 12mm;
+            font-size: 12px;
+        }
+
+        .signature-table td {
+            width: 33.33%;
+            text-align: center;
+            padding-top: 12mm;
+            vertical-align: top;
+        }
+
+        .signature-line {
+            border-top: 1px solid {{ $borderColor }};
+            padding-top: 4px;
+            width: 75%;
+            margin: 0 auto;
+            font-weight: 600;
+            color: {{ $mutedColor }};
+        }
+
+        .signature-name {
+            margin-top: 2px;
+            color: {{ $textColor }};
+        }
+
+        .footer {
+            margin-top: 10mm;
+            text-align: center;
+            font-size: 10px;
+            color: {{ $mutedColor }};
+            border-top: 1px solid {{ $borderColor }};
+            padding-top: 4mm;
+        }
+
+        /* Column-specific widths */
+        .col-sl { width: 8%; text-align: center; }
+        .col-description { width: auto; text-align: left; }
+        .col-quantity { width: 10%; text-align: center; }
+        .col-unit { width: 10%; text-align: center; }
+        .col-rate { width: 16%; text-align: right; }
+        .col-amount { width: 16%; text-align: right; }
     </style>
 </head>
 <body>
-    <!-- Watermark for draft quotations -->
-    @if($quotation->status === 'DRAFT')
-        <div class="watermark">DRAFT</div>
+<div class="page">
+    {{-- Centered Title --}}
+    <h1 class="title">QUOTATION</h1>
+
+    {{-- Company Block + Logo --}}
+    <table class="header-table">
+        <tr>
+            <td style="width:70%;">
+                <div class="company-name">{{ $quotation->company->name ?? 'Company Name' }}</div>
+                @foreach([
+                    $quotation->company->address,
+                    trim(collect([$quotation->company->postal_code, $quotation->company->city])->filter()->implode(' ')),
+                    $quotation->company->state,
+                    'Email: ' . ($quotation->company->email ?? '—'),
+                    'Mobile: ' . ($quotation->company->phone ?? '—'),
+                ] as $line)
+                    @if(!empty(trim($line, ' -—')))
+                        <div class="company-line">{{ $line }}</div>
+                    @endif
+                @endforeach
+            </td>
+            <td style="width:30%; text-align:right;">
+                @if($logoPath)
+                    <img src="{{ $logoPath }}" alt="Company Logo" class="logo">
+                @endif
+            </td>
+        </tr>
+    </table>
+
+    <hr class="separator">
+
+    {{-- Quote To + Quotation Info Cards --}}
+    <table class="info-row">
+        <tr>
+            <td style="width:50%; padding-right:6mm;">
+                <div class="section-label">Quote To</div>
+                <div class="card">
+                    <table class="bill-table">
+                        <tr><td>{{ $quotation->customer_name ?? 'Customer Name' }}</td></tr>
+                        @if($quotation->customer_company)
+                            <tr><td>{{ $quotation->customer_company }}</td></tr>
+                        @endif
+                        @foreach($billAddress as $line)
+                            <tr><td>{{ $line }}</td></tr>
+                        @endforeach
+                        @if($quotation->customer_email)
+                            <tr><td>Email: {{ $quotation->customer_email }}</td></tr>
+                        @endif
+                        @if($quotation->customer_phone)
+                            <tr><td>Phone: {{ $quotation->customer_phone }}</td></tr>
+                        @endif
+                    </table>
+                </div>
+            </td>
+            <td style="width:50%;">
+                <div class="section-label">Quotation Info</div>
+                <div class="card">
+                    <table class="meta-table">
+                        <tr>
+                            <td>Quotation No :</td>
+                            <td>{{ $quotation->number }}</td>
+                        </tr>
+                        <tr>
+                            <td>Date :</td>
+                            <td>{{ $quotation->quotation_date?->format('d M, Y') ?? now()->format('d M, Y') }}</td>
+                        </tr>
+                        <tr>
+                            <td>Valid Until :</td>
+                            <td>{{ $quotation->valid_until?->format('d M, Y') ?? '—' }}</td>
+                        </tr>
+                        @if($quotation->customerSegment)
+                        <tr>
+                            <td>Customer Type :</td>
+                            <td>{{ $quotation->customerSegment->name }}</td>
+                        </tr>
+                        @endif
+                    </table>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    {{-- Items Table with Blue Header --}}
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th class="col-sl">No.</th>
+                <th class="col-description">Description</th>
+                <th class="col-unit">Unit</th>
+                <th class="col-quantity">Qty</th>
+                <th class="col-rate">Unit Price</th>
+                <th class="col-amount">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($quotation->items as $index => $item)
+                <tr>
+                    <td class="col-sl">{{ $index + 1 }}</td>
+                    <td class="col-description">
+                        {{ $item->description }}
+                        @if($item->specifications)
+                            <div style="font-size: 10px; color: {{ $mutedColor }}; margin-top: 2px;">{{ $item->specifications }}</div>
+                        @endif
+                    </td>
+                    <td class="col-unit">{{ $item->unit ?? 'Nos' }}</td>
+                    <td class="col-quantity">{{ rtrim(rtrim(number_format((float) $item->quantity, 2), '0'), '.') }}</td>
+                    <td class="col-rate">{{ $format($item->unit_price) }}</td>
+                    <td class="col-amount">{{ $format($item->total_price ?? ($item->quantity * $item->unit_price)) }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    {{-- Payment Instructions + Totals --}}
+    <table class="summary-table">
+        <tr>
+            @if($sections['show_payment_instructions'] ?? true)
+                <td class="payment-block" style="width:50%;">
+                    <div class="section-label">Payment Instructions</div>
+                    <div class="payment-text">{!! nl2br(e($paymentText)) !!}</div>
+                </td>
+            @endif
+            <td style="width:{{ ($sections['show_payment_instructions'] ?? true) ? '50%' : '100%' }};">
+                <table class="totals-table">
+                    <tr>
+                        <td>Subtotal</td>
+                        <td>{{ $format($subtotal) }}</td>
+                    </tr>
+                    @if($discount > 0)
+                        <tr>
+                            <td>Discount</td>
+                            <td>-{{ $format($discount) }}</td>
+                        </tr>
+                    @endif
+                    @if($tax > 0)
+                        <tr>
+                            <td>Tax</td>
+                            <td>{{ $format($tax) }}</td>
+                        </tr>
+                    @endif
+                    <tr class="total-row">
+                        <td>Total</td>
+                        <td>{{ $format($total) }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {{-- Notes --}}
+    @if($quotation->notes)
+        <div style="margin-top: 6mm; page-break-inside: avoid;">
+            <div class="section-label">Notes</div>
+            <div style="font-size: 9pt; line-height: 1.4; color: {{ $textColor }};">
+                {!! nl2br(e($quotation->notes)) !!}
+            </div>
+        </div>
     @endif
 
-    <div class="page">
-        <!-- Header -->
-        <div class="header">
-            <table>
-                <tr>
-                    <td class="company-info">
-                        <div class="company-name">{{ $quotation->company->name ?? 'Bina Group' }}</div>
-                        <div class="company-address">
-                            @if($quotation->company->address)
-                                {!! nl2br(e($quotation->company->address)) !!}<br>
-                            @endif
-                            @if($quotation->company->phone)
-                                Phone: {{ $quotation->company->phone }}<br>
-                            @endif
-                            @if($quotation->company->email)
-                                Email: {{ $quotation->company->email }}
-                            @endif
-                        </div>
-                    </td>
-                    <td class="quotation-info">
-                        <div class="quotation-title">QUOTATION</div>
-                        <div class="quotation-details">
-                            <div><strong>Number:</strong> {{ $quotation->number }}</div>
-                            <div><strong>Date:</strong> {{ $quotation->created_at->format('d M Y') }}</div>
-                            @if($quotation->valid_until)
-                                <div><strong>Valid Until:</strong> {{ $quotation->valid_until->format('d M Y') }}</div>
-                            @endif
-                            <div>
-                                <span class="status-badge status-{{ strtolower($quotation->status) }}">
-                                    {{ $quotation->status }}
-                                </span>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- Customer Information -->
-        <div class="customer-section">
-            <div class="section-title">Quote To</div>
-            <div class="customer-info">
-                <div class="customer-name">
-                    {{ $quotation->customer_name }}
-                    @if($quotation->customerSegment)
-                        <span style="font-size: 10px; background: {{ $quotation->customerSegment->color ?? '#6B7280' }}; color: white; padding: 2px 6px; border-radius: 3px; margin-left: 8px;">
-                            {{ $quotation->customerSegment->name }}
-                        </span>
-                    @endif
-                </div>
-                <div class="customer-details">
-                    @if($quotation->customer_email)
-                        Email: {{ $quotation->customer_email }}<br>
-                    @endif
-                    @if($quotation->customer_phone)
-                        Phone: {{ $quotation->customer_phone }}<br>
-                    @endif
-                    @if($quotation->customer_address)
-                        Address: {!! nl2br(e($quotation->customer_address)) !!}
-                    @endif
-                    @if($quotation->customerSegment && $quotation->customerSegment->default_discount_percentage > 0)
-                        <br><strong>Customer Segment:</strong> {{ $quotation->customerSegment->name }} 
-                        ({{ $quotation->customerSegment->default_discount_percentage }}% discount applied)
-                    @endif
-                </div>
+    {{-- Terms & Conditions --}}
+    @if($quotation->terms_conditions)
+        <div style="margin-top: 6mm; page-break-inside: avoid;">
+            <div class="section-label">Terms & Conditions</div>
+            <div style="font-size: 9pt; line-height: 1.4; color: {{ $textColor }};">
+                {!! nl2br(e($quotation->terms_conditions)) !!}
             </div>
         </div>
+    @endif
 
-        <!-- Items/Sections -->
-        <div class="items-section">
-            <div class="section-title">Items & Services</div>
-
-            @if($quotation->sections->isNotEmpty())
-                <!-- Service Quotation with Sections -->
-                @foreach($quotation->sections as $section)
-                    <div class="section-header">
-                        {{ $section->name }}
-                        @if($section->description)
-                            <span class="text-sm"> - {{ $section->description }}</span>
-                        @endif
-                    </div>
-                    <div class="section-items">
-                        <table class="items-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 50%;">Description</th>
-                                    <th style="width: 10%;">Unit</th>
-                                    <th style="width: 15%;" class="text-center">Quantity</th>
-                                    <th style="width: 15%;" class="text-right">Unit Price</th>
-                                    <th style="width: 15%;" class="text-right">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($section->items as $item)
-                                    <tr>
-                                        <td>
-                                            <div class="item-description">{{ $item->description }}</div>
-                                            @if($item->specifications)
-                                                <div class="item-specifications">{{ $item->specifications }}</div>
-                                            @endif
-                                        </td>
-                                        <td>{{ $item->unit ?? 'Nos' }}</td>
-                                        <td class="text-center">{{ number_format($item->quantity, 2) }}</td>
-                                        <td class="text-right">RM {{ number_format($item->unit_price, 2) }}</td>
-                                        <td class="text-right">RM {{ number_format($item->total_price, 2) }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                        <div class="section-total">
-                            Section Total: RM {{ number_format($section->total, 2) }}
-                        </div>
-                    </div>
-                @endforeach
-            @else
-                <!-- Simple Product Quotation -->
-                <table class="items-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 50%;">Description</th>
-                            <th style="width: 10%;">Unit</th>
-                            <th style="width: 15%;" class="text-center">Quantity</th>
-                            <th style="width: 15%;" class="text-right">Unit Price</th>
-                            <th style="width: 15%;" class="text-right">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($quotation->items as $item)
-                            <tr>
-                                <td>
-                                    <div class="item-description">{{ $item->description }}</div>
-                                    @if($item->specifications)
-                                        <div class="item-specifications">{{ $item->specifications }}</div>
-                                    @endif
-                                </td>
-                                <td>{{ $item->unit ?? 'Nos' }}</td>
-                                <td class="text-center">{{ number_format($item->quantity, 2) }}</td>
-                                <td class="text-right">RM {{ number_format($item->unit_price, 2) }}</td>
-                                <td class="text-right">RM {{ number_format($item->total_price, 2) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @endif
-        </div>
-
-        <!-- Financial Summary -->
-        <div class="financial-summary">
-            <table class="summary-table">
-                <tr>
-                    <td class="label">Subtotal:</td>
-                    <td class="amount">RM {{ number_format($quotation->subtotal, 2) }}</td>
-                </tr>
-                @if($quotation->discount_percentage > 0)
-                    <tr>
-                        <td class="label">Discount ({{ $quotation->discount_percentage }}%):</td>
-                        <td class="amount">- RM {{ number_format($quotation->discount_amount, 2) }}</td>
-                    </tr>
-                @endif
-                @if($quotation->tax_percentage > 0)
-                    <tr>
-                        <td class="label">Tax ({{ $quotation->tax_percentage }}%):</td>
-                        <td class="amount">RM {{ number_format($quotation->tax_amount, 2) }}</td>
-                    </tr>
-                @endif
-                <tr class="total-row">
-                    <td>TOTAL:</td>
-                    <td class="amount">RM {{ number_format($quotation->total, 2) }}</td>
-                </tr>
-            </table>
-        </div>
-
-        <!-- Terms and Conditions -->
-        @if($quotation->terms)
-            <div class="terms-section">
-                <div class="section-title">Terms & Conditions</div>
-                <div class="terms-content">
-                    {!! nl2br(e($quotation->terms)) !!}
-                </div>
-            </div>
-        @endif
-
-        <!-- Notes -->
-        @if($quotation->notes)
-            <div class="notes-section">
-                <div class="section-title">Notes</div>
-                <div class="notes-content">
-                    {!! nl2br(e($quotation->notes)) !!}
-                </div>
-            </div>
-        @endif
-
-        <!-- Pricing Information -->
-        @if($quotation->customerSegment)
-            <div style="margin-top: 20px; padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
-                <div style="font-size: 11px; color: #64748b; margin-bottom: 5px;">
-                    <strong>Pricing Information:</strong>
-                </div>
-                <div style="font-size: 10px; color: #475569;">
-                    • Customer Segment: <strong>{{ $quotation->customerSegment->name }}</strong>
-                    @if($quotation->customerSegment->default_discount_percentage > 0)
-                        ({{ $quotation->customerSegment->default_discount_percentage }}% segment discount)
-                    @endif
-                </div>
-                <div style="font-size: 10px; color: #475569; margin-top: 3px;">
-                    • Prices may include quantity-based tier pricing where applicable
-                </div>
-                <div style="font-size: 10px; color: #475569; margin-top: 3px;">
-                    • All pricing is subject to the terms and conditions stated above
-                </div>
-            </div>
-        @endif
-
-        <!-- Social Proof Section -->
-        @php
-            $pdfService = app(\App\Services\PDFService::class);
-            $proofs = $pdfService->getProofsForPDF($quotation, 'quotation');
-        @endphp
-
-        @if($proofs->isNotEmpty())
-            <div style="margin-top: 30px; page-break-inside: avoid;">
-                <div class="section-title">{{ $pdfService->getProofSectionTitle('quotation') }}</div>
-                
-                <div style="background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                    <!-- Proof Grid -->
-                    <table style="width: 100%; margin-bottom: 15px;">
-                        @foreach($proofs->take(4)->chunk(2) as $proofChunk)
-                        <tr>
-                            @foreach($proofChunk as $proof)
-                            <td style="width: 48%; padding: 5px; vertical-align: top;">
-                            <div style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e5e7eb;">
-                                <!-- Proof Header -->
-                                <div style="margin-bottom: 8px;">
-                                    @if($proof->is_featured)
-                                        <span style="background: #fbbf24; color: white; font-size: 8px; padding: 2px 6px; border-radius: 10px; margin-right: 6px; font-weight: 600;">★</span>
-                                    @endif
-                                    <span style="background: {{ $proof->getCategoryColor() }}; color: white; font-size: 8px; padding: 2px 6px; border-radius: 10px; font-weight: 600; text-transform: uppercase;">
-                                        {{ $proof->type_label }}
-                                    </span>
-                                </div>
-
-                                <!-- Proof Title -->
-                                <div style="font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 4px; line-height: 1.2;">
-                                    {{ Str::limit($proof->title, 45) }}
-                                </div>
-
-                                <!-- Proof Description -->
-                                @if($proof->description)
-                                    <div style="font-size: 9px; color: #6b7280; margin-bottom: 8px; line-height: 1.3;">
-                                        {{ Str::limit($proof->description, 80) }}
-                                    </div>
-                                @endif
-
-                                <!-- Proof Assets -->
-                                @php
-                                    $displayAssets = $pdfService->filterAssetsForPDF($proof, 2);
-                                @endphp
-                                
-                                @if($displayAssets->isNotEmpty())
-                                    <div style="margin-bottom: 6px;">
-                                        @foreach($displayAssets as $asset)
-                                            @if($asset->isImage())
-                                                <span style="display: inline-block; width: 24px; height: 24px; border-radius: 3px; overflow: hidden; border: 1px solid #e5e7eb; margin-right: 4px;">
-                                                    <img src="{{ asset('storage/' . ($asset->thumbnail_path ?: $asset->file_path)) }}"
-                                                         alt="{{ $asset->alt_text }}"
-                                                         style="width: 100%; height: 100%; object-fit: cover;">
-                                                </span>
-                                            @endif
-                                        @endforeach
-                                        @if($proof->assets->count() > 2)
-                                            <span style="display: inline-block; width: 24px; height: 24px; border-radius: 3px; background: #f3f4f6; border: 1px solid #e5e7eb; text-align: center; line-height: 24px; font-size: 8px; color: #6b7280; font-weight: 600;">
-                                                +{{ $proof->assets->count() - 2 }}
-                                            </span>
-                                        @endif
-                                    </div>
-                                @endif
-
-                                <!-- Proof Stats -->
-                                <div style="font-size: 8px; color: #6b7280;">
-                                    @if($proof->views_count > 0)
-                                        <span>{{ number_format($proof->views_count) }} views</span>
-                                    @endif
-                                    @if($proof->conversion_impact)
-                                        <span style="float: right; background: #10b981; color: white; padding: 1px 4px; border-radius: 8px; font-weight: 600;">
-                                            {{ $proof->conversion_impact }}% impact
-                                        </span>
-                                    @endif
-                                </div>
-                            </div>
-                            </td>
-                            @endforeach
-                        </tr>
-                        @endforeach
-                    </table>
-
-                    <!-- Additional Proofs Summary -->
-                    @if($proofs->count() > 4)
-                        <div style="text-align: center; padding: 8px; background: white; border-radius: 4px; border: 1px solid #e5e7eb;">
-                            <div style="font-size: 10px; color: #6b7280;">
-                                + {{ $proofs->count() - 4 }} more {{ Str::plural('credential', $proofs->count() - 4) }} available
-                            </div>
-                        </div>
-                    @endif
-
-                    <!-- Proof Summary Statistics -->
-                    @php
-                        $proofAnalytics = $pdfService->getProofAnalytics($proofs);
-                    @endphp
-                    
-                    <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid #e5e7eb;">
-                        <table style="width: 100%; font-size: 9px; color: #6b7280;">
-                            <tr>
-                                <td style="width: 25%;"><strong>{{ $proofAnalytics['total_proofs'] }}</strong> {{ Str::plural('proof', $proofAnalytics['total_proofs']) }}</td>
-                                @if($proofAnalytics['total_views'] > 0)
-                                    <td style="width: 25%;"><strong>{{ number_format($proofAnalytics['total_views']) }}</strong> total views</td>
-                                @endif
-                                @if($proofAnalytics['featured_count'] > 0)
-                                    <td style="width: 25%;"><strong>{{ $proofAnalytics['featured_count'] }}</strong> featured</td>
-                                @endif
-                                @if($proofAnalytics['average_impact'])
-                                    <td style="width: 25%;"><strong>{{ number_format($proofAnalytics['average_impact'], 1) }}%</strong> avg. impact</td>
-                                @endif
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        @endif
-    </div>
-
-    <!-- Footer -->
-    <div class="footer">
-        <table>
+    {{-- Signature Lines --}}
+    @if($sections['show_signatures'] ?? true)
+        <table class="signature-table">
             <tr>
-                <td class="footer-left">
-                    <div>{{ $quotation->company->name ?? 'Bina Group' }}</div>
-                    <div>Generated on {{ now()->format('d M Y H:i') }}</div>
+                {{-- Sales Rep Signature --}}
+                <td style="width: 33.33%; vertical-align: top;">
+                    <div class="signature-line">{{ $salesRepTitle }}</div>
+                    <div class="signature-name">{{ $salesRepName }}</div>
                 </td>
-                <td class="footer-right">
-                    <div>Quotation {{ $quotation->number }}</div>
-                    <div>Page 1 of 1</div>
+
+                {{-- Company Signature --}}
+                <td style="width: 33.33%; vertical-align: top;">
+                    <div class="signature-line">Authorized Signatory</div>
+                    <div class="signature-name">{{ $quotation->company->name ?? 'Company' }}</div>
+                </td>
+
+                {{-- Customer Signature --}}
+                <td style="width: 33.33%; vertical-align: top;">
+                    <div class="signature-line">Customer Acceptance</div>
+                    <div class="signature-name">{{ $quotation->customer_name ?? 'Customer' }}</div>
                 </td>
             </tr>
         </table>
+    @endif
+
+    {{-- Footer --}}
+    <div class="footer">
+        {{ $quotation->company->name ?? 'Company' }} • Quotation {{ $quotation->number }} • Generated on {{ now()->format('d M Y, H:i') }}
     </div>
+</div>
 </body>
 </html>
