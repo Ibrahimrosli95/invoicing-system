@@ -169,25 +169,31 @@ Route::middleware('auth')->group(function () {
     Route::get('assessments/{assessment}/convert', [QuotationController::class, 'createFromAssessment'])->name('assessments.convert');
     
     // Quotation Management
+    // API routes (must be defined before resource routes to avoid conflicts)
     Route::post('api/quotations', [QuotationController::class, 'storeApi'])->name('api.quotations.store');
     Route::put('api/quotations/{quotation}', [QuotationController::class, 'updateApi'])->name('api.quotations.update');
-    Route::resource('quotations', QuotationController::class);
 
-    // Enhanced Quotation Builders
+    // Enhanced Quotation Builders (must be before resource routes)
     Route::get('quotations/product-builder', [QuotationController::class, 'productBuilder'])->name('quotations.product-builder');
     Route::get('quotations/service-builder', [QuotationController::class, 'serviceBuilder'])->name('quotations.service-builder');
     Route::get('quotations/create/products', [QuotationController::class, 'createProduct'])->name('quotations.create.products');
     Route::get('quotations/create/services', [QuotationController::class, 'createService'])->name('quotations.create.services');
 
+    // Quotation utility routes (before resource routes)
+    Route::get('quotations-pricing-items', [QuotationController::class, 'getPricingItems'])->name('quotations.pricing-items');
+    Route::post('quotations/get-segment-pricing', [QuotationController::class, 'getSegmentPricing'])->name('quotations.get-segment-pricing');
+
+    // Quotation resource routes
+    Route::resource('quotations', QuotationController::class);
+
+    // Quotation action routes (status changes)
     Route::post('quotations/{quotation}/mark-sent', [QuotationController::class, 'markAsSent'])->name('quotations.mark-sent');
     Route::post('quotations/{quotation}/mark-accepted', [QuotationController::class, 'markAsAccepted'])->name('quotations.mark-accepted');
     Route::post('quotations/{quotation}/mark-rejected', [QuotationController::class, 'markAsRejected'])->name('quotations.mark-rejected');
-    
+
     // Quotation PDF Generation
     Route::get('quotations/{quotation}/pdf', [QuotationController::class, 'downloadPDF'])->name('quotations.pdf');
     Route::get('quotations/{quotation}/preview', [QuotationController::class, 'previewPDF'])->name('quotations.preview');
-    Route::get('quotations-pricing-items', [QuotationController::class, 'getPricingItems'])->name('quotations.pricing-items');
-    Route::post('quotations/get-segment-pricing', [QuotationController::class, 'getSegmentPricing'])->name('quotations.get-segment-pricing');
     
     // Invoice Management
     Route::get('invoices/builder', [InvoiceController::class, 'builder'])->name('invoices.builder');
