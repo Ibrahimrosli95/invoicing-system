@@ -242,6 +242,12 @@
                             'patterns' => ['quotations.product-builder'],
                             'visible' => ['type' => 'can', 'ability' => 'create', 'arguments' => \App\Models\Quotation::class],
                         ],
+                        [
+                            'label' => 'Service Quotation Builder',
+                            'route' => 'quotations.service-builder',
+                            'patterns' => ['quotations.service-builder'],
+                            'visible' => ['type' => 'can', 'ability' => 'create', 'arguments' => \App\Models\Quotation::class],
+                        ],
                     ],
                 ],
                 [

@@ -300,6 +300,29 @@ class QuotationController extends Controller
     }
 
     /**
+     * Show the service quotation builder interface.
+     */
+    public function serviceBuilder(Request $request): View
+    {
+        $this->authorize('create', Quotation::class);
+
+        // Load default templates (quotations may use similar templates to invoices)
+        $defaultTemplates = [
+            'notes' => \App\Models\InvoiceNoteTemplate::getDefaultForType('notes'),
+            'terms' => \App\Models\InvoiceNoteTemplate::getDefaultForType('terms'),
+            'payment_instructions' => \App\Models\InvoiceNoteTemplate::getDefaultForType('payment_instructions'),
+        ];
+
+        // Get customer segments for pricing
+        $customerSegments = CustomerSegment::forCompany()
+            ->active()
+            ->orderBy('name')
+            ->get();
+
+        return view('quotations.service-builder', compact('defaultTemplates', 'customerSegments'));
+    }
+
+    /**
      * Show the form for editing the specified quotation.
      */
     public function edit(Quotation $quotation): View
