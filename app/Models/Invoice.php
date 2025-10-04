@@ -670,7 +670,9 @@ class Invoice extends Model
             'assigned_to' => $quotation->assigned_to,
             'created_by' => auth()->id(),
             'quotation_id' => $quotation->id,
+            'lead_id' => $quotation->lead_id,
             'customer_segment_id' => $quotation->customer_segment_id,
+            'type' => $quotation->type ?? 'product',
             'title' => $quotation->title,
             'customer_name' => $quotation->customer_name,
             'customer_phone' => $quotation->customer_phone,
@@ -679,9 +681,12 @@ class Invoice extends Model
             'customer_city' => $quotation->customer_city,
             'customer_state' => $quotation->customer_state,
             'customer_postal_code' => $quotation->customer_postal_code,
+            'customer_company' => $quotation->customer_company,
             'description' => $quotation->description,
             'terms_conditions' => $quotation->terms_conditions,
             'notes' => $quotation->notes,
+            'reference_number' => $quotation->reference_number,
+            'issued_date' => $quotation->quotation_date ?? now(),
             'subtotal' => $quotation->subtotal,
             'discount_percentage' => $quotation->discount_percentage,
             'discount_amount' => $quotation->discount_amount,
@@ -692,16 +697,20 @@ class Invoice extends Model
             'payment_terms' => 30,
         ]);
 
-        // Copy quotation items
+        // Copy quotation items (including sections if service type)
         foreach ($quotation->items as $quotationItem) {
             $invoice->items()->create([
                 'quotation_item_id' => $quotationItem->id,
                 'description' => $quotationItem->description,
                 'specifications' => $quotationItem->specifications,
+                'notes' => $quotationItem->notes,
+                'item_code' => $quotationItem->item_code,
                 'unit' => $quotationItem->unit,
                 'quantity' => $quotationItem->quantity,
                 'unit_price' => $quotationItem->unit_price,
                 'total_price' => $quotationItem->total_price,
+                'source_type' => $quotationItem->source_type,
+                'source_id' => $quotationItem->source_id,
                 'sort_order' => $quotationItem->sort_order,
             ]);
         }

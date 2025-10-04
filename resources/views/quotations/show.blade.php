@@ -453,9 +453,11 @@
                             </div>
                             <p class="text-sm text-green-700 mb-3">This quotation has been accepted and can be converted to an invoice.</p>
                             @can('convert', $quotation)
-                                <button class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-sm opacity-50" disabled>
-                                    Convert to Invoice (Coming Soon)
-                                </button>
+                                <a href="{{ route('quotations.convert', $quotation) }}"
+                                   onclick="return confirm('Are you sure you want to convert this quotation to an invoice? This action cannot be undone.')"
+                                   class="block w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-sm text-center transition-colors">
+                                    Convert to Invoice
+                                </a>
                             @endcan
                         </div>
                     @endif
