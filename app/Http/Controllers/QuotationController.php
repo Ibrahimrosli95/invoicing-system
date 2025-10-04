@@ -910,8 +910,18 @@ class QuotationController extends Controller
         try {
             return $pdfService->streamPDF($quotation);
         } catch (\Exception $e) {
-            return redirect()->route('quotations.show', $quotation)
-                ->with('error', 'Failed to generate PDF: ' . $e->getMessage());
+            // Log the error for debugging
+            \Log::error('Quotation PDF Preview Failed', [
+                'quotation_id' => $quotation->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Return error page directly instead of redirecting
+            return response()->view('errors.pdf-generation', [
+                'error' => $e->getMessage(),
+                'quotation' => $quotation
+            ], 500);
         }
     }
 
