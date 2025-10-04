@@ -332,6 +332,17 @@ class QuotationController extends Controller
             $validated['created_by'] = auth()->id();
             $validated['status'] = $validated['status'] ?? Quotation::STATUS_DRAFT;
 
+            // Automatic lead creation/matching
+            if (!isset($validated['lead_id']) || empty($validated['lead_id'])) {
+                // Find or create lead from customer data to ensure CRM tracking
+                $lead = Lead::findOrCreateFromCustomerData($validated, Lead::SOURCE_QUOTATION_BUILDER);
+                $validated['lead_id'] = $lead->id;
+
+                // Inherit team and assignment from lead if not specified
+                $validated['team_id'] = $validated['team_id'] ?? $lead->team_id;
+                $validated['assigned_to'] = $validated['assigned_to'] ?? $lead->assigned_to;
+            }
+
             $items = $validated['items'] ?? [];
             $sections = $validated['sections'] ?? [];
             unset($validated['items'], $validated['sections'], $validated['validity_period']);
@@ -515,6 +526,34 @@ class QuotationController extends Controller
             $items = $validated['items'] ?? [];
             $sections = $validated['sections'] ?? [];
             unset($validated['items'], $validated['sections'], $validated['validity_period']);
+
+            // Handle lead relationship updates when customer info changes
+            if ($quotation->lead_id) {
+                $lead = $quotation->lead;
+
+                // If phone number changed, find or create different lead
+                if ($validated['customer_phone'] !== $lead->phone) {
+                    $newLead = Lead::findOrCreateFromCustomerData($validated, Lead::SOURCE_QUOTATION_BUILDER);
+                    $validated['lead_id'] = $newLead->id;
+                } else {
+                    // Update existing lead with latest information
+                    if (in_array($lead->status, [Lead::STATUS_NEW, Lead::STATUS_CONTACTED, Lead::STATUS_QUOTED])) {
+                        $lead->update([
+                            'name' => $validated['customer_name'],
+                            'email' => $validated['customer_email'] ?? $lead->email,
+                            'address' => $validated['customer_address'] ?? $lead->address,
+                            'city' => $validated['customer_city'] ?? $lead->city,
+                            'state' => $validated['customer_state'] ?? $lead->state,
+                            'postal_code' => $validated['customer_postal_code'] ?? $lead->postal_code,
+                            'last_contacted_at' => now(),
+                        ]);
+                    }
+                }
+            } else {
+                // If quotation doesn't have a lead yet, create one
+                $lead = Lead::findOrCreateFromCustomerData($validated, Lead::SOURCE_QUOTATION_BUILDER);
+                $validated['lead_id'] = $lead->id;
+            }
 
             $quotation->update($validated);
 

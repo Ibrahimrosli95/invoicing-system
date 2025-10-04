@@ -78,6 +78,8 @@ class Lead extends Model
     const SOURCE_EMAIL_CAMPAIGN = 'email_campaign';
     const SOURCE_ADVERTISEMENT = 'advertisement';
     const SOURCE_WALK_IN = 'walk_in';
+    const SOURCE_QUOTATION_BUILDER = 'quotation_builder';
+    const SOURCE_INVOICE_BUILDER = 'invoice_builder';
     const SOURCE_OTHER = 'other';
 
     /**
@@ -119,6 +121,8 @@ class Lead extends Model
             self::SOURCE_EMAIL_CAMPAIGN => 'Email Campaign',
             self::SOURCE_ADVERTISEMENT => 'Advertisement',
             self::SOURCE_WALK_IN => 'Walk-in',
+            self::SOURCE_QUOTATION_BUILDER => 'Quotation Builder',
+            self::SOURCE_INVOICE_BUILDER => 'Invoice Builder',
             self::SOURCE_OTHER => 'Other',
         ];
     }
@@ -575,5 +579,73 @@ class Lead extends Model
     public function latestQuotation()
     {
         return $this->quotations()->latest()->first();
+    }
+
+    /**
+     * Find or create a lead from quotation/invoice data.
+     * This ensures all customer interactions are tracked in the CRM.
+     *
+     * @param array $data Customer data from quotation/invoice
+     * @param string $source Source type (quotation_builder, invoice_builder)
+     * @return Lead
+     */
+    public static function findOrCreateFromCustomerData(array $data, string $source = self::SOURCE_QUOTATION_BUILDER): self
+    {
+        // First, try to find existing lead by phone number (most reliable identifier)
+        $existingLead = static::forCompany()
+            ->where('phone', $data['customer_phone'])
+            ->first();
+
+        if ($existingLead) {
+            // Update lead with latest information if status allows
+            if (in_array($existingLead->status, [self::STATUS_NEW, self::STATUS_CONTACTED])) {
+                $existingLead->update([
+                    'email' => $data['customer_email'] ?? $existingLead->email,
+                    'address' => $data['customer_address'] ?? $existingLead->address,
+                    'city' => $data['customer_city'] ?? $existingLead->city,
+                    'state' => $data['customer_state'] ?? $existingLead->state,
+                    'postal_code' => $data['customer_postal_code'] ?? $existingLead->postal_code,
+                    'last_contacted_at' => now(),
+                ]);
+            }
+
+            return $existingLead;
+        }
+
+        // Create new lead if not found
+        $leadData = [
+            'company_id' => auth()->user()->company_id,
+            'team_id' => $data['team_id'] ?? auth()->user()->team_id,
+            'assigned_to' => $data['assigned_to'] ?? auth()->id(),
+            'name' => $data['customer_name'],
+            'phone' => $data['customer_phone'],
+            'email' => $data['customer_email'] ?? null,
+            'address' => $data['customer_address'] ?? null,
+            'city' => $data['customer_city'] ?? null,
+            'state' => $data['customer_state'] ?? null,
+            'postal_code' => $data['customer_postal_code'] ?? null,
+            'source' => $source,
+            'status' => self::STATUS_NEW,
+            'requirements' => $data['description'] ?? $data['title'] ?? null,
+            'estimated_value' => $data['estimated_value'] ?? null,
+            'notes' => $data['notes'] ?? null,
+        ];
+
+        $lead = static::create($leadData);
+
+        // Log activity for auto-created lead
+        LeadActivity::create([
+            'lead_id' => $lead->id,
+            'user_id' => auth()->id(),
+            'type' => 'lead_created',
+            'title' => 'Lead Auto-Created',
+            'description' => "Lead automatically created from " . ($source === self::SOURCE_QUOTATION_BUILDER ? 'quotation' : 'invoice') . " builder",
+            'metadata' => [
+                'source' => $source,
+                'auto_created' => true,
+            ],
+        ]);
+
+        return $lead;
     }
 }
