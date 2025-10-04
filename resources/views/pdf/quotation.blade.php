@@ -45,16 +45,19 @@
         
         /* Header */
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
+            width: 100%;
             margin-bottom: 30px;
             border-bottom: 2px solid #e5e7eb;
             padding-bottom: 20px;
         }
-        
+
+        .header table {
+            width: 100%;
+        }
+
         .company-info {
-            flex: 1;
+            width: 50%;
+            vertical-align: top;
         }
         
         .company-name {
@@ -72,7 +75,8 @@
         
         .quotation-info {
             text-align: right;
-            flex: 1;
+            width: 50%;
+            vertical-align: top;
         }
         
         .quotation-title {
@@ -290,16 +294,21 @@
             padding-top: 10px;
             font-size: 10px;
             color: #6b7280;
-            display: flex;
-            justify-content: space-between;
         }
-        
+
+        .footer table {
+            width: 100%;
+        }
+
         .footer-left {
-            flex: 1;
+            width: 50%;
+            vertical-align: top;
         }
-        
+
         .footer-right {
             text-align: right;
+            width: 50%;
+            vertical-align: top;
         }
         
         /* Status Badge */
@@ -373,35 +382,39 @@
     <div class="page">
         <!-- Header -->
         <div class="header">
-            <div class="company-info">
-                <div class="company-name">{{ $quotation->company->name ?? 'Bina Group' }}</div>
-                <div class="company-address">
-                    @if($quotation->company->address)
-                        {!! nl2br(e($quotation->company->address)) !!}<br>
-                    @endif
-                    @if($quotation->company->phone)
-                        Phone: {{ $quotation->company->phone }}<br>
-                    @endif
-                    @if($quotation->company->email)
-                        Email: {{ $quotation->company->email }}
-                    @endif
-                </div>
-            </div>
-            <div class="quotation-info">
-                <div class="quotation-title">QUOTATION</div>
-                <div class="quotation-details">
-                    <div><strong>Number:</strong> {{ $quotation->number }}</div>
-                    <div><strong>Date:</strong> @displayDate($quotation->created_at)</div>
-                    @if($quotation->valid_until)
-                        <div><strong>Valid Until:</strong> @displayDate($quotation->valid_until)</div>
-                    @endif
-                    <div>
-                        <span class="status-badge status-{{ strtolower($quotation->status) }}">
-                            {{ $quotation->status }}
-                        </span>
-                    </div>
-                </div>
-            </div>
+            <table>
+                <tr>
+                    <td class="company-info">
+                        <div class="company-name">{{ $quotation->company->name ?? 'Bina Group' }}</div>
+                        <div class="company-address">
+                            @if($quotation->company->address)
+                                {!! nl2br(e($quotation->company->address)) !!}<br>
+                            @endif
+                            @if($quotation->company->phone)
+                                Phone: {{ $quotation->company->phone }}<br>
+                            @endif
+                            @if($quotation->company->email)
+                                Email: {{ $quotation->company->email }}
+                            @endif
+                        </div>
+                    </td>
+                    <td class="quotation-info">
+                        <div class="quotation-title">QUOTATION</div>
+                        <div class="quotation-details">
+                            <div><strong>Number:</strong> {{ $quotation->number }}</div>
+                            <div><strong>Date:</strong> {{ $quotation->created_at->format('d M Y') }}</div>
+                            @if($quotation->valid_until)
+                                <div><strong>Valid Until:</strong> {{ $quotation->valid_until->format('d M Y') }}</div>
+                            @endif
+                            <div>
+                                <span class="status-badge status-{{ strtolower($quotation->status) }}">
+                                    {{ $quotation->status }}
+                                </span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
         </div>
 
         <!-- Customer Information -->
@@ -591,11 +604,14 @@
                 
                 <div style="background: #f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0;">
                     <!-- Proof Grid -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                        @foreach($proofs->take(4) as $proof)
+                    <table style="width: 100%; margin-bottom: 15px;">
+                        @foreach($proofs->take(4)->chunk(2) as $proofChunk)
+                        <tr>
+                            @foreach($proofChunk as $proof)
+                            <td style="width: 48%; padding: 5px; vertical-align: top;">
                             <div style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e5e7eb;">
                                 <!-- Proof Header -->
-                                <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                <div style="margin-bottom: 8px;">
                                     @if($proof->is_featured)
                                         <span style="background: #fbbf24; color: white; font-size: 8px; padding: 2px 6px; border-radius: 10px; margin-right: 6px; font-weight: 600;">★</span>
                                     @endif
@@ -622,38 +638,41 @@
                                 @endphp
                                 
                                 @if($displayAssets->isNotEmpty())
-                                    <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+                                    <div style="margin-bottom: 6px;">
                                         @foreach($displayAssets as $asset)
                                             @if($asset->isImage())
-                                                <div style="width: 24px; height: 24px; border-radius: 3px; overflow: hidden; border: 1px solid #e5e7eb;">
-                                                    <img src="{{ asset('storage/' . ($asset->thumbnail_path ?: $asset->file_path)) }}" 
+                                                <span style="display: inline-block; width: 24px; height: 24px; border-radius: 3px; overflow: hidden; border: 1px solid #e5e7eb; margin-right: 4px;">
+                                                    <img src="{{ asset('storage/' . ($asset->thumbnail_path ?: $asset->file_path)) }}"
                                                          alt="{{ $asset->alt_text }}"
                                                          style="width: 100%; height: 100%; object-fit: cover;">
-                                                </div>
+                                                </span>
                                             @endif
                                         @endforeach
                                         @if($proof->assets->count() > 2)
-                                            <div style="width: 24px; height: 24px; border-radius: 3px; background: #f3f4f6; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #6b7280; font-weight: 600;">
+                                            <span style="display: inline-block; width: 24px; height: 24px; border-radius: 3px; background: #f3f4f6; border: 1px solid #e5e7eb; text-align: center; line-height: 24px; font-size: 8px; color: #6b7280; font-weight: 600;">
                                                 +{{ $proof->assets->count() - 2 }}
-                                            </div>
+                                            </span>
                                         @endif
                                     </div>
                                 @endif
 
                                 <!-- Proof Stats -->
-                                <div style="display: flex; justify-content: between; align-items: center; font-size: 8px; color: #6b7280;">
+                                <div style="font-size: 8px; color: #6b7280;">
                                     @if($proof->views_count > 0)
                                         <span>{{ number_format($proof->views_count) }} views</span>
                                     @endif
                                     @if($proof->conversion_impact)
-                                        <span style="margin-left: auto; background: #10b981; color: white; padding: 1px 4px; border-radius: 8px; font-weight: 600;">
+                                        <span style="float: right; background: #10b981; color: white; padding: 1px 4px; border-radius: 8px; font-weight: 600;">
                                             {{ $proof->conversion_impact }}% impact
                                         </span>
                                     @endif
                                 </div>
                             </div>
+                            </td>
+                            @endforeach
+                        </tr>
                         @endforeach
-                    </div>
+                    </table>
 
                     <!-- Additional Proofs Summary -->
                     @if($proofs->count() > 4)
@@ -670,18 +689,20 @@
                     @endphp
                     
                     <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid #e5e7eb;">
-                        <div style="display: flex; justify-content: space-between; font-size: 9px; color: #6b7280;">
-                            <span><strong>{{ $proofAnalytics['total_proofs'] }}</strong> {{ Str::plural('proof', $proofAnalytics['total_proofs']) }}</span>
-                            @if($proofAnalytics['total_views'] > 0)
-                                <span><strong>{{ number_format($proofAnalytics['total_views']) }}</strong> total views</span>
-                            @endif
-                            @if($proofAnalytics['featured_count'] > 0)
-                                <span><strong>{{ $proofAnalytics['featured_count'] }}</strong> featured</span>
-                            @endif
-                            @if($proofAnalytics['average_impact'])
-                                <span><strong>{{ number_format($proofAnalytics['average_impact'], 1) }}%</strong> avg. impact</span>
-                            @endif
-                        </div>
+                        <table style="width: 100%; font-size: 9px; color: #6b7280;">
+                            <tr>
+                                <td style="width: 25%;"><strong>{{ $proofAnalytics['total_proofs'] }}</strong> {{ Str::plural('proof', $proofAnalytics['total_proofs']) }}</td>
+                                @if($proofAnalytics['total_views'] > 0)
+                                    <td style="width: 25%;"><strong>{{ number_format($proofAnalytics['total_views']) }}</strong> total views</td>
+                                @endif
+                                @if($proofAnalytics['featured_count'] > 0)
+                                    <td style="width: 25%;"><strong>{{ $proofAnalytics['featured_count'] }}</strong> featured</td>
+                                @endif
+                                @if($proofAnalytics['average_impact'])
+                                    <td style="width: 25%;"><strong>{{ number_format($proofAnalytics['average_impact'], 1) }}%</strong> avg. impact</td>
+                                @endif
+                            </tr>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -690,14 +711,18 @@
 
     <!-- Footer -->
     <div class="footer">
-        <div class="footer-left">
-            <div>{{ $quotation->company->name ?? 'Bina Group' }}</div>
-            <div>Generated on @displayDateTime(now())</div>
-        </div>
-        <div class="footer-right">
-            <div>Quotation {{ $quotation->number }}</div>
-            <div>Page 1 of 1</div>
-        </div>
+        <table>
+            <tr>
+                <td class="footer-left">
+                    <div>{{ $quotation->company->name ?? 'Bina Group' }}</div>
+                    <div>Generated on {{ now()->format('d M Y H:i') }}</div>
+                </td>
+                <td class="footer-right">
+                    <div>Quotation {{ $quotation->number }}</div>
+                    <div>Page 1 of 1</div>
+                </td>
+            </tr>
+        </table>
     </div>
 </body>
 </html>

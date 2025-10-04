@@ -9,39 +9,46 @@ use App\Models\Assessment;
 use Spatie\Browsershot\Browsershot;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class PDFService
 {
     /**
-     * Generate PDF for a quotation
+     * Generate PDF for a quotation using Dompdf
      */
     public function generateQuotationPDF(Quotation $quotation): string
     {
         // Load quotation with all necessary relationships including proofs
-        $quotation->load(['items', 'sections.items', 'lead', 'company', 'team', 'proofs.assets']);
-        
+        $quotation->load(['items', 'sections.items', 'lead', 'company', 'team', 'proofs.assets', 'customerSegment']);
+
         // Render the HTML view for the PDF
         $html = view('pdf.quotation', compact('quotation'))->render();
-        
-        // Generate PDF using Browsershot
-        $browsershot = Browsershot::html($html)
-            ->format('A4')
-            ->margins(15, 15, 15, 15)  // top, right, bottom, left (in mm)
-            ->showBackground()
-            ->waitUntilNetworkIdle()
-            ->timeout(60);
 
-        $pdf = $this->configureBrowsershot($browsershot)->pdf();
+        // Configure Dompdf options
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isPhpEnabled', true);
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'DejaVu Sans');
+
+        // Generate PDF using Dompdf
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $pdf = $dompdf->output();
 
         // Store the PDF
         $filename = $this->generatePDFFilename($quotation);
         $path = "pdfs/quotations/{$quotation->company_id}/{$filename}";
-        
+
         Storage::put($path, $pdf);
-        
+
         // Update quotation with PDF path
         $quotation->update(['pdf_path' => $path]);
-        
+
         return $path;
     }
     
