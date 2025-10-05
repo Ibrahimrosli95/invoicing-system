@@ -1,376 +1,693 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Quotation: ' . $quotation->number)
+@section('content')
+@php
+    // Prepare line items data
+    $lineItemsData = $quotation->items->map(function($item) {
+        return [
+            'description' => $item->description,
+            'quantity' => $item->quantity,
+            'unit_price' => $item->unit_price,
+            'pricing_item_id' => $item->pricing_item_id,
+            'item_code' => $item->item_code ?? '',
+            'specifications' => $item->specifications ?? '',
+            'notes' => $item->notes ?? ''
+        ];
+    })->toArray();
+@endphp
 
-@section('header')
-<div class="bg-white border-b border-gray-200 px-6 py-4">
-    <div class="flex items-center justify-between">
-        <div>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Edit Quotation') }}: {{ $quotation->number }}
-            </h2>
-            <p class="text-gray-600 mt-1">
-                Status: <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $quotation->getStatusBadgeColor() }}">
-                    {{ $quotation->status }}
-                </span>
-            </p>
-        </div>
-        <div class="flex space-x-2">
-            <a href="{{ route('quotations.show', $quotation) }}"
-               class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                View Quotation
-            </a>
-            @can('delete', $quotation)
-                @if($quotation->canBeEdited())
-                        <form method="POST" action="{{ route('quotations.destroy', $quotation) }}" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" 
-                                    onclick="return confirm('Are you sure you want to delete this quotation?')"
-                                    class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                                Delete
-                            </button>
-                        </form>
-                    @endif
-                @endcan
+<div class="min-h-screen bg-gray-50" x-data="quotationEditor()">
+    <!-- Header Bar -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-40">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <a href="{{ route('quotations.show', $quotation) }}" class="text-gray-500 hover:text-gray-700">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </a>
+                <h1 class="text-lg font-semibold text-gray-900">Edit Quotation {{ $quotation->number }}</h1>
+                <span class="px-2 py-1 text-xs font-medium {{ $quotation->getStatusBadgeColor() }} rounded">{{ $quotation->status }}</span>
+            </div>
+            <div class="flex items-center space-x-3 relative z-50">
+                <button type="button" @click="previewPDF" class="relative z-50 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
+                    Preview PDF
+                </button>
+                <button type="button" @click="updateQuotation" class="relative z-50 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
+                    Update Quotation
+                </button>
             </div>
         </div>
     </div>
-@endsection
 
-@section('content')
-
-    <div class="py-6">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <form method="POST" action="{{ route('quotations.update', $quotation) }}">
-                @csrf
-                @method('PATCH')
-
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 space-y-8">
-                        
-                        @if ($errors->any())
-                            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                                <strong>Please correct the following errors:</strong>
-                                <ul class="mt-2 list-disc list-inside">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-
-                        <!-- Quotation Type -->
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quotation Type</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <label class="relative">
-                                    <input type="radio" name="type" value="product" {{ old('type', $quotation->type) == 'product' ? 'checked' : '' }} required
-                                           class="sr-only peer">
-                                    <div class="p-4 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50">
-                                        <div class="flex items-center">
-                                            <div class="w-4 h-4 border-2 border-gray-300 rounded-full peer-checked:border-blue-500 peer-checked:bg-blue-500 mr-3"></div>
-                                            <div>
-                                                <h4 class="font-semibold text-gray-900">Product Quotation</h4>
-                                                <p class="text-sm text-gray-600">Simple item-based pricing</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </label>
-                                <label class="relative">
-                                    <input type="radio" name="type" value="service" {{ old('type', $quotation->type) == 'service' ? 'checked' : '' }} required
-                                           class="sr-only peer">
-                                    <div class="p-4 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50">
-                                        <div class="flex items-center">
-                                            <div class="w-4 h-4 border-2 border-gray-300 rounded-full peer-checked:border-blue-500 peer-checked:bg-blue-500 mr-3"></div>
-                                            <div>
-                                                <h4 class="font-semibold text-gray-900">Service Quotation</h4>
-                                                <p class="text-sm text-gray-600">Section-based organization</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </label>
-                            </div>
-                            <p class="mt-2 text-sm text-gray-500">Note: Changing the quotation type will not affect existing items.</p>
+    <!-- Main Content Area -->
+    <div>
+        <!-- Document Preview Area -->
+        <div class="flex-1 min-h-screen">
+            <div class="max-w-4xl mx-auto px-4 md:px-6 lg:px-8 py-6">
+                <!-- Quotation Document -->
+                <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
+                    <!-- Row 1: Quotation Title at Top Center -->
+                    <div class="px-6 md:px-8 lg:px-12 py-6">
+                        <div class="text-center mb-6">
+                            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 tracking-wide">QUOTATION</h1>
                         </div>
 
-                        <!-- Customer Information -->
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Customer Information</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <x-input-label for="customer_name" :value="__('Customer Name *')" />
-                                    <x-text-input id="customer_name" name="customer_name" type="text" class="mt-1 block w-full" 
-                                                  :value="old('customer_name', $quotation->customer_name)" required autofocus />
-                                    <x-input-error :messages="$errors->get('customer_name')" class="mt-2" />
+                        <!-- Row 2: Sender Details and Company Logo -->
+                        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-6">
+                            <!-- Sender Details - Left -->
+                            <div class="w-full lg:w-2/3 pr-0 lg:pr-12 space-y-4 mb-4 lg:mb-0 order-2 lg:order-1">
+                                <h2 class="text-2xl font-bold text-blue-600 leading-tight">
+                                    {{ auth()->user()->company->name ?? 'Company Name' }}
+                                </h2>
+                                <div class="text-sm text-gray-700 space-y-2 leading-relaxed">
+                                    <div class="font-medium">{{ auth()->user()->company->address ?? '123 Business Street' }}</div>
+                                    <div>{{ auth()->user()->company->city ?? 'City' }}, {{ auth()->user()->company->state ?? 'State' }} {{ auth()->user()->company->postal_code ?? '12345' }}</div>
+                                    <div class="pt-2 space-y-1">
+                                        <div>
+                                            <span class="inline-block w-16 text-gray-500 text-xs uppercase tracking-wide">Phone:</span>
+                                            <span class="font-medium">{{ auth()->user()->company->phone ?? '+60 12-345 6789' }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="inline-block w-16 text-gray-500 text-xs uppercase tracking-wide">Email:</span>
+                                            <span class="font-medium">{{ auth()->user()->company->email ?? 'info@company.com' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Company Logo - Right -->
+                            <div class="flex flex-col items-center lg:items-end w-full lg:w-1/3 order-1 lg:order-2" x-show="optionalSections.show_company_logo">
+                                <!-- Logo Section -->
+                                <div class="relative group mb-4">
+                                    <img :src="selectedLogoUrl" alt="Company Logo" class="h-20 cursor-pointer" @click="showLogoSelector = true">
+                                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded" @click="showLogoSelector = true">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <x-input-label for="customer_phone" :value="__('Phone *')" />
-                                    <x-text-input id="customer_phone" name="customer_phone" type="tel" class="mt-1 block w-full" 
-                                                  :value="old('customer_phone', $quotation->customer_phone)" required />
-                                    <x-input-error :messages="$errors->get('customer_phone')" class="mt-2" />
-                                </div>
-
-                                <div>
-                                    <x-input-label for="customer_email" :value="__('Email')" />
-                                    <x-text-input id="customer_email" name="customer_email" type="email" class="mt-1 block w-full" 
-                                                  :value="old('customer_email', $quotation->customer_email)" />
-                                    <x-input-error :messages="$errors->get('customer_email')" class="mt-2" />
-                                </div>
-
-                                <div>
-                                    <x-input-label for="customer_city" :value="__('City')" />
-                                    <x-text-input id="customer_city" name="customer_city" type="text" class="mt-1 block w-full" 
-                                                  :value="old('customer_city', $quotation->customer_city)" />
-                                    <x-input-error :messages="$errors->get('customer_city')" class="mt-2" />
-                                </div>
-
-                                <div class="md:col-span-2">
-                                    <x-input-label for="customer_address" :value="__('Address')" />
-                                    <textarea id="customer_address" name="customer_address" rows="3"
-                                              class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">{{ old('customer_address', $quotation->customer_address) }}</textarea>
-                                    <x-input-error :messages="$errors->get('customer_address')" class="mt-2" />
-                                </div>
-
-                                <div>
-                                    <x-input-label for="customer_state" :value="__('State')" />
-                                    <x-text-input id="customer_state" name="customer_state" type="text" class="mt-1 block w-full" 
-                                                  :value="old('customer_state', $quotation->customer_state)" />
-                                    <x-input-error :messages="$errors->get('customer_state')" class="mt-2" />
-                                </div>
-
-                                <div>
-                                    <x-input-label for="customer_postal_code" :value="__('Postal Code')" />
-                                    <x-text-input id="customer_postal_code" name="customer_postal_code" type="text" class="mt-1 block w-full" 
-                                                  :value="old('customer_postal_code', $quotation->customer_postal_code)" />
-                                    <x-input-error :messages="$errors->get('customer_postal_code')" class="mt-2" />
+                                <!-- Logo Action Buttons -->
+                                <div class="flex space-x-2">
+                                    <button type="button" @click="showLogoSelector = true" class="px-3 py-1 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-200 rounded-full hover:bg-amber-200 transition-colors">
+                                        Choose Logo
+                                    </button>
+                                    <a href="{{ route('logo-bank.index') }}" target="_blank" class="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 border border-blue-200 rounded-full hover:bg-blue-200 transition-colors">
+                                        Manage Logos
+                                    </a>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Quotation Details -->
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quotation Details</h3>
-                            <div class="space-y-6">
-                                <div>
-                                    <x-input-label for="title" :value="__('Title *')" />
-                                    <x-text-input id="title" name="title" type="text" class="mt-1 block w-full" 
-                                                  :value="old('title', $quotation->title)" required 
-                                                  placeholder="Brief description of the quotation" />
-                                    <x-input-error :messages="$errors->get('title')" class="mt-2" />
+                    <!-- Gap between rows -->
+                    <div class="h-2 bg-gray-50"></div>
+
+                    <!-- Row 3: Customer Billing Details and Quotation Details -->
+                    <div class="px-4 md:px-6 lg:px-8 py-6 bg-white border border-gray-200 rounded-lg mx-2 md:mx-4 lg:mx-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <!-- Customer Billing Details - Left -->
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-6">Bill To</h3>
+
+                                <!-- Selected Customer Display -->
+                                <div x-show="selectedCustomer.name" class="space-y-1 text-sm">
+                                    <div class="flex items-center justify-between">
+                                        <div class="font-medium text-gray-900" x-text="selectedCustomer.name"></div>
+                                        <button @click="selectedCustomer = {}; customerSearch = ''"
+                                                class="text-xs text-blue-600 hover:text-blue-800 underline">
+                                            Change Customer
+                                        </button>
+                                    </div>
+                                    <div x-show="selectedCustomer.company_name" x-text="selectedCustomer.company_name" class="text-gray-600"></div>
+                                    <div x-show="selectedCustomer.address" x-text="selectedCustomer.address" class="text-gray-600"></div>
+                                    <div x-show="selectedCustomer.city || selectedCustomer.state || selectedCustomer.postal_code" class="text-gray-600">
+                                        <span x-show="selectedCustomer.city" x-text="selectedCustomer.city"></span><span x-show="selectedCustomer.city && (selectedCustomer.state || selectedCustomer.postal_code)">, </span><span x-show="selectedCustomer.state" x-text="selectedCustomer.state"></span>
+                                        <span x-show="selectedCustomer.postal_code"> <span x-text="selectedCustomer.postal_code"></span></span>
+                                    </div>
+                                    <div x-show="selectedCustomer.phone || selectedCustomer.email" class="text-gray-600">
+                                        <span x-show="selectedCustomer.phone" x-text="selectedCustomer.phone"></span>
+                                        <span x-show="selectedCustomer.phone && selectedCustomer.email"> • </span>
+                                        <span x-show="selectedCustomer.email" x-text="selectedCustomer.email"></span>
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <x-input-label for="description" :value="__('Description')" />
-                                    <textarea id="description" name="description" rows="4"
-                                              class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                              placeholder="Detailed scope of work or project description">{{ old('description', $quotation->description) }}</textarea>
-                                    <x-input-error :messages="$errors->get('description')" class="mt-2" />
-                                </div>
+                                <!-- Customer Search (hidden when customer is selected) -->
+                                <div x-show="!selectedCustomer.name" class="mb-4">
+                                    <div class="relative">
+                                        <input type="text"
+                                               x-model="customerSearch"
+                                               @input="searchCustomers"
+                                               @focus="showCustomerDropdown = true"
+                                               placeholder="Search customers or leads..."
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
 
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                    <div>
-                                        <x-input-label for="customer_segment_id" :value="__('Customer Segment')" />
-                                        <select id="customer_segment_id" name="customer_segment_id"
-                                                class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                            <option value="">Select Segment</option>
+                                        <!-- Customer Dropdown -->
+                                        <div x-show="showCustomerDropdown && customerResults.length > 0"
+                                             x-transition:enter="transition ease-out duration-100"
+                                             x-transition:enter-start="transform opacity-0 scale-95"
+                                             x-transition:enter-end="transform opacity-100 scale-100"
+                                             class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                            <template x-for="customer in customerResults" :key="customer.id">
+                                                <div @click="selectCustomer(customer)"
+                                                     class="px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0">
+                                                    <div class="text-sm font-medium text-gray-900" x-text="customer.name"></div>
+                                                    <div x-show="customer.company_name" class="text-xs text-gray-600" x-text="customer.company_name"></div>
+                                                    <div class="text-xs text-gray-500" x-text="customer.email || customer.phone"></div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Ship To - Middle -->
+                            <div x-show="optionalSections.show_shipping">
+                                <div class="flex items-center justify-between mb-6">
+                                    <h3 class="text-lg font-semibold text-gray-900">Ship To</h3>
+                                    <label class="flex items-center text-sm text-gray-600">
+                                        <input type="checkbox" x-model="shippingSameAsBilling" @change="toggleShippingSameAsBilling"
+                                               class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                        Same as billing
+                                    </label>
+                                </div>
+                                <div x-show="!shippingSameAsBilling" class="space-y-3">
+                                    <input type="text" x-model="shippingInfo.name" placeholder="Name"
+                                           class="w-full text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
+                                    <input type="text" x-model="shippingInfo.address" placeholder="Address"
+                                           class="w-full text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
+                                    <div class="grid grid-cols-1 gap-2">
+                                        <input type="text" x-model="shippingInfo.city" placeholder="City"
+                                               class="text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
+                                        <input type="text" x-model="shippingInfo.state" placeholder="State"
+                                               class="text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
+                                        <input type="text" x-model="shippingInfo.postal_code" placeholder="Postal Code"
+                                               class="text-sm border-0 border-b border-gray-300 bg-transparent py-2 focus:ring-0 focus:border-blue-500">
+                                    </div>
+                                </div>
+                                <div x-show="shippingSameAsBilling" class="space-y-2 text-sm text-gray-700">
+                                    <div class="font-medium" x-text="selectedCustomer.name"></div>
+                                    <div x-show="selectedCustomer.company_name" x-text="selectedCustomer.company_name"></div>
+                                    <div x-show="selectedCustomer.address" x-text="selectedCustomer.address"></div>
+                                    <div x-show="selectedCustomer.city || selectedCustomer.state || selectedCustomer.postal_code">
+                                        <span x-show="selectedCustomer.city" x-text="selectedCustomer.city"></span><span x-show="selectedCustomer.city && (selectedCustomer.state || selectedCustomer.postal_code)">, </span><span x-show="selectedCustomer.state" x-text="selectedCustomer.state"></span>
+                                        <span x-show="selectedCustomer.postal_code"> <span x-text="selectedCustomer.postal_code"></span></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quotation Details - Right -->
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-6">Quotation Details</h3>
+                                <div class="space-y-4">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm font-medium text-gray-600">Quotation #:</span>
+                                        <span class="text-sm font-mono font-semibold" x-text="quotationNumber">{{ $quotation->number }}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm font-medium text-gray-600">Quotation Date:</span>
+                                        <input type="text" x-model="quotationDateDisplay" @input="updateQuotationDate"
+                                               placeholder="DD/MM/YYYY" maxlength="10"
+                                               class="text-sm font-mono font-semibold border-0 border-b border-gray-300 bg-transparent text-right p-0 focus:ring-0 focus:border-blue-500 w-28">
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm font-medium text-gray-600">Valid Until:</span>
+                                        <input type="text" x-model="validUntilDisplay" @input="updateValidUntil"
+                                               placeholder="DD/MM/YYYY" maxlength="10"
+                                               class="text-sm font-mono font-semibold border-0 border-b border-gray-300 bg-transparent text-right p-0 focus:ring-0 focus:border-blue-500 w-28">
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm font-medium text-gray-600">Reference #:</span>
+                                        <input type="text" x-model="referenceNumber" placeholder="Optional"
+                                               class="text-sm font-mono font-semibold border-0 border-b border-gray-300 bg-transparent text-right p-0 focus:ring-0 focus:border-blue-500 w-28">
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm font-medium text-gray-600">Customer Segment:</span>
+                                        <select x-model="customerSegmentId" class="text-sm font-medium border-0 border-b border-gray-300 bg-transparent text-right p-0 focus:ring-0 focus:border-blue-500">
+                                            <option value="">None</option>
                                             @foreach($customerSegments as $segment)
-                                                <option value="{{ $segment->id }}" data-discount="{{ $segment->default_discount_percentage }}" data-color="{{ $segment->color }}"
-                                                        {{ old('customer_segment_id', $quotation->customer_segment_id) == $segment->id ? 'selected' : '' }}>
-                                                    {{ $segment->name }}
-                                                </option>
+                                                <option value="{{ $segment->id }}">{{ $segment->name }}</option>
                                             @endforeach
                                         </select>
-                                        <x-input-error :messages="$errors->get('customer_segment_id')" class="mt-2" />
-                                        @if($quotation->customerSegment)
-                                            <div class="mt-2 text-sm text-gray-600">
-                                                <div class="flex items-center">
-                                                    <div class="w-3 h-3 rounded-full mr-2" style="background-color: {{ $quotation->customerSegment->color }}"></div>
-                                                    <span>Default discount: {{ $quotation->customerSegment->default_discount_percentage }}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gap between rows -->
+                    <div class="h-2 bg-gray-50"></div>
+
+                    <!-- Line Items Section -->
+                    <div class="px-4 md:px-6 lg:px-8 py-6 bg-white border border-gray-200 rounded-lg mx-2 md:mx-4 lg:mx-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6">Quotation Items</h3>
+
+                        <!-- Line Items Table - Desktop -->
+                        <div class="hidden md:block">
+                        <div class="overflow-hidden rounded-xl border border-gray-200">
+                            <table class="w-full table-fixed">
+                            <colgroup>
+                                <col style="width: 6%;">
+                                <col style="width: 48%;">
+                                <col style="width: 12%;">
+                                <col style="width: 14%;">
+                                <col style="width: 14%;">
+                                <col style="width: 6%;">
+                            </colgroup>
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">SI</th>
+                                        <th class="px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider text-left">Description</th>
+                                        <th class="px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">Qty</th>
+                                        <th class="px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider text-right">Rate (RM)</th>
+                                        <th class="px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider text-right">Amount (RM)</th>
+                                        <th class="px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                <template x-for="(item, index) in lineItems" :key="index">
+                                    <tr>
+                                        <td class="px-6 py-4 text-center text-sm font-medium text-gray-600" x-text="index + 1"></td>
+                                        <td class="px-6 py-4 relative">
+                                            <div class="relative">
+                                                <input type="text"
+                                                       x-model="item.description"
+                                                       @input="searchPricingItems(index)"
+                                                       @focus="showPricingDropdown[index] = true"
+                                                       placeholder="Search pricing book or enter custom description..."
+                                                       class="w-full border-0 bg-transparent py-2 text-sm focus:ring-0 min-h-[40px]">
+
+                                                <!-- Pricing Items Dropdown -->
+                                                <div x-show="showPricingDropdown[index] && pricingResults[index] && pricingResults[index].length > 0"
+                                                     x-transition:enter="transition ease-out duration-100"
+                                                     x-transition:enter-start="transform opacity-0 scale-95"
+                                                     x-transition:enter-end="transform opacity-100 scale-100"
+                                                     @click.outside="showPricingDropdown[index] = false"
+                                                     class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                                    <template x-for="pricingItem in pricingResults[index]" :key="pricingItem.id">
+                                                        <div @click="selectPricingItem(index, pricingItem)"
+                                                             class="px-4 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0">
+                                                            <div class="text-sm font-medium text-gray-900" x-text="pricingItem.name"></div>
+                                                            <div class="text-xs text-gray-500" x-text="pricingItem.description"></div>
+                                                            <div class="flex items-center justify-between mt-1">
+                                                                <span class="text-xs text-gray-600" x-text="pricingItem.item_code"></span>
+                                                                <span class="text-sm font-medium text-green-600">RM <span x-text="pricingItem.unit_price"></span></span>
+                                                            </div>
+                                                        </div>
+                                                    </template>
                                                 </div>
                                             </div>
-                                        @endif
-                                    </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <input type="number" x-model="item.quantity" @input="calculateTotals"
+                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px] border-b border-gray-200 focus:border-blue-500" min="1" step="1">
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <input type="number" x-model="item.unit_price" @input="calculateTotals"
+                                                   class="w-full border-0 bg-transparent py-2 text-sm text-right focus:ring-0 min-h-[40px] border-b border-gray-200 focus:border-blue-500" min="0" step="0.01">
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <span class="text-sm font-medium text-gray-900" x-text="'RM ' + (parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0)).toFixed(2)"></span>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <button @click="removeItem(index)" class="text-red-600 hover:text-red-800" x-show="lineItems.length > 1">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                                </tbody>
+                            </table>
+                        </div>
 
-                                    <div>
-                                        <x-input-label for="team_id" :value="__('Team')" />
-                                        <select id="team_id" name="team_id"
-                                                class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                            <option value="">No Team</option>
-                                            @foreach($teams as $team)
-                                                <option value="{{ $team->id }}" {{ old('team_id', $quotation->team_id) == $team->id ? 'selected' : '' }}>
-                                                    {{ $team->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <x-input-error :messages="$errors->get('team_id')" class="mt-2" />
-                                    </div>
+                        <!-- Add Line Item Button -->
+                        <div class="mt-4">
+                            <button type="button" @click="addLineItem" class="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-600 transition-colors">
+                                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Add Line Item
+                            </button>
+                        </div>
+                        </div>
+                    </div>
 
-                                    <div>
-                                        <x-input-label for="assigned_to" :value="__('Assign To')" />
-                                        <select id="assigned_to" name="assigned_to"
-                                                class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                            <option value="">Unassigned</option>
-                                            @foreach($assignees as $assignee)
-                                                <option value="{{ $assignee->id }}" {{ old('assigned_to', $quotation->assigned_to) == $assignee->id ? 'selected' : '' }}>
-                                                    {{ $assignee->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <x-input-error :messages="$errors->get('assigned_to')" class="mt-2" />
-                                    </div>
+                    <!-- Gap between rows -->
+                    <div class="h-2 bg-gray-50"></div>
 
-                                    <div>
-                                        <x-input-label for="valid_until" :value="__('Valid Until')" />
-                                        <x-text-input id="valid_until" name="valid_until" type="date" class="mt-1 block w-full" 
-                                                      :value="old('valid_until', $quotation->valid_until ? $quotation->valid_until->toDateString() : '')" />
-                                        <x-input-error :messages="$errors->get('valid_until')" class="mt-2" />
-                                    </div>
+                    <!-- Totals Section -->
+                    <div class="px-4 md:px-6 lg:px-8 py-6 bg-white border border-gray-200 rounded-lg mx-2 md:mx-4 lg:mx-6">
+                        <div class="flex justify-end">
+                            <div class="w-full lg:w-1/2 space-y-3">
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-gray-600">Subtotal:</span>
+                                    <span class="font-semibold" x-text="'RM ' + subtotal.toFixed(2)"></span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-gray-600">Discount:</span>
+                                    <input type="number" x-model="discountAmount" @input="calculateTotals"
+                                           class="w-32 text-right border-0 border-b border-gray-300 bg-transparent py-1 text-sm focus:ring-0 focus:border-blue-500"
+                                           min="0" step="0.01">
+                                </div>
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-gray-600">Tax:</span>
+                                    <input type="number" x-model="taxAmount" @input="calculateTotals"
+                                           class="w-32 text-right border-0 border-b border-gray-300 bg-transparent py-1 text-sm focus:ring-0 focus:border-blue-500"
+                                           min="0" step="0.01">
+                                </div>
+                                <div class="flex justify-between items-center text-lg font-bold border-t pt-3">
+                                    <span class="text-gray-900">Total:</span>
+                                    <span x-text="'RM ' + total.toFixed(2)"></span>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Current Items Display (Read-only) -->
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Current Items</h3>
-                            <div class="bg-gray-50 rounded-lg p-4">
-                                <p class="text-sm text-gray-600 mb-4">
-                                    <strong>Note:</strong> Item editing is not available in this version. 
-                                    To modify items, please create a new quotation or contact system administrator.
-                                </p>
-                                
-                                @if($quotation->items->count() > 0)
-                                    <div class="overflow-x-auto">
-                                        <table class="min-w-full divide-y divide-gray-200">
-                                            <thead class="bg-gray-100">
-                                                <tr>
-                                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                                                    <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Unit</th>
-                                                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Qty</th>
-                                                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Unit Price</th>
-                                                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Total</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="divide-y divide-gray-200">
-                                                @foreach($quotation->items as $item)
-                                                    <tr>
-                                                        <td class="px-4 py-2">
-                                                            <div class="text-sm text-gray-900">{{ $item->description }}</div>
-                                                            @if($item->item_code)
-                                                                <div class="text-xs text-gray-500">Code: {{ $item->item_code }}</div>
-                                                            @endif
-                                                        </td>
-                                                        <td class="px-4 py-2 text-center text-sm text-gray-900">{{ $item->unit }}</td>
-                                                        <td class="px-4 py-2 text-right text-sm text-gray-900">{{ number_format($item->quantity, 2) }}</td>
-                                                        <td class="px-4 py-2 text-right text-sm text-gray-900">RM {{ number_format($item->unit_price, 2) }}</td>
-                                                        <td class="px-4 py-2 text-right text-sm font-medium text-gray-900">RM {{ number_format($item->total_price, 2) }}</td>
-                                                    </tr>
-                                                @endforeach
-                                                <tr class="bg-gray-100 font-semibold">
-                                                    <td colspan="4" class="px-4 py-2 text-right">Subtotal:</td>
-                                                    <td class="px-4 py-2 text-right">RM {{ number_format($quotation->subtotal, 2) }}</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                @else
-                                    <p class="text-sm text-gray-500">No items found.</p>
-                                @endif
+                    <!-- Gap between rows -->
+                    <div class="h-2 bg-gray-50"></div>
+
+                    <!-- Notes and Terms Section -->
+                    <div class="px-4 md:px-6 lg:px-8 py-6 bg-white border border-gray-200 rounded-lg mx-2 md:mx-4 lg:mx-6">
+                        <div class="space-y-6">
+                            <div x-show="optionalSections.show_payment_instructions">
+                                <label class="block text-sm font-medium text-gray-900 mb-2">Payment Instructions</label>
+                                <textarea x-model="paymentInstructions" rows="3"
+                                          class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"></textarea>
                             </div>
-                        </div>
 
-                        <!-- Financial Settings -->
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Financial Settings</h3>
-                            <div class="space-y-6">
-                                <!-- Discount Settings -->
-                                <div>
-                                    <h4 class="text-md font-medium text-gray-900 mb-3">Discount</h4>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <x-input-label for="discount_percentage" :value="__('Discount (%)')" />
-                                            <x-text-input id="discount_percentage" name="discount_percentage" type="number"
-                                                          class="mt-1 block w-full" :value="old('discount_percentage', $quotation->discount_percentage)"
-                                                          min="0" max="100" step="0.01" />
-                                            <x-input-error :messages="$errors->get('discount_percentage')" class="mt-2" />
-                                        </div>
-                                        <div>
-                                            <x-input-label for="discount_amount" :value="__('Discount Amount (RM)')" />
-                                            <x-text-input id="discount_amount" name="discount_amount" type="number"
-                                                          class="mt-1 block w-full" :value="old('discount_amount', $quotation->discount_amount ?? 0)"
-                                                          min="0" step="0.01" />
-                                            <x-input-error :messages="$errors->get('discount_amount')" class="mt-2" />
-                                            <p class="mt-1 text-xs text-gray-500">Either percentage or fixed amount can be used</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Tax Settings -->
-                                <div>
-                                    <h4 class="text-md font-medium text-gray-900 mb-3">Tax</h4>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <x-input-label for="tax_percentage" :value="__('Tax (%)')" />
-                                            <x-text-input id="tax_percentage" name="tax_percentage" type="number"
-                                                          class="mt-1 block w-full" :value="old('tax_percentage', $quotation->tax_percentage)"
-                                                          min="0" max="100" step="0.01" />
-                                            <x-input-error :messages="$errors->get('tax_percentage')" class="mt-2" />
-                                            <p class="mt-1 text-xs text-gray-500">Default: 0% (add if applicable)</p>
-                                        </div>
-                                        <div>
-                                            <!-- Placeholder for tax amount if needed in future -->
-                                        </div>
-                                    </div>
-                                </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-900 mb-2">Notes</label>
+                                <textarea x-model="notes" rows="3"
+                                          class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"></textarea>
                             </div>
-                        </div>
 
-                        <!-- Terms & Notes -->
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Terms & Notes</h3>
-                            <div class="space-y-6">
-                                <div>
-                                    <x-input-label for="terms_conditions" :value="__('Terms & Conditions')" />
-                                    <textarea id="terms_conditions" name="terms_conditions" rows="4"
-                                              class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                              placeholder="Payment terms, delivery conditions, etc.">{{ old('terms_conditions', $quotation->terms_conditions) }}</textarea>
-                                    <x-input-error :messages="$errors->get('terms_conditions')" class="mt-2" />
-                                </div>
-
-                                <div>
-                                    <x-input-label for="notes" :value="__('Notes')" />
-                                    <textarea id="notes" name="notes" rows="3"
-                                              class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                              placeholder="Additional notes or clarifications">{{ old('notes', $quotation->notes) }}</textarea>
-                                    <x-input-error :messages="$errors->get('notes')" class="mt-2" />
-                                </div>
-
-                                <div>
-                                    <x-input-label for="internal_notes" :value="__('Internal Notes')" />
-                                    <textarea id="internal_notes" name="internal_notes" rows="3"
-                                              class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                              placeholder="Internal team notes (not visible to customer)">{{ old('internal_notes', $quotation->internal_notes) }}</textarea>
-                                    <x-input-error :messages="$errors->get('internal_notes')" class="mt-2" />
-                                    <p class="mt-1 text-sm text-gray-500">These notes are only visible to your team and will not appear in the PDF.</p>
-                                </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-900 mb-2">Terms & Conditions</label>
+                                <textarea x-model="terms" rows="3"
+                                          class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"></textarea>
                             </div>
-                        </div>
-
-                        <!-- Form Actions -->
-                        <div class="flex items-center justify-end space-x-4 pt-6 border-t">
-                            <a href="{{ route('quotations.show', $quotation) }}" 
-                               class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                                Cancel
-                            </a>
-                            <x-primary-button>
-                                {{ __('Update Quotation') }}
-                            </x-primary-button>
                         </div>
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
+    <!-- Logo Selector Modal (Same as product-builder) -->
+    <div x-show="showLogoSelector"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 overflow-y-auto"
+         style="display: none;">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showLogoSelector = false"></div>
+            <div class="relative inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full sm:p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Select Company Logo</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <template x-for="logo in logoBank" :key="logo.id">
+                        <div @click="selectLogo(logo.id, logo.url)"
+                             class="relative p-4 border-2 rounded-lg cursor-pointer hover:border-blue-500 transition-colors"
+                             :class="selectedLogoId === logo.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'">
+                            <img :src="logo.url" :alt="logo.name" class="h-24 mx-auto object-contain">
+                            <p class="mt-2 text-xs text-center text-gray-600" x-text="logo.name"></p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function quotationEditor() {
+    return {
+        // UI State
+        showCustomerDropdown: false,
+        showLogoSelector: false,
+
+        // Customer Management
+        customerSearch: '',
+        customerResults: [],
+        selectedCustomer: @json([
+            'name' => $quotation->customer_name,
+            'company_name' => $quotation->customer_company,
+            'phone' => $quotation->customer_phone,
+            'email' => $quotation->customer_email,
+            'address' => $quotation->customer_address,
+            'city' => $quotation->customer_city,
+            'state' => $quotation->customer_state,
+            'postal_code' => $quotation->customer_postal_code,
+        ]),
+
+        // Pricing Book Integration
+        showPricingDropdown: {},
+        pricingResults: {},
+        searchTimeout: null,
+
+        // Quotation Data
+        quotationId: {{ $quotation->id }},
+        quotationNumber: '{{ $quotation->number }}',
+        quotationDate: '{{ $quotation->quotation_date?->format('Y-m-d') ?? date('Y-m-d') }}',
+        quotationDateDisplay: '{{ $quotation->quotation_date?->format('d/m/Y') ?? date('d/m/Y') }}',
+        validUntil: '{{ $quotation->valid_until?->format('Y-m-d') ?? '' }}',
+        validUntilDisplay: '{{ $quotation->valid_until?->format('d/m/Y') ?? '' }}',
+        referenceNumber: '{{ $quotation->reference_number ?? '' }}',
+        customerSegmentId: {{ $quotation->customer_segment_id ?? 'null' }},
+
+        // Optional Sections
+        optionalSections: {
+            show_shipping: true,
+            show_payment_instructions: true,
+            show_signatures: true,
+            show_company_logo: true,
+        },
+
+        // Shipping Information
+        shippingInfo: {
+            name: '',
+            address: '',
+            city: '',
+            state: '',
+            postal_code: ''
+        },
+        shippingSameAsBilling: true,
+
+        // Line Items
+        lineItems: @json($lineItemsData),
+
+        // Financial Calculations
+        subtotal: {{ $quotation->subtotal ?? 0 }},
+        discountAmount: {{ $quotation->discount_amount ?? 0 }},
+        taxAmount: {{ $quotation->tax_amount ?? 0 }},
+        total: {{ $quotation->total ?? 0 }},
+
+        // Content
+        notes: @json($quotation->notes ?? ''),
+        terms: @json($quotation->terms_conditions ?? ''),
+        paymentInstructions: @json($quotation->payment_instructions ?? ''),
+
+        // Logo Management
+        logoBank: [],
+        selectedLogoId: {{ auth()->user()->company->defaultLogo()?->id ?? 'null' }},
+        selectedLogoUrl: '{{ auth()->user()->company->defaultLogo() ? route("logo-bank.serve", auth()->user()->company->defaultLogo()->id) : "" }}',
+
+        init() {
+            this.loadLogoBank();
+            this.calculateTotals();
+        },
+
+        toggleShippingSameAsBilling() {
+            if (this.shippingSameAsBilling) {
+                this.shippingInfo = { ...this.selectedCustomer };
+            }
+        },
+
+        updateQuotationDate() {
+            // Format: DD/MM/YYYY -> YYYY-MM-DD
+            const parts = this.quotationDateDisplay.split('/');
+            if (parts.length === 3) {
+                this.quotationDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+        },
+
+        updateValidUntil() {
+            // Format: DD/MM/YYYY -> YYYY-MM-DD
+            const parts = this.validUntilDisplay.split('/');
+            if (parts.length === 3) {
+                this.validUntil = `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+        },
+
+        async searchCustomers() {
+            if (this.customerSearch.length < 2) {
+                this.customerResults = [];
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/customers/search?q=${encodeURIComponent(this.customerSearch)}`, {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    this.customerResults = data.customers || [];
+                }
+            } catch (error) {
+                console.error('Error searching customers:', error);
+            }
+        },
+
+        selectCustomer(customer) {
+            this.selectedCustomer = customer;
+            this.customerSearch = '';
+            this.showCustomerDropdown = false;
+        },
+
+        async searchPricingItems(index) {
+            if (this.searchTimeout) {
+                clearTimeout(this.searchTimeout);
+            }
+
+            const query = this.lineItems[index].description;
+            if (query.length < 2) {
+                this.pricingResults[index] = [];
+                return;
+            }
+
+            this.searchTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`/api/pricing-items/search?q=${encodeURIComponent(query)}`, {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.pricingResults[index] = data.items || [];
+                    }
+                } catch (error) {
+                    console.error('Error searching pricing items:', error);
+                }
+            }, 300);
+        },
+
+        selectPricingItem(index, pricingItem) {
+            this.lineItems[index] = {
+                description: pricingItem.name,
+                quantity: 1,
+                unit_price: pricingItem.unit_price,
+                pricing_item_id: pricingItem.id,
+                item_code: pricingItem.item_code || ''
+            };
+            this.showPricingDropdown[index] = false;
+            this.calculateTotals();
+        },
+
+        addLineItem() {
+            this.lineItems.push({
+                description: '',
+                quantity: 1,
+                unit_price: 0,
+                pricing_item_id: null,
+                item_code: ''
+            });
+        },
+
+        removeItem(index) {
+            this.lineItems.splice(index, 1);
+            this.calculateTotals();
+        },
+
+        calculateTotals() {
+            this.subtotal = this.lineItems.reduce((sum, item) => {
+                return sum + (parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0));
+            }, 0);
+
+            this.total = this.subtotal - parseFloat(this.discountAmount || 0) + parseFloat(this.taxAmount || 0);
+        },
+
+        async updateQuotation() {
+            try {
+                const response = await fetch(`/quotations/${this.quotationId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        customer_name: this.selectedCustomer.name,
+                        customer_company: this.selectedCustomer.company_name,
+                        customer_phone: this.selectedCustomer.phone,
+                        customer_email: this.selectedCustomer.email,
+                        customer_address: this.selectedCustomer.address,
+                        customer_city: this.selectedCustomer.city,
+                        customer_state: this.selectedCustomer.state,
+                        customer_postal_code: this.selectedCustomer.postal_code,
+                        quotation_date: this.quotationDate,
+                        valid_until: this.validUntil,
+                        reference_number: this.referenceNumber,
+                        customer_segment_id: this.customerSegmentId,
+                        items: this.lineItems,
+                        discount_amount: this.discountAmount,
+                        tax_amount: this.taxAmount,
+                        notes: this.notes,
+                        terms_conditions: this.terms,
+                        payment_instructions: this.paymentInstructions,
+                        logo_id: this.selectedLogoId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    window.location.href = `/quotations/${this.quotationId}`;
+                } else {
+                    alert(data.message || 'Failed to update quotation');
+                }
+            } catch (error) {
+                console.error('Error updating quotation:', error);
+                alert('Failed to update quotation. Please try again.');
+            }
+        },
+
+        async previewPDF() {
+            window.open(`/quotations/${this.quotationId}/preview`, '_blank');
+        },
+
+        async loadLogoBank() {
+            try {
+                const response = await fetch('/logo-bank/list', {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    this.logoBank = data.logos || [];
+                }
+            } catch (error) {
+                console.error('Error loading logo bank:', error);
+            }
+        },
+
+        selectLogo(logoId, logoUrl) {
+            this.selectedLogoId = logoId;
+            this.selectedLogoUrl = logoUrl;
+            this.showLogoSelector = false;
+        }
+    };
+}
+</script>
 @endsection
