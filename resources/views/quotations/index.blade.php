@@ -153,52 +153,67 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     <a href="{{ request()->fullUrlWithQuery(['sort' => 'number', 'direction' => request('sort') === 'number' && request('direction') === 'asc' ? 'desc' : 'asc']) }}"
-                                       class="hover:text-gray-700">
+                                       class="flex items-center hover:text-gray-700">
                                         Quotation #
                                         @if(request('sort') === 'number')
-                                            @if(request('direction') === 'asc') ↑ @else ↓ @endif
+                                            @if(request('direction') === 'asc')
+                                                <svg class="ml-1 w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                                </svg>
+                                            @else
+                                                <svg class="ml-1 w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                </svg>
+                                            @endif
                                         @endif
                                     </a>
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Customer
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Segment
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Title
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Type
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Status
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'total', 'direction' => request('sort') === 'total' && request('direction') === 'desc' ? 'asc' : 'desc']) }}"
-                                       class="hover:text-gray-700">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'total', 'direction' => request('sort') === 'total' && request('direction') === 'asc' ? 'desc' : 'asc']) }}"
+                                       class="flex items-center hover:text-gray-700">
                                         Total
                                         @if(request('sort') === 'total')
-                                            @if(request('direction') === 'desc') ↓ @else ↑ @endif
+                                            @if(request('direction') === 'asc')
+                                                <svg class="ml-1 w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                                </svg>
+                                            @else
+                                                <svg class="ml-1 w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                </svg>
+                                            @endif
                                         @endif
                                     </a>
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Assigned To
                                 </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'created_at', 'direction' => request('sort') === 'created_at' && request('direction') === 'desc' ? 'asc' : 'desc']) }}"
-                                       class="hover:text-gray-700">
-                                        Created
-                                        @if(request('sort') === 'created_at')
-                                            @if(request('direction') === 'desc') ↓ @else ↑ @endif
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <a href="{{ request()->fullUrlWithQuery(['sort' => 'valid_until', 'direction' => request('sort') === 'valid_until' && request('direction') === 'asc' ? 'desc' : 'asc']) }}"
+                                       class="flex items-center hover:text-gray-700">
+                                        Valid Until
+                                        @if(request('sort') === 'valid_until')
+                                            @if(request('direction') === 'asc')
+                                                <svg class="ml-1 w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                                </svg>
+                                            @else
+                                                <svg class="ml-1 w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                </svg>
+                                            @endif
                                         @endif
                                     </a>
                                 </th>
-                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Actions
                                 </th>
                             </tr>
@@ -228,35 +243,6 @@
                                                 {{ $quotation->customer_email }}
                                             </div>
                                         @endif
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($quotation->customerSegment)
-                                            <div class="flex items-center">
-                                                <div class="w-3 h-3 rounded-full mr-2" style="background-color: {{ $quotation->customerSegment->color ?? '#6B7280' }}"></div>
-                                                <span class="text-sm text-gray-900">{{ $quotation->customerSegment->name }}</span>
-                                            </div>
-                                            <div class="text-xs text-gray-500 mt-1">
-                                                {{ $quotation->customerSegment->default_discount_percentage }}% discount
-                                            </div>
-                                        @else
-                                            <span class="text-sm text-gray-400">No segment</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="text-sm text-gray-900">
-                                            {{ Str::limit($quotation->title, 40) }}
-                                        </div>
-                                        @if($quotation->description)
-                                            <div class="text-xs text-gray-500">
-                                                {{ Str::limit($quotation->description, 50) }}
-                                            </div>
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                                            {{ $quotation->type === 'product' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800' }}">
-                                            {{ ucfirst($quotation->type) }}
-                                        </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $quotation->getStatusBadgeColor() }}">
@@ -291,16 +277,21 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">
-                                            @displayDate($quotation->created_at)
-                                        </div>
-                                        <div class="text-xs text-gray-500">
-                                            {{ $quotation->created_at->format('H:i') }}
-                                        </div>
                                         @if($quotation->valid_until)
-                                            <div class="text-xs {{ $quotation->isExpired() ? 'text-red-500' : 'text-gray-400' }}">
-                                                Valid until @displayDate($quotation->valid_until)
+                                            <div class="text-sm text-gray-900">
+                                                @displayDate($quotation->valid_until)
                                             </div>
+                                            @if($quotation->isExpired())
+                                                <div class="text-xs text-red-500">
+                                                    Expired
+                                                </div>
+                                            @else
+                                                <div class="text-xs text-gray-500">
+                                                    {{ $quotation->valid_until->diffForHumans() }}
+                                                </div>
+                                            @endif
+                                        @else
+                                            <span class="text-sm text-gray-400">No expiry</span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -333,7 +324,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9" class="px-6 py-8 text-center text-gray-400">
+                                    <td colspan="7" class="px-6 py-8 text-center text-gray-400">
                                         <div class="flex flex-col items-center">
                                             <svg class="h-12 w-12 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 

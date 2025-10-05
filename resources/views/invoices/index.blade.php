@@ -325,6 +325,9 @@
                                     Amount Due
                                 </th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Assigned To
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     <a href="{{ route('invoices.index', array_merge(request()->all(), ['sort' => 'due_date', 'direction' => request('sort') === 'due_date' && request('direction') === 'asc' ? 'desc' : 'asc'])) }}"
                                        class="flex items-center hover:text-gray-700">
                                         Due Date
@@ -401,6 +404,20 @@
                                             </div>
                                         @endif
                                     </td>
+                                    <td class="px-6 py-4">
+                                        @if($invoice->assignedTo)
+                                            <div class="text-sm text-gray-900">
+                                                {{ $invoice->assignedTo->name }}
+                                            </div>
+                                        @else
+                                            <span class="text-sm text-gray-400">Unassigned</span>
+                                        @endif
+                                        @if($invoice->team)
+                                            <div class="text-xs text-gray-500">
+                                                {{ $invoice->team->name }}
+                                            </div>
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         @displayDate($invoice->due_date)
                                     </td>
@@ -432,7 +449,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                    <td colspan="8" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                                         No invoices found.
                                     </td>
                                 </tr>
