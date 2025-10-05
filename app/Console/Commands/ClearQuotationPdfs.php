@@ -122,9 +122,12 @@ class ClearQuotationPdfs extends Command
     {
         try {
             if ($quotation->pdf_path) {
-                // Delete the physical file
-                if (Storage::exists($quotation->pdf_path)) {
-                    Storage::delete($quotation->pdf_path);
+                // Build the full file path
+                $fullPath = storage_path('app/' . $quotation->pdf_path);
+
+                // Delete the physical file using native PHP (avoids fileinfo dependency)
+                if (file_exists($fullPath)) {
+                    unlink($fullPath);
                     if ($verbose) {
                         $this->info('✓ Deleted cached PDF file');
                     }
