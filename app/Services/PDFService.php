@@ -22,29 +22,61 @@ class PDFService
         // Load quotation with all necessary relationships including proofs
         $quotation->load(['items', 'sections.items', 'lead', 'company', 'team', 'proofs.assets', 'customerSegment']);
 
-        // Prepare view data with proper defaults (matching invoice structure)
-        $viewData = [
-            'quotation' => $quotation,
-            'palette' => [
-                'accent_color' => '#0b57d0',
-                'accent_text_color' => '#ffffff',
-                'text_color' => '#000000',
-                'muted_text_color' => '#4b5563',
-                'heading_color' => '#000000',
-                'border_color' => '#d0d5dd',
-                'table_header_background' => '#0b57d0',
-                'table_header_text' => '#ffffff',
-            ],
-            'sections' => [
-                'show_company_logo' => true,
-                'show_payment_instructions' => true,
-                'show_signatures' => true,
-            ],
-            'currency' => 'RM',
+        $paletteDefaults = [
+            'accent_color' => '#0b57d0',
+            'accent_text_color' => '#ffffff',
+            'text_color' => '#000000',
+            'muted_text_color' => '#4b5563',
+            'heading_color' => '#000000',
+            'border_color' => '#d0d5dd',
+            'table_header_background' => '#0b57d0',
+            'table_header_text' => '#ffffff',
         ];
 
+        $sectionDefaults = [
+            'show_company_logo' => true,
+            'show_payment_instructions' => true,
+            'show_signatures' => true,
+            'show_company_signature' => false,
+            'show_customer_signature' => false,
+        ];
+
+        $currency = $quotation->currency ?? 'RM';
+        $viewName = 'pdf.quotation';
+        $viewData = [];
+
+        if ($quotation->type === Quotation::TYPE_PRODUCT) {
+            /** @var \App\Services\ProductQuotationSettingsService $settingsService */
+            $settingsService = app(\App\Services\ProductQuotationSettingsService::class);
+            $mergedSettings = $settingsService->getMergedSettingsForPDF($quotation, $quotation->company_id);
+
+            $appearance = array_merge($paletteDefaults, $mergedSettings['appearance'] ?? []);
+            $sections = array_merge($sectionDefaults, $mergedSettings['sections'] ?? []);
+            $currency = $mergedSettings['defaults']['currency'] ?? $currency;
+
+            $viewName = 'pdf.product-quotation';
+            $viewData = [
+                'quotation' => $quotation,
+                'palette' => $appearance,
+                'sections' => $sections,
+                'currency' => $currency,
+                'settings' => $mergedSettings,
+            ];
+        } else {
+            $viewData = [
+                'quotation' => $quotation,
+                'palette' => $paletteDefaults,
+                'sections' => [
+                    'show_company_logo' => true,
+                    'show_payment_instructions' => true,
+                    'show_signatures' => true,
+                ],
+                'currency' => $currency,
+            ];
+        }
+
         // Render the HTML view for the PDF
-        $html = view('pdf.quotation', $viewData)->render();
+        $html = view($viewName, $viewData)->render();
 
         // Configure Dompdf options
         $options = new Options();
@@ -72,7 +104,7 @@ class PDFService
 
         return $path;
     }
-    
+
     /**
      * Configure Browsershot with Chrome path if available
      */
@@ -136,7 +168,7 @@ class PDFService
         // Let Browsershot try to find Chrome automatically
         return null;
     }
-    
+
     /**
      * Generate a unique filename for the PDF
      */
@@ -146,7 +178,7 @@ class PDFService
         $timestamp = now()->format('Y-m-d_H-i-s');
         return "{$number}_{$timestamp}.pdf";
     }
-    
+
     /**
      * Get the full path to a stored PDF
      */
@@ -154,7 +186,7 @@ class PDFService
     {
         return Storage::path($path);
     }
-    
+
     /**
      * Check if PDF exists for a quotation
      */
@@ -162,7 +194,7 @@ class PDFService
     {
         return $quotation->pdf_path && Storage::exists($quotation->pdf_path);
     }
-    
+
     /**
      * Delete PDF file for a quotation
      */
@@ -176,7 +208,7 @@ class PDFService
         
         return false;
     }
-    
+
     /**
      * Generate PDF for an invoice
      */
@@ -210,7 +242,7 @@ class PDFService
             throw $e;
         }
     }
-    
+
     /**
      * Generate a unique filename for the invoice PDF
      */
@@ -220,7 +252,7 @@ class PDFService
         $timestamp = now()->format('Y-m-d_H-i-s');
         return "{$number}_{$timestamp}.pdf";
     }
-    
+
     /**
      * Check if PDF exists for an invoice
      */
@@ -228,7 +260,7 @@ class PDFService
     {
         return $invoice->pdf_path && Storage::exists($invoice->pdf_path);
     }
-    
+
     /**
      * Delete PDF file for an invoice
      */
@@ -278,7 +310,7 @@ class PDFService
 
         throw new \InvalidArgumentException('Invalid model type for PDF generation');
     }
-    
+
     /**
      * Generic method to stream PDF for preview (quotation, invoice, or assessment)
      */
@@ -858,3 +890,6 @@ class PDFService
         return $dompdf->output();
     }
 }
+
+
+

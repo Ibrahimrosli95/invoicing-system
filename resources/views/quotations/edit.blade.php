@@ -14,6 +14,18 @@
             'notes' => $item->notes ?? ''
         ];
     })->toArray();
+
+    // Prepare customer data for Alpine.js
+    $customerData = [
+        'name' => $quotation->customer_name,
+        'company_name' => $quotation->customer_company,
+        'phone' => $quotation->customer_phone,
+        'email' => $quotation->customer_email,
+        'address' => $quotation->customer_address,
+        'city' => $quotation->customer_city,
+        'state' => $quotation->customer_state,
+        'postal_code' => $quotation->customer_postal_code,
+    ];
 @endphp
 
 <div class="min-h-screen bg-gray-50" x-data="quotationEditor()">
@@ -435,16 +447,7 @@ function quotationEditor() {
         // Customer Management
         customerSearch: '',
         customerResults: [],
-        selectedCustomer: @json([
-            'name' => $quotation->customer_name,
-            'company_name' => $quotation->customer_company,
-            'phone' => $quotation->customer_phone,
-            'email' => $quotation->customer_email,
-            'address' => $quotation->customer_address,
-            'city' => $quotation->customer_city,
-            'state' => $quotation->customer_state,
-            'postal_code' => $quotation->customer_postal_code,
-        ]),
+        selectedCustomer: @json($customerData),
 
         // Pricing Book Integration
         showPricingDropdown: {},
