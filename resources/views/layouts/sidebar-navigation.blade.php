@@ -237,6 +237,16 @@
                             'patterns' => ['quotations.index', 'quotations.show', 'quotations.edit'],
                         ],
                         [
+                            'label' => 'Product Quotations',
+                            'route' => 'quotations.product-index',
+                            'patterns' => ['quotations.product-index'],
+                        ],
+                        [
+                            'label' => 'Service Quotations',
+                            'route' => 'quotations.service-index',
+                            'patterns' => ['quotations.service-index'],
+                        ],
+                        [
                             'label' => 'Product Quotation Builder',
                             'route' => 'quotations.product-builder',
                             'patterns' => ['quotations.product-builder'],
@@ -261,6 +271,16 @@
                             'label' => 'All Invoices',
                             'route' => 'invoices.index',
                             'patterns' => ['invoices.index', 'invoices.show', 'invoices.edit'],
+                        ],
+                        [
+                            'label' => 'Product Invoices',
+                            'route' => 'invoices.product-index',
+                            'patterns' => ['invoices.product-index'],
+                        ],
+                        [
+                            'label' => 'Service Invoices',
+                            'route' => 'invoices.service-index',
+                            'patterns' => ['invoices.service-index'],
                         ],
                         [
                             'label' => 'Product Invoice Builder',

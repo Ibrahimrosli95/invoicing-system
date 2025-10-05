@@ -184,6 +184,10 @@ Route::middleware('auth')->group(function () {
     Route::get('quotations-pricing-items', [QuotationController::class, 'getPricingItems'])->name('quotations.pricing-items');
     Route::post('quotations/get-segment-pricing', [QuotationController::class, 'getSegmentPricing'])->name('quotations.get-segment-pricing');
 
+    // Quotation product/service specific indexes (before resource routes)
+    Route::get('quotations/product-index', [QuotationController::class, 'productIndex'])->name('quotations.product-index');
+    Route::get('quotations/service-index', [QuotationController::class, 'serviceIndex'])->name('quotations.service-index');
+
     // Quotation resource routes
     Route::resource('quotations', QuotationController::class);
 
@@ -201,6 +205,11 @@ Route::middleware('auth')->group(function () {
     Route::get('invoices/service-builder', [InvoiceController::class, 'serviceBuilder'])->name('invoices.service-builder');
     Route::post('api/invoices', [InvoiceController::class, 'storeApi'])->name('api.invoices.store');
     Route::put('api/invoices/{invoice}', [InvoiceController::class, 'updateApi'])->name('api.invoices.update');
+
+    // Invoice product/service specific indexes (before resource routes)
+    Route::get('invoices/product-index', [InvoiceController::class, 'productIndex'])->name('invoices.product-index');
+    Route::get('invoices/service-index', [InvoiceController::class, 'serviceIndex'])->name('invoices.service-index');
+
     Route::resource('invoices', InvoiceController::class);
 
     // Enhanced Invoice Builders
