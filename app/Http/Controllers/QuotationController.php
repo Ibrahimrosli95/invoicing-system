@@ -113,6 +113,176 @@ class QuotationController extends Controller
     }
 
     /**
+     * Display product quotations only.
+     */
+    public function productIndex(Request $request): View
+    {
+        $this->authorize('viewAny', Quotation::class);
+
+        $query = Quotation::forCompany()
+            ->forUserTeams()
+            ->where('type', 'product')
+            ->with(['lead', 'team', 'assignedTo', 'createdBy', 'customerSegment']);
+
+        // Apply filters (same as index)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('number', 'like', "%{$search}%")
+                  ->orWhere('customer_name', 'like', "%{$search}%")
+                  ->orWhere('customer_phone', 'like', "%{$search}%")
+                  ->orWhere('customer_email', 'like', "%{$search}%")
+                  ->orWhere('title', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('team_id')) {
+            $query->where('team_id', $request->team_id);
+        }
+
+        if ($request->filled('assigned_to')) {
+            $query->where('assigned_to', $request->assigned_to);
+        }
+
+        if ($request->filled('customer_segment_id')) {
+            $query->where('customer_segment_id', $request->customer_segment_id);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Sorting
+        $sortBy = $request->get('sort', 'created_at');
+        $sortDirection = $request->get('direction', 'desc');
+        $query->orderBy($sortBy, $sortDirection);
+
+        $quotations = $query->paginate(20)->withQueryString();
+
+        // Get filter options
+        $teams = Team::forCompany()
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        $assignees = User::forCompany()
+            ->whereHas('roles', function ($query) {
+                $query->whereIn('name', ['sales_executive', 'sales_coordinator', 'sales_manager']);
+            })
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        $customerSegments = CustomerSegment::forCompany()
+            ->active()
+            ->select('id', 'name', 'color')
+            ->orderBy('name')
+            ->get();
+
+        $filters = [
+            'statuses' => Quotation::getStatuses(),
+            'teams' => $teams,
+            'assignees' => $assignees,
+            'customer_segments' => $customerSegments,
+        ];
+
+        return view('quotations.product-index', compact('quotations', 'filters'));
+    }
+
+    /**
+     * Display service quotations only.
+     */
+    public function serviceIndex(Request $request): View
+    {
+        $this->authorize('viewAny', Quotation::class);
+
+        $query = Quotation::forCompany()
+            ->forUserTeams()
+            ->where('type', 'service')
+            ->with(['lead', 'team', 'assignedTo', 'createdBy', 'customerSegment']);
+
+        // Apply filters (same as index)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('number', 'like', "%{$search}%")
+                  ->orWhere('customer_name', 'like', "%{$search}%")
+                  ->orWhere('customer_phone', 'like', "%{$search}%")
+                  ->orWhere('customer_email', 'like', "%{$search}%")
+                  ->orWhere('title', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('team_id')) {
+            $query->where('team_id', $request->team_id);
+        }
+
+        if ($request->filled('assigned_to')) {
+            $query->where('assigned_to', $request->assigned_to);
+        }
+
+        if ($request->filled('customer_segment_id')) {
+            $query->where('customer_segment_id', $request->customer_segment_id);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Sorting
+        $sortBy = $request->get('sort', 'created_at');
+        $sortDirection = $request->get('direction', 'desc');
+        $query->orderBy($sortBy, $sortDirection);
+
+        $quotations = $query->paginate(20)->withQueryString();
+
+        // Get filter options
+        $teams = Team::forCompany()
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        $assignees = User::forCompany()
+            ->whereHas('roles', function ($query) {
+                $query->whereIn('name', ['sales_executive', 'sales_coordinator', 'sales_manager']);
+            })
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        $customerSegments = CustomerSegment::forCompany()
+            ->active()
+            ->select('id', 'name', 'color')
+            ->orderBy('name')
+            ->get();
+
+        $filters = [
+            'statuses' => Quotation::getStatuses(),
+            'teams' => $teams,
+            'assignees' => $assignees,
+            'customer_segments' => $customerSegments,
+        ];
+
+        return view('quotations.service-index', compact('quotations', 'filters'));
+    }
+
+    /**
      * Show the form for creating a new quotation.
      *
      * Redirects to the appropriate builder based on feature flag.

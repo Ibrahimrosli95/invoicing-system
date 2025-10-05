@@ -162,6 +162,254 @@ class InvoiceController extends Controller
     }
 
     /**
+     * Display product invoices only.
+     */
+    public function productIndex(Request $request): View
+    {
+        $this->authorize('viewAny', Invoice::class);
+
+        $query = Invoice::forCompany()
+            ->forUserTeams()
+            ->where('type', 'product')
+            ->with(['quotation', 'team', 'assignedTo', 'createdBy', 'customerSegment']);
+
+        // Apply filters (same as index)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('number', 'like', "%{$search}%")
+                  ->orWhere('customer_name', 'like', "%{$search}%")
+                  ->orWhere('customer_phone', 'like', "%{$search}%")
+                  ->orWhere('customer_email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('team_id')) {
+            $query->where('team_id', $request->team_id);
+        }
+
+        if ($request->filled('assigned_to')) {
+            $query->where('assigned_to', $request->assigned_to);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        if ($request->filled('due_date_from')) {
+            $query->whereDate('due_date', '>=', $request->due_date_from);
+        }
+
+        if ($request->filled('due_date_to')) {
+            $query->whereDate('due_date', '<=', $request->due_date_to);
+        }
+
+        if ($request->boolean('overdue_only')) {
+            $query->where('status', 'OVERDUE');
+        }
+
+        if ($request->boolean('unpaid_only')) {
+            $query->whereIn('status', ['SENT', 'UNPAID', 'PARTIAL', 'OVERDUE']);
+        }
+
+        // Sorting
+        $sortBy = $request->get('sort', 'created_at');
+        $sortDirection = $request->get('direction', 'desc');
+        $query->orderBy($sortBy, $sortDirection);
+
+        $invoices = $query->paginate(20)->withQueryString();
+
+        // Get filter options
+        $teams = Team::forCompany()
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        $assignees = User::forCompany()
+            ->whereHas('roles', function ($query) {
+                $query->whereIn('name', ['sales_executive', 'sales_coordinator', 'sales_manager', 'finance_manager']);
+            })
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        $filters = [
+            'statuses' => Invoice::getStatuses(),
+            'teams' => $teams,
+            'assignees' => $assignees,
+        ];
+
+        // Calculate summary statistics (product invoices only)
+        $baseQuery = Invoice::forCompany()->forUserTeams()->where('type', 'product');
+
+        $stats = [
+            'total_invoices' => $baseQuery->count(),
+            'total_amount' => $baseQuery->sum('total'),
+            'paid_amount' => $baseQuery->sum('amount_paid'),
+            'outstanding_amount' => $baseQuery->sum('amount_due'),
+            'overdue_count' => $baseQuery->overdue()->count(),
+        ];
+
+        // Calculate aging bucket statistics
+        $agingStats = [
+            'current' => [
+                'count' => $baseQuery->current()->count(),
+                'amount' => $baseQuery->current()->sum('amount_due'),
+            ],
+            '0-30' => [
+                'count' => $baseQuery->aging0To30()->count(),
+                'amount' => $baseQuery->aging0To30()->sum('amount_due'),
+            ],
+            '31-60' => [
+                'count' => $baseQuery->aging31To60()->count(),
+                'amount' => $baseQuery->aging31To60()->sum('amount_due'),
+            ],
+            '61-90' => [
+                'count' => $baseQuery->aging61To90()->count(),
+                'amount' => $baseQuery->aging61To90()->sum('amount_due'),
+            ],
+            '90+' => [
+                'count' => $baseQuery->aging90Plus()->count(),
+                'amount' => $baseQuery->aging90Plus()->sum('amount_due'),
+            ],
+        ];
+
+        return view('invoices.product-index', compact('invoices', 'filters', 'stats', 'agingStats'));
+    }
+
+    /**
+     * Display service invoices only.
+     */
+    public function serviceIndex(Request $request): View
+    {
+        $this->authorize('viewAny', Invoice::class);
+
+        $query = Invoice::forCompany()
+            ->forUserTeams()
+            ->where('type', 'service')
+            ->with(['quotation', 'team', 'assignedTo', 'createdBy', 'customerSegment']);
+
+        // Apply filters (same as index)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('number', 'like', "%{$search}%")
+                  ->orWhere('customer_name', 'like', "%{$search}%")
+                  ->orWhere('customer_phone', 'like', "%{$search}%")
+                  ->orWhere('customer_email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('team_id')) {
+            $query->where('team_id', $request->team_id);
+        }
+
+        if ($request->filled('assigned_to')) {
+            $query->where('assigned_to', $request->assigned_to);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        if ($request->filled('due_date_from')) {
+            $query->whereDate('due_date', '>=', $request->due_date_from);
+        }
+
+        if ($request->filled('due_date_to')) {
+            $query->whereDate('due_date', '<=', $request->due_date_to);
+        }
+
+        if ($request->boolean('overdue_only')) {
+            $query->where('status', 'OVERDUE');
+        }
+
+        if ($request->boolean('unpaid_only')) {
+            $query->whereIn('status', ['SENT', 'UNPAID', 'PARTIAL', 'OVERDUE']);
+        }
+
+        // Sorting
+        $sortBy = $request->get('sort', 'created_at');
+        $sortDirection = $request->get('direction', 'desc');
+        $query->orderBy($sortBy, $sortDirection);
+
+        $invoices = $query->paginate(20)->withQueryString();
+
+        // Get filter options
+        $teams = Team::forCompany()
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        $assignees = User::forCompany()
+            ->whereHas('roles', function ($query) {
+                $query->whereIn('name', ['sales_executive', 'sales_coordinator', 'sales_manager', 'finance_manager']);
+            })
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        $filters = [
+            'statuses' => Invoice::getStatuses(),
+            'teams' => $teams,
+            'assignees' => $assignees,
+        ];
+
+        // Calculate summary statistics (service invoices only)
+        $baseQuery = Invoice::forCompany()->forUserTeams()->where('type', 'service');
+
+        $stats = [
+            'total_invoices' => $baseQuery->count(),
+            'total_amount' => $baseQuery->sum('total'),
+            'paid_amount' => $baseQuery->sum('amount_paid'),
+            'outstanding_amount' => $baseQuery->sum('amount_due'),
+            'overdue_count' => $baseQuery->overdue()->count(),
+        ];
+
+        // Calculate aging bucket statistics
+        $agingStats = [
+            'current' => [
+                'count' => $baseQuery->current()->count(),
+                'amount' => $baseQuery->current()->sum('amount_due'),
+            ],
+            '0-30' => [
+                'count' => $baseQuery->aging0To30()->count(),
+                'amount' => $baseQuery->aging0To30()->sum('amount_due'),
+            ],
+            '31-60' => [
+                'count' => $baseQuery->aging31To60()->count(),
+                'amount' => $baseQuery->aging31To60()->sum('amount_due'),
+            ],
+            '61-90' => [
+                'count' => $baseQuery->aging61To90()->count(),
+                'amount' => $baseQuery->aging61To90()->sum('amount_due'),
+            ],
+            '90+' => [
+                'count' => $baseQuery->aging90Plus()->count(),
+                'amount' => $baseQuery->aging90Plus()->sum('amount_due'),
+            ],
+        ];
+
+        return view('invoices.service-index', compact('invoices', 'filters', 'stats', 'agingStats'));
+    }
+
+    /**
      * Show the document-style invoice builder.
      */
     public function builder(Request $request): View
