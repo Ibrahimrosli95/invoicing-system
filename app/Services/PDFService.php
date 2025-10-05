@@ -22,8 +22,29 @@ class PDFService
         // Load quotation with all necessary relationships including proofs
         $quotation->load(['items', 'sections.items', 'lead', 'company', 'team', 'proofs.assets', 'customerSegment']);
 
+        // Prepare view data with proper defaults (matching invoice structure)
+        $viewData = [
+            'quotation' => $quotation,
+            'palette' => [
+                'accent_color' => '#0b57d0',
+                'accent_text_color' => '#ffffff',
+                'text_color' => '#000000',
+                'muted_text_color' => '#4b5563',
+                'heading_color' => '#000000',
+                'border_color' => '#d0d5dd',
+                'table_header_background' => '#0b57d0',
+                'table_header_text' => '#ffffff',
+            ],
+            'sections' => [
+                'show_company_logo' => true,
+                'show_payment_instructions' => true,
+                'show_signatures' => true,
+            ],
+            'currency' => 'RM',
+        ];
+
         // Render the HTML view for the PDF
-        $html = view('pdf.quotation', compact('quotation'))->render();
+        $html = view('pdf.quotation', $viewData)->render();
 
         // Configure Dompdf options
         $options = new Options();

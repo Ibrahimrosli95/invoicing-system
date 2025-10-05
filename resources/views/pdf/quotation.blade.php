@@ -1,18 +1,13 @@
 @php
-    // Extract palette colors with type safety
-    $palette = is_array($palette ?? []) ? ($palette ?? []) : [];
-    $primaryBlue = is_string($palette['accent_color'] ?? null) ? $palette['accent_color'] : '#0b57d0';
-    $primaryContrast = is_string($palette['accent_text_color'] ?? null) ? $palette['accent_text_color'] : '#ffffff';
-    $textColor = is_string($palette['text_color'] ?? null) ? $palette['text_color'] : '#000000';
-    $mutedColor = is_string($palette['muted_text_color'] ?? null) ? $palette['muted_text_color'] : '#4b5563';
-    $headingColor = is_string($palette['heading_color'] ?? null) ? $palette['heading_color'] : '#000000';
-    $borderColor = is_string($palette['border_color'] ?? null) ? $palette['border_color'] : '#d0d5dd';
-    $tableHeaderBg = is_string($palette['table_header_background'] ?? null) ? $palette['table_header_background'] : '#0b57d0';
-    $tableHeaderText = is_string($palette['table_header_text'] ?? null) ? $palette['table_header_text'] : '#ffffff';
-
-    // Ensure sections and currency are properly typed
-    $sections = is_array($sections ?? []) ? ($sections ?? []) : [];
-    $currency = is_string($currency ?? 'RM') ? ($currency ?? 'RM') : 'RM';
+    // Extract palette colors
+    $primaryBlue = $palette['accent_color'] ?? '#0b57d0';
+    $primaryContrast = $palette['accent_text_color'] ?? '#ffffff';
+    $textColor = $palette['text_color'] ?? '#000000';
+    $mutedColor = $palette['muted_text_color'] ?? '#4b5563';
+    $headingColor = $palette['heading_color'] ?? '#000000';
+    $borderColor = $palette['border_color'] ?? '#d0d5dd';
+    $tableHeaderBg = $palette['table_header_background'] ?? '#0b57d0';
+    $tableHeaderText = $palette['table_header_text'] ?? '#ffffff';
 
     // Calculate financial totals
     $subtotal = $quotation->subtotal ?? $quotation->items->sum(fn($item) => $item->total_price ?? ($item->quantity * $item->unit_price));
@@ -21,69 +16,35 @@
     $total = $quotation->total ?? ($subtotal - $discount + $tax);
 
     // Currency formatter
-    $format = fn($value) => trim(($currency ? $currency . ' ' : '') . number_format((float) $value, 2));
+    $format = fn($value) => $currency . ' ' . number_format((float) $value, 2);
 
-    // Payment instructions - use quotation field directly (plain text)
-    $paymentText = trim($quotation->payment_instructions ?? '');
+    // Payment instructions
+    $paymentText = $quotation->payment_instructions ?? "Please make payment within the validity period.\n\nPayment details will be provided upon acceptance.";
 
-    // Simple fallback if quotation doesn't have payment instructions
-    if ($paymentText === '') {
-        $paymentText = "Please make payment to:\n\n" .
-                       "Company: " . ($quotation->company->name ?? 'Company Name') . "\n" .
-                       "Bank: (Bank details to be provided)\n" .
-                       "Account: (Account number to be provided)\n\n" .
-                       "Please include quotation number in payment reference.";
-    }
-
-    // Logo path - check quotation-specific logo first, then company default logo
+    // Logo path (simplified)
     $logoPath = null;
-    if ($sections['show_company_logo'] ?? true) {
-        // Priority 1: Quotation-specific logo from logo bank
-        $logoFile = null;
-        if ($quotation->companyLogo ?? null) {
-            $logoFile = $quotation->companyLogo->file_path;
-        }
+    if ($sections['show_company_logo']) {
+        $logoFile = $quotation->company?->logo_path ?? $quotation->company?->logo ?? null;
 
-        // Priority 2: Company default logo from logo bank
-        if (!$logoFile && $quotation->company?->defaultLogo()) {
-            $logoFile = $quotation->company->defaultLogo()->file_path;
-        }
-
-        // Priority 3: Legacy company logo_path
-        if (!$logoFile) {
-            $logoFile = $quotation->company?->logo_path ?? $quotation->company?->logo ?? null;
-        }
-
-        if (!empty($logoFile)) {
-            // Use storage path directly (not public/storage symlink)
+        if ($logoFile) {
             $logoFile = ltrim($logoFile, '/');
-
-            // Remove 'storage/' prefix if present
             if (str_starts_with($logoFile, 'storage/')) {
-                $logoFile = substr($logoFile, 8); // Remove 'storage/' prefix
+                $logoFile = substr($logoFile, 8);
             }
 
             $path = storage_path('app/public/' . $logoFile);
 
             if (file_exists($path)) {
-                $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-                $mimeTypes = [
-                    'jpg' => 'image/jpeg',
-                    'jpeg' => 'image/jpeg',
-                    'png' => 'image/png',
-                    'gif' => 'image/gif',
-                    'svg' => 'image/svg+xml',
-                ];
-                $mimeType = $mimeTypes[$extension] ?? 'image/png';
+                $mimeType = 'image/png';
+                if (str_ends_with($path, '.jpg') || str_ends_with($path, '.jpeg')) {
+                    $mimeType = 'image/jpeg';
+                }
 
                 try {
                     $logoData = base64_encode(file_get_contents($path));
                     $logoPath = 'data:' . $mimeType . ';base64,' . $logoData;
-                } catch (\Throwable $exception) {
-                    \Log::warning('Quotation PDF Logo Encoding Failed', [
-                        'path' => $path,
-                        'exception' => $exception->getMessage(),
-                    ]);
+                } catch (\Throwable $e) {
+                    // Silently fail - logo will just not show
                 }
             }
         }
@@ -452,13 +413,13 @@
     {{-- Payment Instructions + Totals --}}
     <table class="summary-table">
         <tr>
-            @if($sections['show_payment_instructions'] ?? true)
+            @if($sections['show_payment_instructions'])
                 <td class="payment-block" style="width:50%;">
                     <div class="section-label">Payment Instructions</div>
                     <div class="payment-text">{!! nl2br(e($paymentText)) !!}</div>
                 </td>
             @endif
-            <td style="width:{{ ($sections['show_payment_instructions'] ?? true) ? '50%' : '100%' }};">
+            <td style="width:{{ $sections['show_payment_instructions'] ? '50%' : '100%' }};">
                 <table class="totals-table">
                     <tr>
                         <td>Subtotal</td>
@@ -506,7 +467,7 @@
     @endif
 
     {{-- Signature Lines --}}
-    @if($sections['show_signatures'] ?? true)
+    @if($sections['show_signatures'])
         <table class="signature-table">
             <tr>
                 {{-- Sales Rep Signature --}}
