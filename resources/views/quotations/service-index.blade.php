@@ -30,12 +30,12 @@
                 <div class="p-4">
                     <form method="GET" action="{{ route('quotations.service-index') }}" class="space-y-4">
                         <div class="space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                                 <!-- Search -->
                                 <div class="md:col-span-2">
-                                    <x-text-input 
-                                        name="search" 
-                                        type="text" 
+                                    <x-text-input
+                                        name="search"
+                                        type="text"
                                         placeholder="Search quotations..."
                                         :value="request('search')"
                                         class="w-full" />
@@ -43,7 +43,7 @@
 
                                 <!-- Status Filter -->
                                 <div>
-                                    <select name="status" 
+                                    <select name="status"
                                             class="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
                                         <option value="">All Status</option>
                                         @foreach($filters['statuses'] as $value => $label)
@@ -54,22 +54,9 @@
                                     </select>
                                 </div>
 
-                                <!-- Type Filter -->
-                                <div>
-                                    <select name="type" 
-                                            class="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                        <option value="">All Types</option>
-                                        @foreach($filters['types'] as $value => $label)
-                                            <option value="{{ $value }}" {{ request('type') == $value ? 'selected' : '' }}>
-                                                {{ $label }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
                                 <!-- Team Filter -->
                                 <div>
-                                    <select name="team_id" 
+                                    <select name="team_id"
                                             class="w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
                                         <option value="">All Teams</option>
                                         @foreach($filters['teams'] as $team)
@@ -82,12 +69,12 @@
 
                                 <!-- Actions -->
                                 <div class="flex space-x-2">
-                                    <button type="submit" 
+                                    <button type="submit"
                                             class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                                         Filter
                                     </button>
-                                    @if(request()->hasAny(['search', 'status', 'type', 'team_id', 'customer_segment_id', 'assigned_to', 'date_from', 'date_to']))
-                                        <a href="{{ route('quotations.index') }}" 
+                                    @if(request()->hasAny(['search', 'status', 'team_id', 'customer_segment_id', 'assigned_to', 'date_from', 'date_to']))
+                                        <a href="{{ route('quotations.service-index') }}"
                                            class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
                                             Clear
                                         </a>

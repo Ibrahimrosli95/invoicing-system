@@ -168,7 +168,7 @@
             <!-- Filters -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-4">
-                    <form method="GET" action="{{ route('invoices.index') }}" class="space-y-4">
+                    <form method="GET" action="{{ route('invoices.service-index') }}" class="space-y-4">
                         <div class="grid grid-cols-1 md:grid-cols-7 gap-4">
                             <!-- Search -->
                             <div class="md:col-span-2">
@@ -231,11 +231,11 @@
 
                             <!-- Actions -->
                             <div class="flex space-x-2">
-                                <button type="submit" 
+                                <button type="submit"
                                         class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                                     Filter
                                 </button>
-                                <a href="{{ route('invoices.index') }}" 
+                                <a href="{{ route('invoices.service-index') }}"
                                    class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
                                     Clear
                                 </a>
