@@ -452,7 +452,14 @@ class InvoiceController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('invoices.service-builder', compact('defaultTemplates', 'customerSegments'));
+        // Get company brands for letterhead selection
+        $companyBrands = \App\Models\CompanyBrand::forCompany()
+            ->active()
+            ->orderBy('is_default', 'desc')
+            ->orderBy('name')
+            ->get();
+
+        return view('invoices.service-builder', compact('defaultTemplates', 'customerSegments', 'companyBrands'));
     }
 
     /**
