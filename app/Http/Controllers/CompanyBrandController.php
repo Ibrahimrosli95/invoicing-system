@@ -53,7 +53,7 @@ class CompanyBrandController extends Controller
 
         $brand = CompanyBrand::create($validated);
 
-        return redirect()->route('brands.index')
+        return redirect()->route('settings.brands.index')
             ->with('success', 'Brand created successfully.');
     }
 
@@ -98,7 +98,7 @@ class CompanyBrandController extends Controller
 
         $companyBrand->update($validated);
 
-        return redirect()->route('brands.index')
+        return redirect()->route('settings.brands.index')
             ->with('success', 'Brand updated successfully.');
     }
 
@@ -123,7 +123,7 @@ class CompanyBrandController extends Controller
 
         $companyBrand->delete();
 
-        return redirect()->route('brands.index')
+        return redirect()->route('settings.brands.index')
             ->with('success', 'Brand deleted successfully.');
     }
 
