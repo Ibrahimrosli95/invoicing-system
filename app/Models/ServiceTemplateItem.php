@@ -28,6 +28,8 @@ class ServiceTemplateItem extends Model
         'settings',
         'cost_price',
         'minimum_price',
+        'amount_override',
+        'amount_manually_edited',
     ];
 
     protected $casts = [
@@ -41,7 +43,14 @@ class ServiceTemplateItem extends Model
         'settings' => 'array',
         'cost_price' => 'decimal:2',
         'minimum_price' => 'decimal:2',
+        'amount_override' => 'decimal:2',
+        'amount_manually_edited' => 'boolean',
     ];
+
+    /**
+     * Computed attributes
+     */
+    protected $appends = ['calculated_amount', 'final_amount'];
 
     /**
      * Relationships
@@ -85,6 +94,36 @@ class ServiceTemplateItem extends Model
     }
 
     /**
+     * Computed Attributes - Amount Calculation
+     */
+
+    /**
+     * Get calculated amount (quantity × unit_price)
+     *
+     * @return float
+     */
+    public function getCalculatedAmountAttribute(): float
+    {
+        return $this->default_quantity * $this->default_unit_price;
+    }
+
+    /**
+     * Get final amount - uses override if set, otherwise calculated
+     *
+     * @return float
+     */
+    public function getFinalAmountAttribute(): float
+    {
+        // If amount is manually overridden, use override
+        if ($this->amount_override !== null) {
+            return $this->amount_override;
+        }
+
+        // Otherwise use calculated amount
+        return $this->calculated_amount;
+    }
+
+    /**
      * Business logic methods
      */
     public function canBeRemovedFromQuotation(): bool
@@ -110,6 +149,73 @@ class ServiceTemplateItem extends Model
     public function hasMinimumPrice(): bool
     {
         return !is_null($this->minimum_price) && $this->minimum_price > 0;
+    }
+
+    /**
+     * Amount Override Management
+     */
+
+    /**
+     * Set amount override manually
+     *
+     * @param float $amount
+     * @return void
+     */
+    public function setAmountOverride(float $amount): void
+    {
+        $this->amount_override = $amount;
+        $this->amount_manually_edited = true;
+        $this->save();
+    }
+
+    /**
+     * Clear amount override and return to calculated amount
+     *
+     * @return void
+     */
+    public function clearAmountOverride(): void
+    {
+        $this->amount_override = null;
+        $this->amount_manually_edited = false;
+        $this->save();
+    }
+
+    /**
+     * Check if amount is manually overridden
+     *
+     * @return bool
+     */
+    public function hasAmountOverride(): bool
+    {
+        return $this->amount_manually_edited && $this->amount_override !== null;
+    }
+
+    /**
+     * Get the difference between override and calculated amount
+     *
+     * @return float
+     */
+    public function getAmountDifference(): float
+    {
+        if (!$this->hasAmountOverride()) {
+            return 0;
+        }
+
+        return $this->amount_override - $this->calculated_amount;
+    }
+
+    /**
+     * Get percentage difference from calculated amount
+     *
+     * @return float
+     */
+    public function getAmountDifferencePercentage(): float
+    {
+        if (!$this->hasAmountOverride() || $this->calculated_amount == 0) {
+            return 0;
+        }
+
+        return (($this->amount_override - $this->calculated_amount) / $this->calculated_amount) * 100;
     }
 
     /**

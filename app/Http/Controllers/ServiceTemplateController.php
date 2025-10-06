@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\ServiceTemplate;
+use App\Models\ServiceTemplateSection;
 use App\Models\Team;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -477,8 +479,13 @@ class ServiceTemplateController extends Controller
                                 return [
                                     'id' => $item->id,
                                     'description' => $item->description,
+                                    'unit' => $item->unit ?? 'Nos',
                                     'default_quantity' => $item->default_quantity,
-                                    'unit_price' => $item->unit_price,
+                                    'default_unit_price' => $item->default_unit_price,
+                                    'amount_override' => $item->amount_override,
+                                    'amount_manually_edited' => $item->amount_manually_edited,
+                                    'cost_price' => $item->cost_price,
+                                    'minimum_price' => $item->minimum_price,
                                     'sort_order' => $item->sort_order,
                                 ];
                             }),
@@ -491,5 +498,75 @@ class ServiceTemplateController extends Controller
             'success' => true,
             'templates' => $templates
         ]);
+    }
+
+    /**
+     * Get all sections from all templates for section picker (API endpoint).
+     * Returns a flattened list of all sections with their items and parent template info.
+     */
+    public function getAllSections(Request $request): JsonResponse
+    {
+        // Get all active templates accessible to the user
+        $templates = ServiceTemplate::query()
+            ->forCompany()
+            ->forUserTeams()
+            ->active()
+            ->with(['sections.items'])
+            ->orderBy('name', 'asc')
+            ->get();
+
+        // Flatten sections with template information
+        $sections = $templates->flatMap(function ($template) {
+            return $template->sections->map(function ($section) use ($template) {
+                return [
+                    'id' => $section->id,
+                    'service_template_id' => $template->id,
+                    'template_name' => $template->name,
+                    'template_category' => $template->category,
+                    'name' => $section->name,
+                    'description' => $section->description,
+                    'sort_order' => $section->sort_order,
+                    'is_required' => $section->is_required,
+                    'default_discount_percentage' => $section->default_discount_percentage,
+                    'items_count' => $section->items->count(),
+                    'estimated_total' => $section->items->sum(function ($item) {
+                        // Calculate using final_amount accessor if available
+                        if ($item->amount_override !== null) {
+                            return $item->amount_override;
+                        }
+                        return $item->default_quantity * $item->default_unit_price;
+                    }),
+                    'items' => $section->items->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'description' => $item->description,
+                            'unit' => $item->unit ?? 'Nos',
+                            'default_quantity' => $item->default_quantity,
+                            'default_unit_price' => $item->default_unit_price,
+                            'amount_override' => $item->amount_override,
+                            'amount_manually_edited' => $item->amount_manually_edited,
+                            'cost_price' => $item->cost_price,
+                            'minimum_price' => $item->minimum_price,
+                            'item_code' => $item->item_code,
+                            'specifications' => $item->specifications,
+                            'notes' => $item->notes,
+                            'sort_order' => $item->sort_order,
+                            'is_required' => $item->is_required,
+                            'quantity_editable' => $item->quantity_editable,
+                            'price_editable' => $item->price_editable,
+                        ];
+                    }),
+                    // Store full template object for reference
+                    'template' => [
+                        'id' => $template->id,
+                        'name' => $template->name,
+                        'category' => $template->category,
+                        'description' => $template->description,
+                    ],
+                ];
+            });
+        });
+
+        return response()->json($sections);
     }
 }

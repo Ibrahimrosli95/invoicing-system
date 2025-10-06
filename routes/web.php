@@ -259,7 +259,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('service-templates/{serviceTemplate}/toggle-status', [ServiceTemplateController::class, 'toggleStatus'])->name('service-templates.toggle-status');
     Route::post('service-templates/{serviceTemplate}/convert', [ServiceTemplateController::class, 'convertToQuotation'])->name('service-templates.convert');
     Route::get('api/service-templates', [ServiceTemplateController::class, 'getTemplates'])->name('api.service-templates.list');
-    
+    Route::get('api/service-template-sections', [ServiceTemplateController::class, 'getAllSections'])->name('api.service-template-sections.list');
+
     // Pricing Book Management
     // Bulk Import/Export Routes (must come before resource routes to avoid conflicts)
     Route::get('pricing/import', [PricingController::class, 'import'])->name('pricing.import');

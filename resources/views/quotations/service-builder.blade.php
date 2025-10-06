@@ -278,6 +278,14 @@
                                     <!-- Section Header -->
                                     <div class="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-200">
                                         <div class="flex justify-between items-start gap-4">
+                                            <!-- Drag Handle -->
+                                            <div class="drag-handle cursor-move text-gray-400 hover:text-gray-600 flex-shrink-0 pt-1"
+                                                 title="Drag to reorder sections">
+                                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                                                </svg>
+                                            </div>
+
                                             <div class="flex-1">
                                                 <input type="text" x-model="section.name"
                                                        placeholder="Section Name (e.g., Phase 1: Installation)"
@@ -287,9 +295,10 @@
                                                           rows="1"
                                                           class="mt-2 w-full text-sm border-0 bg-transparent text-gray-600 placeholder-gray-400 focus:ring-0 p-0 resize-none"></textarea>
                                             </div>
+
                                             <button @click="removeSection(sectionIndex)" type="button"
                                                     x-show="sections.length > 1"
-                                                    class="text-red-400 hover:text-red-600">
+                                                    class="text-red-400 hover:text-red-600 flex-shrink-0">
                                                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
@@ -302,10 +311,11 @@
                                         <thead class="bg-gray-50 border-b border-gray-200">
                                             <tr>
                                                 <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-center w-12">SI</th>
-                                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Description</th>
-                                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-center w-24">Qty</th>
+                                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Details</th>
+                                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-center w-24">Unit</th>
+                                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-center w-24">Quantity</th>
                                                 <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-right w-32">Rate (RM)</th>
-                                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-right w-32">Amount (RM)</th>
+                                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-right w-40">Amount (RM)</th>
                                                 <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-center w-16">Action</th>
                                             </tr>
                                         </thead>
@@ -313,24 +323,53 @@
                                             <template x-for="(item, itemIndex) in section.items" :key="item.id">
                                                 <tr class="hover:bg-gray-50">
                                                     <td class="px-6 py-3 text-center text-sm text-gray-600" x-text="itemIndex + 1"></td>
+                                                    <!-- Details -->
                                                     <td class="px-6 py-3">
                                                         <input type="text" x-model="item.description"
                                                                placeholder="Item description..."
                                                                class="w-full border-0 bg-transparent text-sm focus:ring-0 p-0">
                                                     </td>
+                                                    <!-- Unit -->
                                                     <td class="px-6 py-3">
-                                                        <input type="number" x-model="item.quantity" @input="calculateTotals"
-                                                               class="w-full border-0 bg-transparent text-sm text-center focus:ring-0 p-0"
-                                                               min="1" step="1">
+                                                        <input type="text" x-model="item.unit"
+                                                               placeholder="Nos"
+                                                               class="w-full border-0 bg-transparent text-sm text-center focus:ring-0 p-0">
                                                     </td>
+                                                    <!-- Quantity -->
                                                     <td class="px-6 py-3">
-                                                        <input type="number" x-model="item.unit_price" @input="calculateTotals"
+                                                        <input type="number" x-model="item.quantity"
+                                                               @input="recalculateItemAmount(sectionIndex, itemIndex)"
+                                                               class="w-full border-0 bg-transparent text-sm text-center focus:ring-0 p-0"
+                                                               min="0.01" step="0.01">
+                                                    </td>
+                                                    <!-- Rate -->
+                                                    <td class="px-6 py-3">
+                                                        <input type="number" x-model="item.unit_price"
+                                                               @input="recalculateItemAmount(sectionIndex, itemIndex)"
                                                                class="w-full border-0 bg-transparent text-sm text-right focus:ring-0 p-0"
                                                                min="0" step="0.01">
                                                     </td>
-                                                    <td class="px-6 py-3 text-right text-sm font-medium text-gray-900">
-                                                        RM <span x-text="(item.quantity * item.unit_price).toFixed(2)">0.00</span>
+                                                    <!-- Amount (Editable with Override Indicator) -->
+                                                    <td class="px-6 py-3">
+                                                        <div class="flex items-center justify-end gap-2">
+                                                            <input type="number" x-model="item.amount"
+                                                                   @input="handleAmountOverride(sectionIndex, itemIndex, $event.target.value)"
+                                                                   :class="item.amount_manually_edited ? 'bg-amber-50 border-amber-300 text-amber-900' : 'bg-transparent'"
+                                                                   class="w-24 border-0 text-sm text-right focus:ring-0 p-0"
+                                                                   min="0" step="0.01">
+                                                            <!-- Reset Override Button -->
+                                                            <button type="button"
+                                                                    x-show="item.amount_manually_edited"
+                                                                    @click="resetAmountOverride(sectionIndex, itemIndex)"
+                                                                    class="text-amber-600 hover:text-amber-700"
+                                                                    title="Reset to calculated amount">
+                                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
                                                     </td>
+                                                    <!-- Action -->
                                                     <td class="px-6 py-3 text-center">
                                                         <button @click="removeItemFromSection(sectionIndex, itemIndex)" type="button"
                                                                 x-show="section.items.length > 1"
@@ -345,7 +384,7 @@
 
                                             <!-- Add Item Row -->
                                             <tr class="bg-gray-50">
-                                                <td colspan="6" class="px-6 py-3">
+                                                <td colspan="7" class="px-6 py-3">
                                                     <button @click="addItemToSection(sectionIndex)" type="button"
                                                             class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700">
                                                         <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -360,7 +399,7 @@
                                         <!-- Section Subtotal -->
                                         <tfoot class="bg-blue-50 border-t-2 border-blue-200">
                                             <tr>
-                                                <td colspan="4" class="px-6 py-3 text-right text-sm font-semibold text-gray-900">
+                                                <td colspan="5" class="px-6 py-3 text-right text-sm font-semibold text-gray-900">
                                                     Section Subtotal:
                                                 </td>
                                                 <td class="px-6 py-3 text-right text-sm font-bold text-blue-600">
@@ -393,6 +432,14 @@
                                     <!-- Section Header -->
                                     <div class="bg-gradient-to-r from-blue-50 to-blue-100 px-4 py-3 border-b border-blue-200">
                                         <div class="flex justify-between items-start gap-3">
+                                            <!-- Drag Handle -->
+                                            <div class="drag-handle cursor-move text-gray-400 hover:text-gray-600 flex-shrink-0 pt-1"
+                                                 title="Drag to reorder sections">
+                                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                                                </svg>
+                                            </div>
+
                                             <div class="flex-1">
                                                 <input type="text" x-model="section.name"
                                                        placeholder="Section Name"
@@ -402,9 +449,10 @@
                                                           rows="1"
                                                           class="mt-1 w-full text-sm border-0 bg-transparent text-gray-600 placeholder-gray-400 focus:ring-0 p-0 resize-none"></textarea>
                                             </div>
+
                                             <button @click="removeSection(sectionIndex)" type="button"
                                                     x-show="sections.length > 1"
-                                                    class="text-red-400 hover:text-red-600">
+                                                    class="text-red-400 hover:text-red-600 flex-shrink-0">
                                                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                 </svg>
@@ -430,35 +478,64 @@
                                                 <div class="space-y-2">
                                                     <!-- Description -->
                                                     <div>
-                                                        <label class="block text-xs font-medium text-gray-700 mb-1">Description</label>
+                                                        <label class="block text-xs font-medium text-gray-700 mb-1">Details</label>
                                                         <input type="text" x-model="item.description"
                                                                placeholder="Item description..."
                                                                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
                                                     </div>
 
-                                                    <!-- Quantity and Rate -->
-                                                    <div class="grid grid-cols-2 gap-2">
+                                                    <!-- Unit, Quantity and Rate -->
+                                                    <div class="grid grid-cols-3 gap-2">
                                                         <div>
-                                                            <label class="block text-xs font-medium text-gray-700 mb-1">Qty</label>
-                                                            <input type="number" x-model="item.quantity" @input="calculateTotals"
-                                                                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-center focus:ring-blue-500 focus:border-blue-500"
-                                                                   min="1" step="1">
+                                                            <label class="block text-xs font-medium text-gray-700 mb-1">Unit</label>
+                                                            <input type="text" x-model="item.unit"
+                                                                   placeholder="Nos"
+                                                                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-center focus:ring-blue-500 focus:border-blue-500">
                                                         </div>
                                                         <div>
-                                                            <label class="block text-xs font-medium text-gray-700 mb-1">Rate (RM)</label>
-                                                            <input type="number" x-model="item.unit_price" @input="calculateTotals"
+                                                            <label class="block text-xs font-medium text-gray-700 mb-1">Qty</label>
+                                                            <input type="number" x-model="item.quantity"
+                                                                   @input="recalculateItemAmount(sectionIndex, itemIndex)"
+                                                                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-center focus:ring-blue-500 focus:border-blue-500"
+                                                                   min="0.01" step="0.01">
+                                                        </div>
+                                                        <div>
+                                                            <label class="block text-xs font-medium text-gray-700 mb-1">Rate</label>
+                                                            <input type="number" x-model="item.unit_price"
+                                                                   @input="recalculateItemAmount(sectionIndex, itemIndex)"
                                                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-right focus:ring-blue-500 focus:border-blue-500"
                                                                    min="0" step="0.01">
                                                         </div>
                                                     </div>
 
-                                                    <!-- Item Total -->
+                                                    <!-- Amount (Editable with Override Indicator) -->
                                                     <div class="pt-2 border-t border-gray-200">
-                                                        <div class="flex justify-between items-center">
-                                                            <span class="text-xs font-medium text-gray-600">Amount:</span>
-                                                            <span class="text-sm font-semibold text-gray-900">
-                                                                RM <span x-text="(item.quantity * item.unit_price).toFixed(2)">0.00</span>
-                                                            </span>
+                                                        <div class="flex items-center justify-between gap-2">
+                                                            <label class="text-xs font-medium text-gray-700">Amount (RM):</label>
+                                                            <div class="flex items-center gap-2">
+                                                                <input type="number" x-model="item.amount"
+                                                                       @input="handleAmountOverride(sectionIndex, itemIndex, $event.target.value)"
+                                                                       :class="item.amount_manually_edited ? 'bg-amber-50 border-amber-300 text-amber-900' : 'border-gray-300'"
+                                                                       class="w-24 border rounded-md px-3 py-2 text-sm text-right focus:ring-blue-500 focus:border-blue-500"
+                                                                       min="0" step="0.01">
+                                                                <!-- Reset Override Button -->
+                                                                <button type="button"
+                                                                        x-show="item.amount_manually_edited"
+                                                                        @click="resetAmountOverride(sectionIndex, itemIndex)"
+                                                                        class="text-amber-600 hover:text-amber-700 flex-shrink-0"
+                                                                        title="Reset to calculated amount">
+                                                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <!-- Override Indicator Text -->
+                                                        <div x-show="item.amount_manually_edited" class="mt-1 text-xs text-amber-600 flex items-center gap-1">
+                                                            <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                                            </svg>
+                                                            Manually edited
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1273,7 +1350,7 @@
         </div>
     </div>
 
-    <!-- Service Template Selection Modal -->
+    <!-- Enhanced Service Template Selection Modal with Tabs -->
     <div x-show="showTemplateModal && !templateModal.type"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
@@ -1289,7 +1366,7 @@
             <div class="flex items-center justify-between bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 border-b">
                 <div>
                     <h2 class="text-xl font-semibold text-white">Select Service Template</h2>
-                    <p class="text-blue-100 text-sm mt-1">Choose a template to populate your invoice sections</p>
+                    <p class="text-blue-100 text-sm mt-1">Choose a full template or pick individual sections</p>
                 </div>
                 <button @click="showTemplateModal = false"
                         class="text-white hover:text-blue-100 text-2xl font-semibold">
@@ -1297,16 +1374,40 @@
                 </button>
             </div>
 
+            <!-- Tab Navigation -->
+            <div class="border-b border-gray-200 px-6 pt-4">
+                <nav class="-mb-px flex space-x-8">
+                    <button @click="templateTab = 'full'"
+                            :class="templateTab === 'full' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                            class="py-3 px-1 border-b-2 font-medium text-sm transition-colors">
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Full Templates
+                    </button>
+                    <button @click="templateTab = 'sections'"
+                            :class="templateTab === 'sections' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                            class="py-3 px-1 border-b-2 font-medium text-sm transition-colors">
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                        </svg>
+                        Individual Sections
+                    </button>
+                </nav>
+            </div>
+
             <!-- Content -->
-            <div class="p-6 max-h-[calc(90vh-180px)] overflow-y-auto">
+            <div class="p-6 max-h-[calc(90vh-240px)] overflow-y-auto">
                 <!-- Loading State -->
                 <div x-show="loadingTemplates" class="flex items-center justify-center py-12">
                     <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
                     <span class="ml-3 text-gray-600 font-medium">Loading service templates...</span>
                 </div>
 
-                <!-- Templates Grid -->
-                <div x-show="!loadingTemplates && serviceTemplates.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Full Templates Tab -->
+                <div x-show="templateTab === 'full'">
+                    <!-- Templates Grid -->
+                    <div x-show="!loadingTemplates && serviceTemplates.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <template x-for="template in serviceTemplates" :key="template.id">
                         <div class="border-2 border-gray-200 rounded-lg p-5 hover:border-blue-500 hover:shadow-md cursor-pointer transition-all duration-200"
                              @click="selectServiceTemplate(template)">
@@ -1362,24 +1463,105 @@
                     </template>
                 </div>
 
-                <!-- Empty State -->
-                <div x-show="!loadingTemplates && serviceTemplates.length === 0"
-                     class="text-center py-12">
-                    <div class="text-gray-400 mb-4">
-                        <svg class="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
+                    <!-- Empty State -->
+                    <div x-show="!loadingTemplates && serviceTemplates.length === 0"
+                         class="text-center py-12">
+                        <div class="text-gray-400 mb-4">
+                            <svg class="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">No Service Templates Found</h3>
+                        <p class="text-gray-600 mb-6">Create your first service template to streamline quotation creation.</p>
+                        <a href="/service-templates/create"
+                           class="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Create Service Template
+                        </a>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">No Service Templates Found</h3>
-                    <p class="text-gray-600 mb-6">Create your first service template to streamline invoice creation.</p>
-                    <a href="/service-templates/create"
-                       class="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                        Create Service Template
-                    </a>
                 </div>
+                <!-- End Full Templates Tab -->
+
+                <!-- Individual Sections Tab -->
+                <div x-show="templateTab === 'sections'" class="space-y-4">
+                    <!-- Section Filter -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Template</label>
+                        <select x-model="sectionFilterTemplate" @change="loadAllSections()"
+                                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">All Templates</option>
+                            <template x-for="template in serviceTemplates" :key="template.id">
+                                <option :value="template.id" x-text="template.name"></option>
+                            </template>
+                        </select>
+                    </div>
+
+                    <!-- Sections List with Checkboxes -->
+                    <div class="space-y-3 max-h-96 overflow-y-auto">
+                        <template x-for="section in filteredSections" :key="section.id">
+                            <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                                <label class="flex items-start cursor-pointer">
+                                    <input type="checkbox"
+                                           :value="section.id"
+                                           x-model="selectedSectionIds"
+                                           class="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+
+                                    <div class="ml-3 flex-1">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="text-sm font-medium text-gray-900" x-text="section.name"></h4>
+                                            <span class="text-xs text-gray-500" x-text="section.template_name"></span>
+                                        </div>
+
+                                        <p x-show="section.description" class="mt-1 text-xs text-gray-600" x-text="section.description"></p>
+
+                                        <!-- Item Preview -->
+                                        <div class="mt-2 flex items-center text-xs text-gray-500">
+                                            <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                            </svg>
+                                            <span x-text="section.items_count + ' items'"></span>
+                                            <span class="mx-2">•</span>
+                                            <span x-text="'Est. RM ' + (section.estimated_total || 0).toFixed(2)"></span>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </template>
+
+                        <!-- Empty State for Sections -->
+                        <div x-show="filteredSections.length === 0 && !loadingTemplates" class="text-center py-8">
+                            <div class="text-gray-400 mb-3">
+                                <svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                                </svg>
+                            </div>
+                            <p class="text-sm text-gray-600">No sections available. Create service templates with sections first.</p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                        <div class="text-sm text-gray-600">
+                            <span x-text="selectedSectionIds.length"></span>
+                            <span x-text="selectedSectionIds.length === 1 ? 'section' : 'sections'"></span> selected
+                        </div>
+                        <div class="flex gap-2">
+                            <button @click="showTemplateModal = false"
+                                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition">
+                                Cancel
+                            </button>
+                            <button @click="loadSelectedSections"
+                                    :disabled="selectedSectionIds.length === 0"
+                                    :class="selectedSectionIds.length > 0 ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
+                                    class="px-4 py-2 text-sm font-medium rounded-md transition">
+                                Add Selected Sections
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Individual Sections Tab -->
             </div>
 
             <!-- Footer -->
@@ -1766,9 +1948,15 @@ function quotationBuilder() {
 
         // Service Template Integration
         showTemplateModal: false,
+        templateTab: 'full', // 'full' or 'sections'
         serviceTemplates: [],
         selectedTemplate: null,
         loadingTemplates: false,
+
+        // Section Picker State (NEW)
+        allSections: [], // Flattened list of all sections from all templates
+        selectedSectionIds: [], // Array of selected section IDs for multi-select
+        sectionFilterTemplate: '', // Filter sections by template ID
 
         // Section Management
         sectionIdCounter: 1,
@@ -1952,6 +2140,16 @@ function quotationBuilder() {
             isDrawing: false,
             lastX: 0,
             lastY: 0
+        },
+
+        // Computed Properties
+        get filteredSections() {
+            if (!this.sectionFilterTemplate) {
+                return this.allSections;
+            }
+            return this.allSections.filter(s =>
+                s.service_template_id == this.sectionFilterTemplate
+            );
         },
 
         init() {
@@ -2749,7 +2947,10 @@ function quotationBuilder() {
         // Service Template Selection
         openTemplateModal() {
             this.showTemplateModal = true;
+            this.templateTab = 'full'; // Reset to full templates tab
+            this.selectedSectionIds = []; // Clear any previous selections
             this.loadServiceTemplates();
+            this.loadAllSections(); // Also load sections for section picker
         },
 
         async loadServiceTemplates() {
@@ -2769,6 +2970,89 @@ function quotationBuilder() {
             } finally {
                 this.loadingTemplates = false;
             }
+        },
+
+        async loadAllSections() {
+            try {
+                const response = await fetch('/api/service-template-sections', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                });
+                const data = await response.json();
+
+                // Flatten sections with template info and calculated totals
+                this.allSections = data.map(section => ({
+                    ...section,
+                    template_name: section.template?.name || 'Unknown Template',
+                    items_count: section.items?.length || 0,
+                    estimated_total: section.items?.reduce((sum, item) =>
+                        sum + ((item.default_quantity || 0) * (item.default_unit_price || 0)), 0
+                    ) || 0
+                }));
+            } catch (error) {
+                console.error('Error loading sections:', error);
+                this.$dispatch('notify', { type: 'error', message: 'Failed to load sections' });
+            }
+        },
+
+        async loadSelectedSections() {
+            if (this.selectedSectionIds.length === 0) {
+                this.$dispatch('notify', { type: 'warning', message: 'Please select at least one section' });
+                return;
+            }
+
+            // Store count before clearing
+            const sectionCount = this.selectedSectionIds.length;
+
+            // Load each selected section
+            for (const sectionId of this.selectedSectionIds) {
+                const section = this.allSections.find(s => s.id === sectionId);
+                if (section) {
+                    this.addSectionFromTemplate(section);
+                }
+            }
+
+            // Clear selections and close modal
+            this.selectedSectionIds = [];
+            this.showTemplateModal = false;
+            this.calculateTotals();
+
+            this.$dispatch('notify', {
+                type: 'success',
+                message: `${sectionCount === 1 ? '1 section' : sectionCount + ' sections'} added successfully!`
+            });
+        },
+
+        addSectionFromTemplate(templateSection) {
+            const newSection = {
+                id: this.sectionIdCounter++,
+                template_section_id: templateSection.id,
+                name: templateSection.name,
+                description: templateSection.description || '',
+                items: []
+            };
+
+            // Add items from template section
+            if (templateSection.items && templateSection.items.length > 0) {
+                templateSection.items.forEach(item => {
+                    newSection.items.push({
+                        id: this.itemIdCounter++,
+                        template_item_id: item.id,
+                        description: item.description,
+                        unit: item.unit || 'Nos',
+                        quantity: item.default_quantity || 1,
+                        unit_price: item.default_unit_price || 0,
+                        amount: (item.default_quantity || 1) * (item.default_unit_price || 0),
+                        amount_manually_edited: false,
+                        cost_price: item.cost_price,
+                        minimum_price: item.minimum_price
+                    });
+                });
+            }
+
+            this.sections.push(newSection);
         },
 
         selectServiceTemplate(template) {
@@ -2845,8 +3129,90 @@ function quotationBuilder() {
 
         getSectionSubtotal(section) {
             return section.items.reduce((total, item) => {
-                return total + (parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0));
+                // Use amount field if available, otherwise calculate
+                const itemAmount = item.amount !== undefined ? parseFloat(item.amount || 0) : (parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0));
+                return total + itemAmount;
             }, 0);
+        },
+
+        // Amount Calculation & Override Management
+        recalculateItemAmount(sectionIndex, itemIndex) {
+            const item = this.sections[sectionIndex].items[itemIndex];
+
+            // Only recalculate if amount is not manually overridden
+            if (!item.amount_manually_edited) {
+                item.amount = parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0);
+            }
+
+            this.calculateTotals();
+        },
+
+        handleAmountOverride(sectionIndex, itemIndex, newAmount) {
+            const item = this.sections[sectionIndex].items[itemIndex];
+            const calculatedAmount = parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0);
+            const overrideAmount = parseFloat(newAmount) || 0;
+
+            // Check if amount differs from calculated (with small tolerance for floating point)
+            if (Math.abs(overrideAmount - calculatedAmount) > 0.01) {
+                item.amount_manually_edited = true;
+                item.amount = overrideAmount;
+            } else {
+                item.amount_manually_edited = false;
+                item.amount = calculatedAmount;
+            }
+
+            this.calculateTotals();
+        },
+
+        resetAmountOverride(sectionIndex, itemIndex) {
+            const item = this.sections[sectionIndex].items[itemIndex];
+            item.amount_manually_edited = false;
+            item.amount = parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0);
+            this.calculateTotals();
+        },
+
+        duplicateItem(sectionIndex, itemIndex) {
+            const item = this.sections[sectionIndex].items[itemIndex];
+            const duplicate = {
+                id: this.itemIdCounter++,
+                template_item_id: item.template_item_id,
+                description: item.description,
+                unit: item.unit,
+                quantity: item.quantity,
+                unit_price: item.unit_price,
+                amount: item.amount,
+                amount_manually_edited: item.amount_manually_edited,
+                cost_price: item.cost_price,
+                minimum_price: item.minimum_price
+            };
+
+            this.sections[sectionIndex].items.splice(itemIndex + 1, 0, duplicate);
+            this.calculateTotals();
+        },
+
+        duplicateSection(sectionIndex) {
+            const section = this.sections[sectionIndex];
+            const duplicate = {
+                id: this.sectionIdCounter++,
+                template_section_id: section.template_section_id,
+                name: section.name + ' (Copy)',
+                description: section.description,
+                items: section.items.map(item => ({
+                    id: this.itemIdCounter++,
+                    template_item_id: item.template_item_id,
+                    description: item.description,
+                    unit: item.unit,
+                    quantity: item.quantity,
+                    unit_price: item.unit_price,
+                    amount: item.amount,
+                    amount_manually_edited: item.amount_manually_edited,
+                    cost_price: item.cost_price,
+                    minimum_price: item.minimum_price
+                }))
+            };
+
+            this.sections.splice(sectionIndex + 1, 0, duplicate);
+            this.calculateTotals();
         },
 
         // Financial Calculations (Section-based)
