@@ -14,7 +14,7 @@ class UpdateCompanyBrandRequest extends FormRequest
         $brand = $this->route('company_brand');
 
         return $this->user()->company_id === $brand->company_id
-            && $this->user()->hasPermissionTo('manage company settings');
+            && $this->user()->hasPermissionTo('manage settings');
     }
 
     /**

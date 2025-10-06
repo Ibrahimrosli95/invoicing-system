@@ -13,7 +13,7 @@ class CompanyBrandPolicy
     public function viewAny(User $user): bool
     {
         // Company managers and above can view brands
-        return $user->hasPermissionTo('manage company settings');
+        return $user->hasPermissionTo('manage settings');
     }
 
     /**
@@ -23,7 +23,7 @@ class CompanyBrandPolicy
     {
         // Can view if same company and has permission
         return $user->company_id === $companyBrand->company_id
-            && $user->hasPermissionTo('manage company settings');
+            && $user->hasPermissionTo('manage settings');
     }
 
     /**
@@ -32,7 +32,7 @@ class CompanyBrandPolicy
     public function create(User $user): bool
     {
         // Company managers and above can create brands
-        return $user->hasPermissionTo('manage company settings');
+        return $user->hasPermissionTo('manage settings');
     }
 
     /**
@@ -42,7 +42,7 @@ class CompanyBrandPolicy
     {
         // Can update if same company and has permission
         return $user->company_id === $companyBrand->company_id
-            && $user->hasPermissionTo('manage company settings');
+            && $user->hasPermissionTo('manage settings');
     }
 
     /**
@@ -52,7 +52,7 @@ class CompanyBrandPolicy
     {
         // Can delete if same company, has permission, and not used in documents
         return $user->company_id === $companyBrand->company_id
-            && $user->hasPermissionTo('manage company settings')
+            && $user->hasPermissionTo('manage settings')
             && !$companyBrand->isUsedInDocuments();
     }
 
@@ -63,7 +63,7 @@ class CompanyBrandPolicy
     {
         // Can set as default if same company and has permission
         return $user->company_id === $companyBrand->company_id
-            && $user->hasPermissionTo('manage company settings');
+            && $user->hasPermissionTo('manage settings');
     }
 
     /**
@@ -73,7 +73,7 @@ class CompanyBrandPolicy
     {
         // Can toggle status if same company and has permission
         return $user->company_id === $companyBrand->company_id
-            && $user->hasPermissionTo('manage company settings');
+            && $user->hasPermissionTo('manage settings');
     }
 
     /**
@@ -82,7 +82,7 @@ class CompanyBrandPolicy
     public function restore(User $user, CompanyBrand $companyBrand): bool
     {
         return $user->company_id === $companyBrand->company_id
-            && $user->hasPermissionTo('manage company settings');
+            && $user->hasPermissionTo('manage settings');
     }
 
     /**
@@ -91,7 +91,7 @@ class CompanyBrandPolicy
     public function forceDelete(User $user, CompanyBrand $companyBrand): bool
     {
         return $user->company_id === $companyBrand->company_id
-            && $user->hasPermissionTo('manage company settings')
+            && $user->hasPermissionTo('manage settings')
             && !$companyBrand->isUsedInDocuments();
     }
 }
