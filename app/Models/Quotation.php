@@ -19,6 +19,7 @@ class Quotation extends Model
         'status',
         'company_id',
         'company_logo_id',
+        'company_brand_id',
         'lead_id',
         'customer_segment_id',
         'team_id',

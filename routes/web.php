@@ -114,8 +114,19 @@ Route::middleware('auth')->group(function () {
         Route::get('system/export', [\App\Http\Controllers\SystemSettingsController::class, 'export'])->name('system.export');
         Route::post('system/import', [\App\Http\Controllers\SystemSettingsController::class, 'import'])->name('system.import');
         Route::post('system/reset-defaults', [\App\Http\Controllers\SystemSettingsController::class, 'resetToDefaults'])->name('system.reset-defaults');
+
+        // Company Brands
+        Route::get('brands', [\App\Http\Controllers\CompanyBrandController::class, 'index'])->name('brands.index');
+        Route::get('brands/create', [\App\Http\Controllers\CompanyBrandController::class, 'create'])->name('brands.create');
+        Route::post('brands', [\App\Http\Controllers\CompanyBrandController::class, 'store'])->name('brands.store');
+        Route::get('brands/{companyBrand}', [\App\Http\Controllers\CompanyBrandController::class, 'show'])->name('brands.show');
+        Route::get('brands/{companyBrand}/edit', [\App\Http\Controllers\CompanyBrandController::class, 'edit'])->name('brands.edit');
+        Route::patch('brands/{companyBrand}', [\App\Http\Controllers\CompanyBrandController::class, 'update'])->name('brands.update');
+        Route::delete('brands/{companyBrand}', [\App\Http\Controllers\CompanyBrandController::class, 'destroy'])->name('brands.destroy');
+        Route::post('brands/{companyBrand}/set-default', [\App\Http\Controllers\CompanyBrandController::class, 'setDefault'])->name('brands.set-default');
+        Route::post('brands/{companyBrand}/toggle-status', [\App\Http\Controllers\CompanyBrandController::class, 'toggleStatus'])->name('brands.toggle-status');
     });
-    
+
     // User Management (for administrators)
     Route::resource('users', UserController::class);
     Route::patch('users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
