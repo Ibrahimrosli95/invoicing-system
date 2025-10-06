@@ -501,7 +501,19 @@ class InvoiceController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('invoices.create', compact('quotation', 'teams', 'assignees'));
+        $customerSegments = \App\Models\CustomerSegment::forCompany()
+            ->active()
+            ->select('id', 'name', 'color', 'default_discount_percentage')
+            ->orderBy('name')
+            ->get();
+
+        $companyBrands = \App\Models\CompanyBrand::forCompany()
+            ->active()
+            ->orderBy('is_default', 'desc')
+            ->orderBy('name')
+            ->get();
+
+        return view('invoices.create', compact('quotation', 'teams', 'assignees', 'customerSegments', 'companyBrands'));
     }
 
     /**
@@ -932,7 +944,13 @@ class InvoiceController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('invoices.edit', compact('invoice', 'teams', 'assignees', 'defaultTemplates', 'customerSegments'));
+        $companyBrands = \App\Models\CompanyBrand::forCompany()
+            ->active()
+            ->orderBy('is_default', 'desc')
+            ->orderBy('name')
+            ->get();
+
+        return view('invoices.edit', compact('invoice', 'teams', 'assignees', 'defaultTemplates', 'customerSegments', 'companyBrands'));
     }
 
     /**

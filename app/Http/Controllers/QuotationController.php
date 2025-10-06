@@ -323,7 +323,13 @@ class QuotationController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('quotations.create', compact('lead', 'teams', 'assignees', 'customerSegments'));
+        $companyBrands = \App\Models\CompanyBrand::forCompany()
+            ->active()
+            ->orderBy('is_default', 'desc')
+            ->orderBy('name')
+            ->get();
+
+        return view('quotations.create', compact('lead', 'teams', 'assignees', 'customerSegments', 'companyBrands'));
     }
 
     /**
@@ -930,7 +936,13 @@ class QuotationController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('quotations.edit', compact('quotation', 'teams', 'assignees', 'customerSegments'));
+        $companyBrands = \App\Models\CompanyBrand::forCompany()
+            ->active()
+            ->orderBy('is_default', 'desc')
+            ->orderBy('name')
+            ->get();
+
+        return view('quotations.edit', compact('quotation', 'teams', 'assignees', 'customerSegments', 'companyBrands'));
     }
 
     /**
