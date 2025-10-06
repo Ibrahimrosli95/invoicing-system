@@ -75,13 +75,26 @@
                                 </div>
 
                                 <!-- Logo Action Buttons -->
-                                <div class="flex space-x-2">
+                                <div class="flex space-x-2 mb-4">
                                     <button type="button" @click="showLogoSelector = true" class="px-3 py-1 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-200 rounded-full hover:bg-amber-200 transition-colors">
                                         Choose Logo
                                     </button>
                                     <a href="{{ route('logo-bank.index') }}" target="_blank" class="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 border border-blue-200 rounded-full hover:bg-blue-200 transition-colors">
                                         Manage Logos
                                     </a>
+                                </div>
+
+                                <!-- Company Brand Selector -->
+                                <div class="w-full">
+                                    <label class="block text-xs font-medium text-gray-700 mb-2 text-center lg:text-right">Company Brand</label>
+                                    <select x-model="selectedBrandId" class="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">Use Default</option>
+                                        @foreach($companyBrands as $brand)
+                                            <option value="{{ $brand->id }}" {{ $brand->is_default ? 'selected' : '' }}>
+                                                {{ $brand->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -225,17 +238,6 @@
                                             <option>Net 15</option>
                                             <option>Due on Receipt</option>
                                             <option>Net 60</option>
-                                        </select>
-                                    </div>
-                                    <div class="pt-4 border-t border-gray-200">
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Company Brand</label>
-                                        <select x-model="selectedBrandId" class="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                                            <option value="">Use Default</option>
-                                            @foreach($companyBrands as $brand)
-                                                <option value="{{ $brand->id }}" {{ $brand->is_default ? 'selected' : '' }}>
-                                                    {{ $brand->name }}
-                                                </option>
-                                            @endforeach
                                         </select>
                                     </div>
                                 </div>
