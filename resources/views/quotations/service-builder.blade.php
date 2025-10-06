@@ -42,20 +42,21 @@
                         <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-6">
                             <!-- Sender Details - Left -->
                             <div class="w-full lg:w-2/3 pr-0 lg:pr-12 space-y-4 mb-4 lg:mb-0 order-2 lg:order-1">
-                                <h2 class="text-2xl font-bold text-blue-600 leading-tight">
-                                    {{ auth()->user()->company->name ?? 'Company Name' }}
+                                <h2 class="text-2xl font-bold text-blue-600 leading-tight" x-text="currentBrand.name || 'Company Name'">
                                 </h2>
                                 <div class="text-sm text-gray-700 space-y-2 leading-relaxed">
-                                    <div class="font-medium">{{ auth()->user()->company->address ?? '123 Business Street' }}</div>
-                                    <div>{{ auth()->user()->company->city ?? 'City' }}, {{ auth()->user()->company->state ?? 'State' }} {{ auth()->user()->company->postal_code ?? '12345' }}</div>
+                                    <div class="font-medium" x-text="currentBrand.address || '123 Business Street'"></div>
+                                    <div>
+                                        <span x-text="currentBrand.city || 'City'"></span><span x-show="currentBrand.city">, </span><span x-text="currentBrand.state || 'State'"></span> <span x-text="currentBrand.postal_code || '12345'"></span>
+                                    </div>
                                     <div class="pt-2 space-y-1">
                                         <div>
                                             <span class="inline-block w-16 text-gray-500 text-xs uppercase tracking-wide">Phone:</span>
-                                            <span class="font-medium">{{ auth()->user()->company->phone ?? '+60 12-345 6789' }}</span>
+                                            <span class="font-medium" x-text="currentBrand.phone || '+60 12-345 6789'"></span>
                                         </div>
                                         <div>
                                             <span class="inline-block w-16 text-gray-500 text-xs uppercase tracking-wide">Email:</span>
-                                            <span class="font-medium">{{ auth()->user()->company->email ?? 'info@company.com' }}</span>
+                                            <span class="font-medium" x-text="currentBrand.email || 'info@company.com'"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -74,13 +75,26 @@
                                 </div>
 
                                 <!-- Logo Action Buttons -->
-                                <div class="flex space-x-2">
+                                <div class="flex space-x-2 mb-4">
                                     <button type="button" @click="showLogoSelector = true" class="px-3 py-1 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-200 rounded-full hover:bg-amber-200 transition-colors">
                                         Choose Logo
                                     </button>
                                     <a href="{{ route('logo-bank.index') }}" target="_blank" class="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 border border-blue-200 rounded-full hover:bg-blue-200 transition-colors">
                                         Manage Logos
                                     </a>
+                                </div>
+
+                                <!-- Company Brand Selector -->
+                                <div class="w-full">
+                                    <label class="block text-xs font-medium text-gray-700 mb-2 text-center lg:text-right">Company Brand</label>
+                                    <select x-model="selectedBrandId" class="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">Use Default</option>
+                                        @foreach($companyBrands as $brand)
+                                            <option value="{{ $brand->id }}" {{ $brand->is_default ? 'selected' : '' }}>
+                                                {{ $brand->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -224,17 +238,6 @@
                                             <option value="60">60 days</option>
                                             <option value="90">90 days</option>
                                             <option value="120">120 days</option>
-                                        </select>
-                                    </div>
-                                    <div class="pt-4 border-t border-gray-200">
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Company Brand</label>
-                                        <select x-model="selectedBrandId" class="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                                            <option value="">Use Default</option>
-                                            @foreach($companyBrands as $brand)
-                                                <option value="{{ $brand->id }}" {{ $brand->is_default ? 'selected' : '' }}>
-                                                    {{ $brand->name }}
-                                                </option>
-                                            @endforeach
                                         </select>
                                     </div>
                                 </div>
@@ -1796,6 +1799,19 @@ function quotationBuilder() {
         referenceNumber: '',
         selectedBrandId: '{{ $companyBrands->where("is_default", true)->first()->id ?? "" }}',
 
+        // Company Brands Data
+        companyBrands: @json($companyBrands),
+        currentBrand: {
+            name: '{{ $companyBrands->where("is_default", true)->first()->name ?? auth()->user()->company->name }}',
+            address: '{{ $companyBrands->where("is_default", true)->first()->address ?? auth()->user()->company->address }}',
+            city: '{{ $companyBrands->where("is_default", true)->first()->city ?? auth()->user()->company->city }}',
+            state: '{{ $companyBrands->where("is_default", true)->first()->state ?? auth()->user()->company->state }}',
+            postal_code: '{{ $companyBrands->where("is_default", true)->first()->postal_code ?? auth()->user()->company->postal_code }}',
+            phone: '{{ $companyBrands->where("is_default", true)->first()->phone ?? auth()->user()->company->phone }}',
+            email: '{{ $companyBrands->where("is_default", true)->first()->email ?? auth()->user()->company->email }}',
+            logo_path: '{{ $companyBrands->where("is_default", true)->first()->logo_path ?? "" }}'
+        },
+
         // Optional Sections
         optionalSections: {
             show_shipping: true,
@@ -1959,6 +1975,57 @@ function quotationBuilder() {
 
             // Load logo bank
             this.loadLogoBank();
+
+            // Watch for brand changes
+            this.$watch('selectedBrandId', (newBrandId) => {
+                this.updateBrandDetails(newBrandId);
+            });
+        },
+
+        // Brand Management Methods
+        updateBrandDetails(brandId) {
+            if (!brandId) {
+                // Use default brand or company details
+                const defaultBrand = this.companyBrands.find(b => b.is_default);
+                if (defaultBrand) {
+                    this.currentBrand = {
+                        name: defaultBrand.name || '',
+                        address: defaultBrand.address || '',
+                        city: defaultBrand.city || '',
+                        state: defaultBrand.state || '',
+                        postal_code: defaultBrand.postal_code || '',
+                        phone: defaultBrand.phone || '',
+                        email: defaultBrand.email || '',
+                        logo_path: defaultBrand.logo_path || ''
+                    };
+
+                    // Update logo if brand has one
+                    if (defaultBrand.logo_path) {
+                        this.selectedLogoUrl = '/storage/' + defaultBrand.logo_path;
+                    }
+                }
+                return;
+            }
+
+            // Find the selected brand
+            const brand = this.companyBrands.find(b => b.id == brandId);
+            if (brand) {
+                this.currentBrand = {
+                    name: brand.name || '',
+                    address: brand.address || '',
+                    city: brand.city || '',
+                    state: brand.state || '',
+                    postal_code: brand.postal_code || '',
+                    phone: brand.phone || '',
+                    email: brand.email || '',
+                    logo_path: brand.logo_path || ''
+                };
+
+                // Update logo if brand has one
+                if (brand.logo_path) {
+                    this.selectedLogoUrl = '/storage/' + brand.logo_path;
+                }
+            }
         },
 
         // Modal Methods
