@@ -42,20 +42,21 @@
                         <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start mb-6">
                             <!-- Sender Details - Left -->
                             <div class="w-full lg:w-2/3 pr-0 lg:pr-12 space-y-4 mb-4 lg:mb-0 order-2 lg:order-1">
-                                <h2 class="text-2xl font-bold text-blue-600 leading-tight">
-                                    {{ auth()->user()->company->name ?? 'Company Name' }}
+                                <h2 class="text-2xl font-bold text-blue-600 leading-tight" x-text="currentBrand.name || 'Company Name'">
                                 </h2>
                                 <div class="text-sm text-gray-700 space-y-2 leading-relaxed">
-                                    <div class="font-medium">{{ auth()->user()->company->address ?? '123 Business Street' }}</div>
-                                    <div>{{ auth()->user()->company->city ?? 'City' }}, {{ auth()->user()->company->state ?? 'State' }} {{ auth()->user()->company->postal_code ?? '12345' }}</div>
+                                    <div class="font-medium" x-text="currentBrand.address || '123 Business Street'"></div>
+                                    <div>
+                                        <span x-text="currentBrand.city || 'City'"></span><span x-show="currentBrand.city">, </span><span x-text="currentBrand.state || 'State'"></span> <span x-text="currentBrand.postal_code || '12345'"></span>
+                                    </div>
                                     <div class="pt-2 space-y-1">
                                         <div>
                                             <span class="inline-block w-16 text-gray-500 text-xs uppercase tracking-wide">Phone:</span>
-                                            <span class="font-medium">{{ auth()->user()->company->phone ?? '+60 12-345 6789' }}</span>
+                                            <span class="font-medium" x-text="currentBrand.phone || '+60 12-345 6789'"></span>
                                         </div>
                                         <div>
                                             <span class="inline-block w-16 text-gray-500 text-xs uppercase tracking-wide">Email:</span>
-                                            <span class="font-medium">{{ auth()->user()->company->email ?? 'info@company.com' }}</span>
+                                            <span class="font-medium" x-text="currentBrand.email || 'info@company.com'"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -1626,12 +1627,12 @@
                         <h1 class="preview-title">INVOICE</h1>
 
                         <table style="width: 100%;"><tr><td style="width: 70%; vertical-align: top;">
-                            <div class="preview-company-name">{{ auth()->user()->company->name ?? 'Company Name' }}</div>
-                            <div class="preview-company-line">{{ auth()->user()->company->address ?? '123 Business Street' }}</div>
-                            <div class="preview-company-line">{{ auth()->user()->company->postal_code ?? '12345' }} {{ auth()->user()->company->city ?? 'City' }}</div>
-                            <div class="preview-company-line">{{ auth()->user()->company->state ?? 'State' }}</div>
-                            <div class="preview-company-line">Email: {{ auth()->user()->company->email ?? 'info@company.com' }}</div>
-                            <div class="preview-company-line">Mobile: {{ auth()->user()->company->phone ?? '+60 12-345 6789' }}</div>
+                            <div class="preview-company-name" x-text="currentBrand.name || 'Company Name'"></div>
+                            <div class="preview-company-line" x-text="currentBrand.address || '123 Business Street'"></div>
+                            <div class="preview-company-line"><span x-text="currentBrand.postal_code || '12345'"></span> <span x-text="currentBrand.city || 'City'"></span></div>
+                            <div class="preview-company-line" x-text="currentBrand.state || 'State'"></div>
+                            <div class="preview-company-line">Email: <span x-text="currentBrand.email || 'info@company.com'"></span></div>
+                            <div class="preview-company-line">Mobile: <span x-text="currentBrand.phone || '+60 12-345 6789'"></span></div>
                         </td><td style="width: 30%; vertical-align: top; text-align: right;">
                             <img :src="selectedLogoUrl" alt="Company Logo" style="max-width: 120px; max-height: 60px; object-fit: contain;">
                         </td></tr></table>
@@ -1793,6 +1794,19 @@ function invoiceBuilder() {
         dueDate: '',
         dueDateDisplay: '',
         selectedBrandId: '{{ $companyBrands->where("is_default", true)->first()->id ?? "" }}',
+
+        // Company Brands Data
+        companyBrands: @json($companyBrands),
+        currentBrand: {
+            name: '{{ $companyBrands->where("is_default", true)->first()->name ?? auth()->user()->company->name }}',
+            address: '{{ $companyBrands->where("is_default", true)->first()->address ?? auth()->user()->company->address }}',
+            city: '{{ $companyBrands->where("is_default", true)->first()->city ?? auth()->user()->company->city }}',
+            state: '{{ $companyBrands->where("is_default", true)->first()->state ?? auth()->user()->company->state }}',
+            postal_code: '{{ $companyBrands->where("is_default", true)->first()->postal_code ?? auth()->user()->company->postal_code }}',
+            phone: '{{ $companyBrands->where("is_default", true)->first()->phone ?? auth()->user()->company->phone }}',
+            email: '{{ $companyBrands->where("is_default", true)->first()->email ?? auth()->user()->company->email }}',
+            logo_path: '{{ $companyBrands->where("is_default", true)->first()->logo_path ?? "" }}'
+        },
 
         // Optional Sections
         optionalSections: {
@@ -1957,6 +1971,57 @@ function invoiceBuilder() {
 
             // Load logo bank
             this.loadLogoBank();
+
+            // Watch for brand changes
+            this.$watch('selectedBrandId', (newBrandId) => {
+                this.updateBrandDetails(newBrandId);
+            });
+        },
+
+        // Brand Management Methods
+        updateBrandDetails(brandId) {
+            if (!brandId) {
+                // Use default brand or company details
+                const defaultBrand = this.companyBrands.find(b => b.is_default);
+                if (defaultBrand) {
+                    this.currentBrand = {
+                        name: defaultBrand.name || '',
+                        address: defaultBrand.address || '',
+                        city: defaultBrand.city || '',
+                        state: defaultBrand.state || '',
+                        postal_code: defaultBrand.postal_code || '',
+                        phone: defaultBrand.phone || '',
+                        email: defaultBrand.email || '',
+                        logo_path: defaultBrand.logo_path || ''
+                    };
+
+                    // Update logo if brand has one
+                    if (defaultBrand.logo_path) {
+                        this.selectedLogoUrl = '/storage/' + defaultBrand.logo_path;
+                    }
+                }
+                return;
+            }
+
+            // Find the selected brand
+            const brand = this.companyBrands.find(b => b.id == brandId);
+            if (brand) {
+                this.currentBrand = {
+                    name: brand.name || '',
+                    address: brand.address || '',
+                    city: brand.city || '',
+                    state: brand.state || '',
+                    postal_code: brand.postal_code || '',
+                    phone: brand.phone || '',
+                    email: brand.email || '',
+                    logo_path: brand.logo_path || ''
+                };
+
+                // Update logo if brand has one
+                if (brand.logo_path) {
+                    this.selectedLogoUrl = '/storage/' + brand.logo_path;
+                }
+            }
         },
 
         // Modal Methods
