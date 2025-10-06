@@ -163,6 +163,25 @@ class LeadActivity extends Model
     }
 
     /**
+     * Get the activity type icon for UI display.
+     */
+    public function getTypeIcon(): string
+    {
+        return match($this->type) {
+            self::TYPE_CALL => 'phone',
+            self::TYPE_EMAIL => 'mail',
+            self::TYPE_MEETING => 'users',
+            self::TYPE_NOTE => 'file-text',
+            self::TYPE_STATUS_CHANGE => 'refresh-cw',
+            self::TYPE_ASSIGNMENT => 'user-plus',
+            self::TYPE_DOCUMENT => 'file',
+            self::TYPE_FOLLOW_UP => 'clock',
+            self::TYPE_QUOTATION => 'file-text',
+            default => 'circle',
+        };
+    }
+
+    /**
      * Get the activity type color for UI display.
      */
     public function getTypeColor(): string
