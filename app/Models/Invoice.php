@@ -199,6 +199,11 @@ class Invoice extends Model
         return $this->belongsTo(Company::class);
     }
 
+    public function companyBrand(): BelongsTo
+    {
+        return $this->belongsTo(CompanyBrand::class);
+    }
+
     public function companyLogo(): BelongsTo
     {
         return $this->belongsTo(\App\Models\CompanyLogo::class, 'company_logo_id');
@@ -987,6 +992,54 @@ class Invoice extends Model
             $this->customer_state = $source->state;
             $this->customer_postal_code = $source->postal_code;
         }
+    }
+
+    // ========================================
+    // Brand Helper Methods
+    // ========================================
+
+    /**
+     * Get the letterhead to use (brand or company).
+     */
+    public function getLetterhead()
+    {
+        return $this->companyBrand ?? $this->company;
+    }
+
+    /**
+     * Get the letterhead logo URL.
+     */
+    public function getLetterheadLogo(): ?string
+    {
+        if ($this->companyBrand && $this->companyBrand->logo_path) {
+            return $this->companyBrand->getLogoUrl();
+        }
+
+        if ($this->company && $this->company->logo_path) {
+            return \Illuminate\Support\Facades\Storage::disk('public')->url($this->company->logo_path);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the letterhead bank details.
+     */
+    public function getLetterheadBankDetails(): array
+    {
+        if ($this->companyBrand && $this->companyBrand->hasOwnBankDetails()) {
+            return $this->companyBrand->getBankDetails();
+        }
+
+        if ($this->company) {
+            return [
+                'bank_name' => $this->company->bank_name ?? null,
+                'account_name' => $this->company->bank_account_name ?? null,
+                'account_number' => $this->company->bank_account_number ?? null,
+            ];
+        }
+
+        return [];
     }
 }
 

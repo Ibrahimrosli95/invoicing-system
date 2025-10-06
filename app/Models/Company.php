@@ -71,6 +71,30 @@ class Company extends Model
     }
 
     /**
+     * Get the brands for the company.
+     */
+    public function brands(): HasMany
+    {
+        return $this->hasMany(CompanyBrand::class);
+    }
+
+    /**
+     * Get the default brand for the company.
+     */
+    public function defaultBrand()
+    {
+        return $this->hasOne(CompanyBrand::class)->where('is_default', true);
+    }
+
+    /**
+     * Get the active brands for the company.
+     */
+    public function activeBrands(): HasMany
+    {
+        return $this->hasMany(CompanyBrand::class)->where('is_active', true);
+    }
+
+    /**
      * Check if company is active.
      */
     public function isActive(): bool

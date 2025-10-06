@@ -120,6 +120,11 @@ class Quotation extends Model
         return $this->belongsTo(Company::class);
     }
 
+    public function companyBrand(): BelongsTo
+    {
+        return $this->belongsTo(CompanyBrand::class);
+    }
+
     public function lead(): BelongsTo
     {
         return $this->belongsTo(Lead::class);
@@ -447,5 +452,53 @@ class Quotation extends Model
                 $quotation->saveQuietly(); // Prevent infinite loop
             }
         });
+    }
+
+    // ========================================
+    // Brand Helper Methods
+    // ========================================
+
+    /**
+     * Get the letterhead to use (brand or company).
+     */
+    public function getLetterhead()
+    {
+        return $this->companyBrand ?? $this->company;
+    }
+
+    /**
+     * Get the letterhead logo URL.
+     */
+    public function getLetterheadLogo(): ?string
+    {
+        if ($this->companyBrand && $this->companyBrand->logo_path) {
+            return $this->companyBrand->getLogoUrl();
+        }
+
+        if ($this->company && $this->company->logo_path) {
+            return Storage::disk('public')->url($this->company->logo_path);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the letterhead bank details.
+     */
+    public function getLetterheadBankDetails(): array
+    {
+        if ($this->companyBrand && $this->companyBrand->hasOwnBankDetails()) {
+            return $this->companyBrand->getBankDetails();
+        }
+
+        if ($this->company) {
+            return [
+                'bank_name' => $this->company->bank_name ?? null,
+                'account_name' => $this->company->bank_account_name ?? null,
+                'account_number' => $this->company->bank_account_number ?? null,
+            ];
+        }
+
+        return [];
     }
 }
