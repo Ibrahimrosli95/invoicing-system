@@ -15,29 +15,10 @@ class ServiceTemplate extends Model
     // Note: SoftDeletes temporarily disabled until migration is run
     // use HasFactory, SoftDeletes;
 
-    /**
-     * Template categories
-     */
-    const CATEGORY_INSTALLATION = 'Installation';
-    const CATEGORY_MAINTENANCE = 'Maintenance';
-    const CATEGORY_CONSULTING = 'Consulting';
-    const CATEGORY_TRAINING = 'Training';
-    const CATEGORY_SUPPORT = 'Support';
-    const CATEGORY_CUSTOM = 'Custom';
-
-    const CATEGORIES = [
-        self::CATEGORY_INSTALLATION => 'Installation Services',
-        self::CATEGORY_MAINTENANCE => 'Maintenance Packages',
-        self::CATEGORY_CONSULTING => 'Consulting Services',
-        self::CATEGORY_TRAINING => 'Training Programs',
-        self::CATEGORY_SUPPORT => 'Support Packages',
-        self::CATEGORY_CUSTOM => 'Custom Solutions',
-    ];
-
     protected $fillable = [
         'name',
         'description',
-        'category',
+        'category_id',
         'company_id',
         'applicable_teams',
         'settings',
@@ -98,6 +79,11 @@ class ServiceTemplate extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(ServiceCategory::class, 'category_id');
+    }
+
     public function sections(): HasMany
     {
         return $this->hasMany(ServiceTemplateSection::class)->orderBy('sort_order');
@@ -149,17 +135,9 @@ class ServiceTemplate extends Model
         return $query->where('is_active', true);
     }
 
-    public function scopeByCategory($query, string $category)
+    public function scopeByCategory($query, int $categoryId)
     {
-        return $query->where('category', $category);
-    }
-
-    /**
-     * Get all available categories
-     */
-    public static function getCategories(): array
-    {
-        return self::CATEGORIES;
+        return $query->where('category_id', $categoryId);
     }
 
     /**
