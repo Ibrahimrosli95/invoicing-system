@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ServiceTemplate;
 use App\Models\ServiceTemplateSection;
+use App\Models\ServiceCategory;
 use App\Models\Team;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -59,8 +60,8 @@ class ServiceTemplateController extends Controller
         $templates = $query->paginate(20)->withQueryString();
 
         // Get categories for filter dropdown
-        $categories = ServiceTemplate::getCategories();
-        
+        $categories = ServiceCategory::forCompany()->active()->orderBy('sort_order')->get();
+
         // Get teams for the current user
         $availableTeams = Team::forCompany()->get();
 
@@ -76,7 +77,7 @@ class ServiceTemplateController extends Controller
      */
     public function create()
     {
-        $categories = ServiceTemplate::getCategories();
+        $categories = ServiceCategory::forCompany()->active()->orderBy('sort_order')->get();
         $teams = Team::forCompany()->get();
 
         return view('service-templates.create', compact('categories', 'teams'));
@@ -90,7 +91,7 @@ class ServiceTemplateController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
-            'category' => ['nullable', Rule::in(array_keys(ServiceTemplate::getCategories()))],
+            'category_id' => 'required|exists:service_categories,id',
             'applicable_teams' => 'nullable|array',
             'applicable_teams.*' => 'exists:teams,id',
             'estimated_hours' => 'nullable|numeric|min:0|max:9999.99',
@@ -127,7 +128,7 @@ class ServiceTemplateController extends Controller
             $template = ServiceTemplate::create([
                 'name' => $validated['name'],
                 'description' => $validated['description'],
-                'category' => $validated['category'],
+                'category_id' => $validated['category_id'],
                 'applicable_teams' => $validated['applicable_teams'] ?? null,
                 'estimated_hours' => $validated['estimated_hours'],
                 'base_price' => $validated['base_price'],
@@ -211,8 +212,8 @@ class ServiceTemplateController extends Controller
         }
 
         $serviceTemplate->load(['sections.items']);
-        
-        $categories = ServiceTemplate::getCategories();
+
+        $categories = ServiceCategory::forCompany()->active()->orderBy('sort_order')->get();
         $teams = Team::forCompany()->get();
 
         return view('service-templates.edit', compact('serviceTemplate', 'categories', 'teams'));
@@ -231,7 +232,7 @@ class ServiceTemplateController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
-            'category' => ['nullable', Rule::in(array_keys(ServiceTemplate::getCategories()))],
+            'category_id' => 'required|exists:service_categories,id',
             'applicable_teams' => 'nullable|array',
             'applicable_teams.*' => 'exists:teams,id',
             'estimated_hours' => 'nullable|numeric|min:0|max:9999.99',
