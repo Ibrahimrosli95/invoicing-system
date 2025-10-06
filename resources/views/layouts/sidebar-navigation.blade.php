@@ -383,6 +383,13 @@
                     'visible' => ['type' => 'can', 'ability' => 'manage', 'arguments' => \App\Models\Company::class],
                 ],
                 [
+                    'label' => 'Company Brands',
+                    'route' => 'settings.brands.index',
+                    'patterns' => ['settings.brands.*'],
+                    'icon' => 'brand',
+                    'visible' => ['type' => 'can', 'ability' => 'viewAny', 'arguments' => \App\Models\CompanyBrand::class],
+                ],
+                [
                     'label' => 'Document Settings',
                     'route' => 'settings.documents.index',
                     'patterns' => ['settings.documents.*'],
