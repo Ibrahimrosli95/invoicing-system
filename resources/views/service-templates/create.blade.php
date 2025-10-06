@@ -160,31 +160,61 @@
                                     <div class="space-y-3">
                                         <template x-for="(item, itemIndex) in section.items" :key="item.id">
                                             <div class="bg-gray-50 rounded p-3">
-                                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                                <!-- Row 1: Description and Details -->
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                                                     <div>
-                                                        <label class="block text-xs font-medium text-gray-700 mb-1">Item Name</label>
+                                                        <label class="block text-xs font-medium text-gray-700 mb-1">Description <span class="text-red-500">*</span></label>
                                                         <input type="text"
-                                                               :name="'sections[' + sectionIndex + '][items][' + itemIndex + '][name]'"
-                                                               x-model="item.name"
+                                                               :name="'sections[' + sectionIndex + '][items][' + itemIndex + '][description]'"
+                                                               x-model="item.description"
                                                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                                                               placeholder="Item name">
+                                                               placeholder="Item description"
+                                                               required>
                                                     </div>
                                                     <div>
-                                                        <label class="block text-xs font-medium text-gray-700 mb-1">Quantity</label>
-                                                        <input type="number"
-                                                               :name="'sections[' + sectionIndex + '][items][' + itemIndex + '][quantity]'"
-                                                               x-model="item.quantity"
+                                                        <label class="block text-xs font-medium text-gray-700 mb-1">Details</label>
+                                                        <input type="text"
+                                                               :name="'sections[' + sectionIndex + '][items][' + itemIndex + '][details]'"
+                                                               x-model="item.details"
                                                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                                                               min="1" value="1">
+                                                               placeholder="Additional details">
+                                                    </div>
+                                                </div>
+
+                                                <!-- Row 2: Unit, Quantity, Unit Price -->
+                                                <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-700 mb-1">Unit</label>
+                                                        <input type="text"
+                                                               :name="'sections[' + sectionIndex + '][items][' + itemIndex + '][unit]'"
+                                                               x-model="item.unit"
+                                                               class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                                               placeholder="e.g., sqft, kg">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-700 mb-1">Default Qty</label>
+                                                        <input type="number"
+                                                               :name="'sections[' + sectionIndex + '][items][' + itemIndex + '][default_quantity]'"
+                                                               x-model="item.default_quantity"
+                                                               class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                                               min="0.01" step="0.01" value="1">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs font-medium text-gray-700 mb-1">Default Unit Price (RM)</label>
+                                                        <input type="number"
+                                                               :name="'sections[' + sectionIndex + '][items][' + itemIndex + '][default_unit_price]'"
+                                                               x-model="item.default_unit_price"
+                                                               class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                                               step="0.01" min="0">
                                                     </div>
                                                     <div class="flex items-end">
                                                         <div class="flex-1">
-                                                            <label class="block text-xs font-medium text-gray-700 mb-1">Unit Price (RM)</label>
-                                                            <input type="number"
-                                                                   :name="'sections[' + sectionIndex + '][items][' + itemIndex + '][unit_price]'"
-                                                                   x-model="item.unit_price"
-                                                                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                                                                   step="0.01" min="0">
+                                                            <label class="block text-xs font-medium text-gray-700 mb-1">
+                                                                Calculated Amount
+                                                            </label>
+                                                            <div class="w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-700"
+                                                                 x-text="'RM ' + (parseFloat(item.default_quantity || 0) * parseFloat(item.default_unit_price || 0)).toFixed(2)">
+                                                            </div>
                                                         </div>
                                                         <button type="button" @click="removeItem(sectionIndex, itemIndex)"
                                                                 class="ml-2 text-red-600 hover:text-red-900">
@@ -193,6 +223,30 @@
                                                             </svg>
                                                         </button>
                                                     </div>
+                                                </div>
+
+                                                <!-- Optional Amount Override -->
+                                                <div class="mt-3 pt-3 border-t border-gray-200">
+                                                    <div class="flex items-center gap-3">
+                                                        <label class="flex items-center">
+                                                            <input type="checkbox"
+                                                                   x-model="item.amount_manually_edited"
+                                                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                                            <span class="ml-2 text-xs text-gray-700">Override calculated amount</span>
+                                                        </label>
+                                                        <div x-show="item.amount_manually_edited" class="flex-1">
+                                                            <input type="number"
+                                                                   :name="'sections[' + sectionIndex + '][items][' + itemIndex + '][amount_override]'"
+                                                                   x-model="item.amount_override"
+                                                                   class="w-full max-w-xs rounded-md border-amber-400 shadow-sm focus:border-amber-500 focus:ring-amber-500 text-sm"
+                                                                   placeholder="Override amount"
+                                                                   step="0.01" min="0">
+                                                        </div>
+                                                    </div>
+                                                    <!-- Hidden field for amount_manually_edited -->
+                                                    <input type="hidden"
+                                                           :name="'sections[' + sectionIndex + '][items][' + itemIndex + '][amount_manually_edited]'"
+                                                           :value="item.amount_manually_edited ? '1' : '0'">
                                                 </div>
                                             </div>
                                         </template>
@@ -294,9 +348,13 @@ function serviceTemplateForm() {
         addItem(sectionIndex) {
             this.sections[sectionIndex].items.push({
                 id: this.itemIdCounter++,
-                name: '',
-                quantity: 1,
-                unit_price: 0
+                description: '',
+                details: '',
+                unit: '',
+                default_quantity: 1,
+                default_unit_price: 0,
+                amount_override: null,
+                amount_manually_edited: false
             });
         },
 
