@@ -54,17 +54,27 @@
                         </div>
 
                         <div>
-                            <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                            <select name="category" id="category" required
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                                <option value="">Select Category</option>
-                                @foreach($categories ?? [] as $key => $label)
-                                    <option value="{{ $key }}" {{ old('category', $template->category) == $key ? 'selected' : '' }}>
-                                        {{ $label }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('category')
+                            <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                            <div class="flex gap-2">
+                                <select name="category_id" id="category_id" required
+                                        class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                    <option value="">Select Category</option>
+                                    @foreach($categories ?? [] as $category)
+                                        <option value="{{ $category->id }}" {{ old('category_id', $template->category_id) == $category->id ? 'selected' : '' }}>
+                                            {{ $category->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @can('create', App\Models\ServiceCategory::class)
+                                <button type="button" onclick="openQuickAddModal()"
+                                        class="inline-flex items-center px-3 py-2 bg-green-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                </button>
+                                @endcan
+                            </div>
+                            @error('category_id')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
@@ -428,5 +438,159 @@ function serviceTemplateForm() {
         }
     }
 }
+
+// Quick-add Category Modal Functions
+function openQuickAddModal() {
+    document.getElementById('quickAddModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeQuickAddModal() {
+    document.getElementById('quickAddModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+    document.getElementById('quickAddForm').reset();
+    document.getElementById('quickAddError').classList.add('hidden');
+}
+
+function submitQuickAddCategory(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+    const submitButton = form.querySelector('button[type="submit"]');
+    const errorDiv = document.getElementById('quickAddError');
+
+    // Disable submit button
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Creating...';
+
+    // Hide previous errors
+    errorDiv.classList.add('hidden');
+
+    fetch('/api/service-categories/quick-add', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Add new category to dropdown
+            const categorySelect = document.getElementById('category_id');
+            const newOption = new Option(data.category.name, data.category.id, false, true);
+            categorySelect.add(newOption);
+
+            // Show success message
+            const successDiv = document.createElement('div');
+            successDiv.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50';
+            successDiv.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>${data.message}</span>
+                </div>
+            `;
+            document.body.appendChild(successDiv);
+            setTimeout(() => successDiv.remove(), 3000);
+
+            // Close modal
+            closeQuickAddModal();
+        } else {
+            throw new Error(data.message || 'Failed to create category');
+        }
+    })
+    .catch(error => {
+        errorDiv.textContent = error.message || 'An error occurred while creating the category';
+        errorDiv.classList.remove('hidden');
+    })
+    .finally(() => {
+        // Re-enable submit button
+        submitButton.disabled = false;
+        submitButton.innerHTML = 'Create Category';
+    });
+}
+</script>
+
+<!-- Quick-add Category Modal -->
+<div id="quickAddModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Quick Add Category</h3>
+            <button type="button" onclick="closeQuickAddModal()" class="text-gray-400 hover:text-gray-500">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <form id="quickAddForm" onsubmit="submitQuickAddCategory(event)">
+            @csrf
+
+            <div class="space-y-4">
+                <!-- Error Message -->
+                <div id="quickAddError" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm"></div>
+
+                <!-- Category Name -->
+                <div>
+                    <label for="quickAddName" class="block text-sm font-medium text-gray-700 mb-1">
+                        Category Name <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="name" id="quickAddName" required
+                           class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                           placeholder="e.g., Waterproofing">
+                </div>
+
+                <!-- Category Color -->
+                <div>
+                    <label for="quickAddColor" class="block text-sm font-medium text-gray-700 mb-1">
+                        Category Color
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <input type="color" name="color" id="quickAddColor" value="#3B82F6"
+                               class="h-10 w-20 rounded border border-gray-300 cursor-pointer">
+                        <input type="text" id="quickAddColorText" value="#3B82F6"
+                               class="w-28 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                               readonly>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex items-center justify-end gap-3">
+                <button type="button" onclick="closeQuickAddModal()"
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Create Category
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Sync color picker with text input for quick-add modal
+document.addEventListener('DOMContentLoaded', function() {
+    const colorInput = document.getElementById('quickAddColor');
+    const colorText = document.getElementById('quickAddColorText');
+
+    if (colorInput && colorText) {
+        colorInput.addEventListener('input', function() {
+            colorText.value = this.value.toUpperCase();
+        });
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('quickAddModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeQuickAddModal();
+        }
+    });
+});
 </script>
 @endsection
