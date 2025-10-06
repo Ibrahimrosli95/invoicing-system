@@ -70,7 +70,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600">Categories</p>
-                    <p class="text-2xl font-semibold text-gray-900">{{ count(App\Models\ServiceTemplate::CATEGORIES) }}</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ $categories->count() }}</p>
                 </div>
             </div>
         </div>
@@ -108,9 +108,9 @@
                     <select name="category" id="category"
                             class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                         <option value="">All Categories</option>
-                        @foreach(App\Models\ServiceTemplate::CATEGORIES as $key => $label)
-                            <option value="{{ $key }}" {{ request('category') == $key ? 'selected' : '' }}>
-                                {{ $label }}
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
                             </option>
                         @endforeach
                     </select>
