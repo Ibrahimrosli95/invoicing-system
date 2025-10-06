@@ -112,8 +112,9 @@ class CompanyBrand extends Model
     /**
      * Scope to get brands for a specific company.
      */
-    public function scopeForCompany($query, $companyId)
+    public function scopeForCompany($query, $companyId = null)
     {
+        $companyId = $companyId ?: (auth()->check() ? auth()->user()->company_id : null);
         return $query->where('company_id', $companyId);
     }
 
