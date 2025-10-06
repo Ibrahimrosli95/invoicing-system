@@ -1629,12 +1629,12 @@
                         <h1 class="preview-title">QUOTATION</h1>
 
                         <table style="width: 100%;"><tr><td style="width: 70%; vertical-align: top;">
-                            <div class="preview-company-name">{{ auth()->user()->company->name ?? 'Company Name' }}</div>
-                            <div class="preview-company-line">{{ auth()->user()->company->address ?? '123 Business Street' }}</div>
-                            <div class="preview-company-line">{{ auth()->user()->company->postal_code ?? '12345' }} {{ auth()->user()->company->city ?? 'City' }}</div>
-                            <div class="preview-company-line">{{ auth()->user()->company->state ?? 'State' }}</div>
-                            <div class="preview-company-line">Email: {{ auth()->user()->company->email ?? 'info@company.com' }}</div>
-                            <div class="preview-company-line">Mobile: {{ auth()->user()->company->phone ?? '+60 12-345 6789' }}</div>
+                            <div class="preview-company-name" x-text="currentBrand.name || 'Company Name'"></div>
+                            <div class="preview-company-line" x-text="currentBrand.address || '123 Business Street'"></div>
+                            <div class="preview-company-line"><span x-text="currentBrand.postal_code || '12345'"></span> <span x-text="currentBrand.city || 'City'"></span></div>
+                            <div class="preview-company-line" x-text="currentBrand.state || 'State'"></div>
+                            <div class="preview-company-line">Email: <span x-text="currentBrand.email || 'info@company.com'"></span></div>
+                            <div class="preview-company-line">Mobile: <span x-text="currentBrand.phone || '+60 12-345 6789'"></span></div>
                         </td><td style="width: 30%; vertical-align: top; text-align: right;">
                             <img :src="selectedLogoUrl" alt="Company Logo" style="max-width: 120px; max-height: 60px; object-fit: contain;">
                         </td></tr></table>
