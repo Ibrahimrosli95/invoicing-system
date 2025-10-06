@@ -241,18 +241,6 @@
                             'route' => 'quotations.service-index',
                             'patterns' => ['quotations.service-index'],
                         ],
-                        [
-                            'label' => 'Product Quotation Builder',
-                            'route' => 'quotations.product-builder',
-                            'patterns' => ['quotations.product-builder'],
-                            'visible' => ['type' => 'can', 'ability' => 'create', 'arguments' => \App\Models\Quotation::class],
-                        ],
-                        [
-                            'label' => 'Service Quotation Builder',
-                            'route' => 'quotations.service-builder',
-                            'patterns' => ['quotations.service-builder'],
-                            'visible' => ['type' => 'can', 'ability' => 'create', 'arguments' => \App\Models\Quotation::class],
-                        ],
                     ],
                 ],
                 [
@@ -271,18 +259,6 @@
                             'label' => 'Service Invoices',
                             'route' => 'invoices.service-index',
                             'patterns' => ['invoices.service-index'],
-                        ],
-                        [
-                            'label' => 'Product Invoice Builder',
-                            'route' => 'invoices.builder',
-                            'patterns' => ['invoices.builder'],
-                            'visible' => ['type' => 'can', 'ability' => 'create', 'arguments' => \App\Models\Invoice::class],
-                        ],
-                        [
-                            'label' => 'Service Invoice Builder',
-                            'route' => 'invoices.service-builder',
-                            'patterns' => ['invoices.service-builder'],
-                            'visible' => ['type' => 'can', 'ability' => 'create', 'arguments' => \App\Models\Invoice::class],
                         ],
                     ],
                 ],
