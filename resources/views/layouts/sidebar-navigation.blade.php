@@ -226,20 +226,15 @@
                 ],
                 [
                     'label' => 'Quotations',
-                    'route' => 'quotations.index',
+                    'route' => 'quotations.product-index',
                     'patterns' => ['quotations.*'],
                     'icon' => 'quotations',
                     'visible' => ['type' => 'can', 'ability' => 'viewAny', 'arguments' => \App\Models\Quotation::class],
                     'submenu' => [
                         [
-                            'label' => 'All Quotations',
-                            'route' => 'quotations.index',
-                            'patterns' => ['quotations.index', 'quotations.show', 'quotations.edit'],
-                        ],
-                        [
                             'label' => 'Product Quotations',
                             'route' => 'quotations.product-index',
-                            'patterns' => ['quotations.product-index'],
+                            'patterns' => ['quotations.product-index', 'quotations.show', 'quotations.edit'],
                         ],
                         [
                             'label' => 'Service Quotations',
@@ -262,20 +257,15 @@
                 ],
                 [
                     'label' => 'Invoices',
-                    'route' => 'invoices.index',
+                    'route' => 'invoices.product-index',
                     'patterns' => ['invoices.*'],
                     'icon' => 'invoices',
                     'visible' => ['type' => 'can', 'ability' => 'viewAny', 'arguments' => \App\Models\Invoice::class],
                     'submenu' => [
                         [
-                            'label' => 'All Invoices',
-                            'route' => 'invoices.index',
-                            'patterns' => ['invoices.index', 'invoices.show', 'invoices.edit'],
-                        ],
-                        [
                             'label' => 'Product Invoices',
                             'route' => 'invoices.product-index',
-                            'patterns' => ['invoices.product-index'],
+                            'patterns' => ['invoices.product-index', 'invoices.show', 'invoices.edit'],
                         ],
                         [
                             'label' => 'Service Invoices',
