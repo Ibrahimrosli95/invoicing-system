@@ -11,7 +11,7 @@ class StoreCompanyBrandRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->hasPermissionTo('manage settings');
+        return $this->user()->hasRole(['superadmin', 'company_manager']);
     }
 
     /**

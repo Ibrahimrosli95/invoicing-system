@@ -12,8 +12,8 @@ class CompanyBrandPolicy
      */
     public function viewAny(User $user): bool
     {
-        // Company managers and above can view brands
-        return $user->hasPermissionTo('manage settings');
+        // Company managers and superadmins can view brands
+        return $user->hasRole(['superadmin', 'company_manager']);
     }
 
     /**
@@ -21,9 +21,9 @@ class CompanyBrandPolicy
      */
     public function view(User $user, CompanyBrand $companyBrand): bool
     {
-        // Can view if same company and has permission
+        // Can view if same company and has role
         return $user->company_id === $companyBrand->company_id
-            && $user->hasPermissionTo('manage settings');
+            && $user->hasRole(['superadmin', 'company_manager']);
     }
 
     /**
@@ -31,8 +31,8 @@ class CompanyBrandPolicy
      */
     public function create(User $user): bool
     {
-        // Company managers and above can create brands
-        return $user->hasPermissionTo('manage settings');
+        // Company managers and superadmins can create brands
+        return $user->hasRole(['superadmin', 'company_manager']);
     }
 
     /**
@@ -40,9 +40,9 @@ class CompanyBrandPolicy
      */
     public function update(User $user, CompanyBrand $companyBrand): bool
     {
-        // Can update if same company and has permission
+        // Can update if same company and has role
         return $user->company_id === $companyBrand->company_id
-            && $user->hasPermissionTo('manage settings');
+            && $user->hasRole(['superadmin', 'company_manager']);
     }
 
     /**
@@ -50,9 +50,9 @@ class CompanyBrandPolicy
      */
     public function delete(User $user, CompanyBrand $companyBrand): bool
     {
-        // Can delete if same company, has permission, and not used in documents
+        // Can delete if same company, has role, and not used in documents
         return $user->company_id === $companyBrand->company_id
-            && $user->hasPermissionTo('manage settings')
+            && $user->hasRole(['superadmin', 'company_manager'])
             && !$companyBrand->isUsedInDocuments();
     }
 
@@ -61,9 +61,9 @@ class CompanyBrandPolicy
      */
     public function setDefault(User $user, CompanyBrand $companyBrand): bool
     {
-        // Can set as default if same company and has permission
+        // Can set as default if same company and has role
         return $user->company_id === $companyBrand->company_id
-            && $user->hasPermissionTo('manage settings');
+            && $user->hasRole(['superadmin', 'company_manager']);
     }
 
     /**
@@ -71,9 +71,9 @@ class CompanyBrandPolicy
      */
     public function toggleStatus(User $user, CompanyBrand $companyBrand): bool
     {
-        // Can toggle status if same company and has permission
+        // Can toggle status if same company and has role
         return $user->company_id === $companyBrand->company_id
-            && $user->hasPermissionTo('manage settings');
+            && $user->hasRole(['superadmin', 'company_manager']);
     }
 
     /**
@@ -82,7 +82,7 @@ class CompanyBrandPolicy
     public function restore(User $user, CompanyBrand $companyBrand): bool
     {
         return $user->company_id === $companyBrand->company_id
-            && $user->hasPermissionTo('manage settings');
+            && $user->hasRole(['superadmin', 'company_manager']);
     }
 
     /**
@@ -91,7 +91,7 @@ class CompanyBrandPolicy
     public function forceDelete(User $user, CompanyBrand $companyBrand): bool
     {
         return $user->company_id === $companyBrand->company_id
-            && $user->hasPermissionTo('manage settings')
+            && $user->hasRole(['superadmin', 'company_manager'])
             && !$companyBrand->isUsedInDocuments();
     }
 }
