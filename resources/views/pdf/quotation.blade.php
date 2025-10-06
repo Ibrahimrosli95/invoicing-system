@@ -302,16 +302,19 @@
     <h1 class="title">QUOTATION</h1>
 
     {{-- Company Block + Logo --}}
+    @php
+        $letterhead = $quotation->getLetterhead();
+    @endphp
     <table class="header-table">
         <tr>
             <td style="width:70%;">
-                <div class="company-name">{{ $quotation->company->name ?? 'Company Name' }}</div>
+                <div class="company-name">{{ $letterhead['name'] ?? 'Company Name' }}</div>
                 @foreach([
-                    $quotation->company->address,
-                    trim(collect([$quotation->company->postal_code, $quotation->company->city])->filter()->implode(' ')),
-                    $quotation->company->state,
-                    'Email: ' . ($quotation->company->email ?? '—'),
-                    'Mobile: ' . ($quotation->company->phone ?? '—'),
+                    $letterhead['address'] ?? '',
+                    trim(collect([$letterhead['postal_code'] ?? '', $letterhead['city'] ?? ''])->filter()->implode(' ')),
+                    $letterhead['state'] ?? '',
+                    'Email: ' . ($letterhead['email'] ?? '—'),
+                    'Mobile: ' . ($letterhead['phone'] ?? '—'),
                 ] as $line)
                     @if(!empty(trim($line, ' -—')))
                         <div class="company-line">{{ $line }}</div>
@@ -319,8 +322,8 @@
                 @endforeach
             </td>
             <td style="width:30%; text-align:right;">
-                @if($logoPath)
-                    <img src="{{ $logoPath }}" alt="Company Logo" class="logo">
+                @if($quotation->getLetterheadLogo())
+                    <img src="{{ $quotation->getLetterheadLogo() }}" alt="Company Logo" class="logo">
                 @endif
             </td>
         </tr>
@@ -479,7 +482,7 @@
                 {{-- Company Signature --}}
                 <td style="width: 33.33%; vertical-align: top;">
                     <div class="signature-line">Authorized Signatory</div>
-                    <div class="signature-name">{{ $quotation->company->name ?? 'Company' }}</div>
+                    <div class="signature-name">{{ $letterhead['name'] ?? 'Company' }}</div>
                 </td>
 
                 {{-- Customer Signature --}}
@@ -493,7 +496,7 @@
 
     {{-- Footer --}}
     <div class="footer">
-        {{ $quotation->company->name ?? 'Company' }} • Quotation {{ $quotation->number }} • Generated on {{ now()->format('d M Y, H:i') }}
+        {{ $letterhead['name'] ?? 'Company' }} • Quotation {{ $quotation->number }} • Generated on {{ now()->format('d M Y, H:i') }}
     </div>
 </div>
 </body>

@@ -226,6 +226,17 @@
                                             <option value="120">120 days</option>
                                         </select>
                                     </div>
+                                    <div class="pt-4 border-t border-gray-200">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Company Brand</label>
+                                        <select x-model="selectedBrandId" class="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Use Default</option>
+                                            @foreach($companyBrands as $brand)
+                                                <option value="{{ $brand->id }}" {{ $brand->is_default ? 'selected' : '' }}>
+                                                    {{ $brand->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1783,6 +1794,7 @@ function quotationBuilder() {
         validUntilDisplay: '',
         validityPeriod: '30', // days
         referenceNumber: '',
+        selectedBrandId: '{{ $companyBrands->where("is_default", true)->first()->id ?? "" }}',
 
         // Optional Sections
         optionalSections: {
@@ -2935,6 +2947,7 @@ function quotationBuilder() {
                 customer_postal_code: this.selectedCustomer.postal_code || '',
                 customer_segment_id: this.selectedCustomer.customer_segment_id || null,
                 company_logo_id: this.selectedLogoId || null,
+                company_brand_id: this.selectedBrandId || null,
 
                 // Quotation details
                 title: `Quotation for ${this.selectedCustomer.name || 'Customer'}`,

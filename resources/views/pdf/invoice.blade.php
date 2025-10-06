@@ -30,10 +30,12 @@
 
     // Simple fallback if invoice doesn't have payment instructions
     if ($paymentText === '') {
+        $bankDetails = $invoice->getLetterheadBankDetails();
         $paymentText = "Please make payment to:\n\n" .
-                       "Company: " . ($invoice->company->name ?? 'Company Name') . "\n" .
-                       "Bank: (Bank details to be provided)\n" .
-                       "Account: (Account number to be provided)\n\n" .
+                       "Company: " . ($bankDetails['company_name'] ?? 'Company Name') . "\n" .
+                       "Bank: " . ($bankDetails['bank_name'] ?? '(Bank details to be provided)') . "\n" .
+                       "Account Name: " . ($bankDetails['account_name'] ?? '(Account name to be provided)') . "\n" .
+                       "Account Number: " . ($bankDetails['account_number'] ?? '(Account number to be provided)') . "\n\n" .
                        "Please include invoice number in payment reference.";
     }
 
@@ -457,16 +459,19 @@
     <h1 class="title">INVOICE</h1>
 
     {{-- Company Block + Logo --}}
+    @php
+        $letterhead = $invoice->getLetterhead();
+    @endphp
     <table class="header-table">
         <tr>
             <td style="width:70%;">
-                <div class="company-name">{{ $invoice->company->name ?? 'Company Name' }}</div>
+                <div class="company-name">{{ $letterhead['name'] ?? 'Company Name' }}</div>
                 @foreach([
-                    $invoice->company->address,
-                    trim(collect([$invoice->company->postal_code, $invoice->company->city])->filter()->implode(' ')),
-                    $invoice->company->state,
-                    'Email: ' . ($invoice->company->email ?? '—'),
-                    'Mobile: ' . ($invoice->company->phone ?? '—'),
+                    $letterhead['address'] ?? '',
+                    trim(collect([$letterhead['postal_code'] ?? '', $letterhead['city'] ?? ''])->filter()->implode(' ')),
+                    $letterhead['state'] ?? '',
+                    'Email: ' . ($letterhead['email'] ?? '—'),
+                    'Mobile: ' . ($letterhead['phone'] ?? '—'),
                 ] as $line)
                     @if(!empty(trim($line, ' -—')))
                         <div class="company-line">{{ $line }}</div>
@@ -474,8 +479,8 @@
                 @endforeach
             </td>
             <td style="width:30%; text-align:right;">
-                @if($logoPath)
-                    <img src="{{ $logoPath }}" alt="Company Logo" class="logo">
+                @if($invoice->getLetterheadLogo())
+                    <img src="{{ $invoice->getLetterheadLogo() }}" alt="Company Logo" class="logo">
                 @endif
             </td>
         </tr>
@@ -668,7 +673,7 @@
 
     {{-- Footer --}}
     <div class="footer">
-        {{ $invoice->company->name ?? 'Company' }} • Invoice {{ $invoice->number }} • Generated on {{ now()->format('d M Y, H:i') }}
+        {{ $letterhead['name'] ?? 'Company' }} • Invoice {{ $invoice->number }} • Generated on {{ now()->format('d M Y, H:i') }}
     </div>
 </div>
 </body>
