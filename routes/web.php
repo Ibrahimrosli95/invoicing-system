@@ -252,7 +252,12 @@ Route::middleware('auth')->group(function () {
     Route::post('invoice-note-templates/{invoiceNoteTemplate}/set-default', [\App\Http\Controllers\InvoiceNoteTemplateController::class, 'setDefault'])->name('invoice-note-templates.set-default');
     Route::post('invoice-note-templates/quick-save', [\App\Http\Controllers\InvoiceNoteTemplateController::class, 'quickSave'])->name('invoice-note-templates.quick-save');
     Route::get('api/invoice-note-templates/by-type', [\App\Http\Controllers\InvoiceNoteTemplateController::class, 'getByType'])->name('api.invoice-note-templates.by-type');
-    
+
+    // Service Category Management
+    Route::resource('service-categories', \App\Http\Controllers\ServiceCategoryController::class);
+    Route::patch('service-categories/{serviceCategory}/toggle-status', [\App\Http\Controllers\ServiceCategoryController::class, 'toggleStatus'])->name('service-categories.toggle-status');
+    Route::post('api/service-categories/quick-add', [\App\Http\Controllers\ServiceCategoryController::class, 'quickAdd'])->name('api.service-categories.quick-add');
+
     // Service Template Management
     Route::resource('service-templates', ServiceTemplateController::class);
     Route::post('service-templates/{serviceTemplate}/duplicate', [ServiceTemplateController::class, 'duplicate'])->name('service-templates.duplicate');
