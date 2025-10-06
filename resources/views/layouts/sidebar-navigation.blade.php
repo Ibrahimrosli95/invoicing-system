@@ -510,17 +510,46 @@
                         <div class="mt-2 space-y-1">
                             @foreach ($group['items'] as $item)
                                 @php
+                                    $hasSubmenu = isset($item['submenu']) && count($item['submenu']) > 0;
                                     $isActive = sidebar_item_is_active($item['patterns'] ?? $item['route']);
                                     $linkBase = 'group relative flex items-center gap-3 overflow-hidden rounded-lg pl-5 pr-3 py-2 text-base font-medium transition-colors duration-150';
                                     $linkTone = $isActive ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900';
                                 @endphp
-                                <a href="{{ route($item['route']) }}" class="{{ $linkBase }} {{ $linkTone }}">
-                                    <span class="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full transition-colors duration-150 {{ $isActive ? 'bg-blue-600' : 'bg-transparent group-hover:bg-blue-200' }}"></span>
-                                    <span class="relative flex h-10 w-10 items-center justify-center rounded-md {{ $isActive ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600' }}">
-                                        {!! render_sidebar_icon($item['icon'] ?? 'default') !!}
-                                    </span>
-                                    <span class="relative">{{ $item['label'] }}</span>
-                                </a>
+
+                                @if($hasSubmenu)
+                                    <div x-data="{ open: {{ $isActive ? 'true' : 'false' }} }">
+                                        <button @click="open = !open" class="{{ $linkBase }} {{ $linkTone }} w-full">
+                                            <span class="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full transition-colors duration-150 {{ $isActive ? 'bg-blue-600' : 'bg-transparent group-hover:bg-blue-200' }}"></span>
+                                            <span class="relative flex h-10 w-10 items-center justify-center rounded-md {{ $isActive ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600' }}">
+                                                {!! render_sidebar_icon($item['icon'] ?? 'default') !!}
+                                            </span>
+                                            <span class="relative flex-1 text-left">{{ $item['label'] }}</span>
+                                            <svg :class="open ? 'rotate-90' : ''" class="h-5 w-5 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                        </button>
+                                        <div x-show="open" x-collapse x-cloak class="ml-12 mt-1 space-y-1">
+                                            @foreach($item['submenu'] as $subitem)
+                                                @if(sidebar_item_is_visible($subitem))
+                                                    @php
+                                                        $subIsActive = sidebar_item_is_active($subitem['patterns'] ?? $subitem['route']);
+                                                        $subBaseClasses = 'flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors duration-150';
+                                                        $subToneClasses = $subIsActive ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900';
+                                                    @endphp
+                                                    <a href="{{ route($subitem['route']) }}" class="{{ $subBaseClasses }} {{ $subToneClasses }}">
+                                                        {{ $subitem['label'] }}
+                                                    </a>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @else
+                                    <a href="{{ route($item['route']) }}" class="{{ $linkBase }} {{ $linkTone }}">
+                                        <span class="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full transition-colors duration-150 {{ $isActive ? 'bg-blue-600' : 'bg-transparent group-hover:bg-blue-200' }}"></span>
+                                        <span class="relative flex h-10 w-10 items-center justify-center rounded-md {{ $isActive ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600' }}">
+                                            {!! render_sidebar_icon($item['icon'] ?? 'default') !!}
+                                        </span>
+                                        <span class="relative">{{ $item['label'] }}</span>
+                                    </a>
+                                @endif
                             @endforeach
                         </div>
                     </div>
@@ -572,15 +601,42 @@
                         <div class="mt-2 space-y-1.5" :class="desktopCollapsed ? 'md:space-y-1' : 'md:space-y-1.5'">
                             @foreach ($group['items'] as $item)
                                 @php
+                                    $hasSubmenu = isset($item['submenu']) && count($item['submenu']) > 0;
                                     $isActive = sidebar_item_is_active($item['patterns'] ?? $item['route']);
                                     $baseClasses = 'group relative flex items-center overflow-hidden rounded-lg py-2 text-sm font-medium transition-colors duration-150';
                                     $toneClasses = $isActive ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900';
                                 @endphp
-                                <a href="{{ route($item['route']) }}" class="{{ $baseClasses }} {{ $toneClasses }}" :class="desktopCollapsed ? 'justify-center px-2' : 'pl-5 pr-3 gap-3'" title="{{ $item['label'] }}">
-                                    <span class="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full transition-colors duration-150 {{ $isActive ? 'bg-blue-600' : 'bg-transparent group-hover:bg-blue-200' }}" x-show="!desktopCollapsed" x-cloak></span>
-                                    <span class="relative flex items-center justify-center rounded-md {{ $isActive ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600' }}" :class="desktopCollapsed ? 'h-10 w-10' : 'h-9 w-9'"><span class="sr-only">{{ $item['label'] }}</span>{!! render_sidebar_icon($item['icon'] ?? 'default') !!}</span>
-                                    <span class="relative" x-show="!desktopCollapsed" x-cloak>{{ $item['label'] }}</span>
-                                </a>
+
+                                @if($hasSubmenu)
+                                    <div x-data="{ open: {{ $isActive ? 'true' : 'false' }} }">
+                                        <button @click="open = !open" class="{{ $baseClasses }} {{ $toneClasses }} w-full" :class="desktopCollapsed ? 'justify-center px-2' : 'pl-5 pr-3 gap-3'" title="{{ $item['label'] }}">
+                                            <span class="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full transition-colors duration-150 {{ $isActive ? 'bg-blue-600' : 'bg-transparent group-hover:bg-blue-200' }}" x-show="!desktopCollapsed" x-cloak></span>
+                                            <span class="relative flex items-center justify-center rounded-md {{ $isActive ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600' }}" :class="desktopCollapsed ? 'h-10 w-10' : 'h-9 w-9'"><span class="sr-only">{{ $item['label'] }}</span>{!! render_sidebar_icon($item['icon'] ?? 'default') !!}</span>
+                                            <span class="relative flex-1 text-left" x-show="!desktopCollapsed" x-cloak>{{ $item['label'] }}</span>
+                                            <svg x-show="!desktopCollapsed" :class="open ? 'rotate-90' : ''" class="h-4 w-4 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                        </button>
+                                        <div x-show="open" x-collapse x-cloak class="ml-8 mt-1 space-y-1">
+                                            @foreach($item['submenu'] as $subitem)
+                                                @if(sidebar_item_is_visible($subitem))
+                                                    @php
+                                                        $subIsActive = sidebar_item_is_active($subitem['patterns'] ?? $subitem['route']);
+                                                        $subBaseClasses = 'flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors duration-150';
+                                                        $subToneClasses = $subIsActive ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900';
+                                                    @endphp
+                                                    <a href="{{ route($subitem['route']) }}" class="{{ $subBaseClasses }} {{ $subToneClasses }}">
+                                                        {{ $subitem['label'] }}
+                                                    </a>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @else
+                                    <a href="{{ route($item['route']) }}" class="{{ $baseClasses }} {{ $toneClasses }}" :class="desktopCollapsed ? 'justify-center px-2' : 'pl-5 pr-3 gap-3'" title="{{ $item['label'] }}">
+                                        <span class="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full transition-colors duration-150 {{ $isActive ? 'bg-blue-600' : 'bg-transparent group-hover:bg-blue-200' }}" x-show="!desktopCollapsed" x-cloak></span>
+                                        <span class="relative flex items-center justify-center rounded-md {{ $isActive ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600' }}" :class="desktopCollapsed ? 'h-10 w-10' : 'h-9 w-9'"><span class="sr-only">{{ $item['label'] }}</span>{!! render_sidebar_icon($item['icon'] ?? 'default') !!}</span>
+                                        <span class="relative" x-show="!desktopCollapsed" x-cloak>{{ $item['label'] }}</span>
+                                    </a>
+                                @endif
                             @endforeach
                         </div>
                     </div>
