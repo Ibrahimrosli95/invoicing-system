@@ -239,10 +239,10 @@
                                                                 x-init="if (item.unit && !['m2', 'ft2', 'pcs', 'L/S', 'custom'].includes(item.unit)) { item.customUnit = item.unit; item.unit = 'custom'; }"
                                                                 @change="showCustomUnit = ($event.target.value === 'custom'); if ($event.target.value !== 'custom') { item.customUnit = ''; }"
                                                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                                                            <option value="m2" :selected="item.unit === 'm2'">m² (Square Meter)</option>
-                                                            <option value="ft2" :selected="item.unit === 'ft2'">ft² (Square Feet)</option>
-                                                            <option value="pcs" :selected="item.unit === 'pcs'">pcs (Pieces)</option>
-                                                            <option value="L/S" :selected="item.unit === 'L/S'">L/S (Lump Sum)</option>
+                                                            <option value="m2" :selected="item.unit === 'm2'">m²</option>
+                                                            <option value="ft2" :selected="item.unit === 'ft2'">ft²</option>
+                                                            <option value="pcs" :selected="item.unit === 'pcs'">pcs</option>
+                                                            <option value="L/S" :selected="item.unit === 'L/S'">L/S</option>
                                                             <option value="custom" :selected="!['m2', 'ft2', 'pcs', 'L/S'].includes(item.unit)">Custom</option>
                                                         </select>
                                                         <input type="text"

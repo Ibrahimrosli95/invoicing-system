@@ -148,14 +148,14 @@
 
                                 @if($section->items && $section->items->count() > 0)
                                     <div class="overflow-x-auto">
-                                        <table class="min-w-full divide-y divide-gray-200">
+                                        <table class="min-w-full divide-y divide-gray-200 table-fixed">
                                             <thead class="bg-gray-50">
                                                 <tr>
-                                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
-                                                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                                                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</th>
-                                                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                                    <th class="w-1/2 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                                    <th class="w-[8%] px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                                                    <th class="w-[12%] px-2 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                                    <th class="w-[15%] px-2 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</th>
+                                                    <th class="w-[15%] px-2 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                                                 </tr>
                                             </thead>
                                             <tbody class="bg-white divide-y divide-gray-200">
@@ -175,16 +175,16 @@
                                                                 <div class="text-xs text-gray-400 mt-1">Code: {{ $item->item_code }}</div>
                                                             @endif
                                                         </td>
-                                                        <td class="px-4 py-2 text-sm text-gray-900">{{ $item->unit ?? 'Nos' }}</td>
-                                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">{{ number_format($item->default_quantity ?? 1, 2) }}</td>
-                                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">
+                                                        <td class="px-2 py-2 text-sm text-gray-900">{{ $item->unit ?? 'Nos' }}</td>
+                                                        <td class="px-2 py-2 text-sm text-gray-900 text-right">{{ number_format($item->default_quantity ?? 1, 2) }}</td>
+                                                        <td class="px-2 py-2 text-sm text-gray-900 text-right">
                                                             @if($item->default_unit_price)
                                                                 RM {{ number_format($item->default_unit_price, 2) }}
                                                             @else
                                                                 <span class="text-gray-400">TBD</span>
                                                             @endif
                                                         </td>
-                                                        <td class="px-4 py-2 text-sm font-medium text-gray-900 text-right">
+                                                        <td class="px-2 py-2 text-sm font-medium text-gray-900 text-right">
                                                             @if($item->default_unit_price)
                                                                 RM {{ number_format($itemTotal, 2) }}
                                                             @else

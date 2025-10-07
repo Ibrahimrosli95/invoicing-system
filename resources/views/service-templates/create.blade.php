@@ -221,10 +221,10 @@
                                                         <select x-model="item.unit"
                                                                 @change="showCustomUnit = ($event.target.value === 'custom'); if ($event.target.value !== 'custom') { item.customUnit = ''; }"
                                                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                                                            <option value="m2">m² (Square Meter)</option>
-                                                            <option value="ft2">ft² (Square Feet)</option>
-                                                            <option value="pcs">pcs (Pieces)</option>
-                                                            <option value="L/S">L/S (Lump Sum)</option>
+                                                            <option value="m2">m²</option>
+                                                            <option value="ft2">ft²</option>
+                                                            <option value="pcs">pcs</option>
+                                                            <option value="L/S">L/S</option>
                                                             <option value="custom">Custom</option>
                                                         </select>
                                                         <input type="text"
