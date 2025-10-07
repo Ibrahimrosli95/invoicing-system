@@ -9,8 +9,8 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <div class="flex items-center">
-                    <h1 class="text-2xl font-bold text-gray-900">{{ $template->name }}</h1>
-                    @if($template->is_active)
+                    <h1 class="text-2xl font-bold text-gray-900">{{ $serviceTemplate->name }}</h1>
+                    @if($serviceTemplate->is_active)
                         <span class="ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                             Active
                         </span>
@@ -19,13 +19,13 @@
                             Inactive
                         </span>
                     @endif
-                    @if($template->requires_approval)
+                    @if($serviceTemplate->requires_approval)
                         <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                             Requires Approval
                         </span>
                     @endif
                 </div>
-                <p class="mt-1 text-sm text-gray-600">{{ $template->category }} • Created {{ $template->created_at->diffForHumans() }}</p>
+                <p class="mt-1 text-sm text-gray-600">{{ $serviceTemplate->category }} • Created {{ $serviceTemplate->created_at->diffForHumans() }}</p>
             </div>
             <div class="mt-4 sm:mt-0 flex space-x-3">
                 <a href="{{ route('service-templates.index') }}"
@@ -36,8 +36,8 @@
                     Back to Templates
                 </a>
 
-                @can('update', $template)
-                <a href="{{ route('service-templates.edit', $template) }}"
+                @can('update', $serviceTemplate)
+                <a href="{{ route('service-templates.edit', $serviceTemplate) }}"
                    class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 011-1h1a2 2 0 100-4H7a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path>
@@ -47,7 +47,7 @@
                 @endcan
 
                 @can('create', App\Models\ServiceTemplate::class)
-                <form method="POST" action="{{ route('service-templates.duplicate', $template) }}" class="inline">
+                <form method="POST" action="{{ route('service-templates.duplicate', $serviceTemplate) }}" class="inline">
                     @csrf
                     <button type="submit"
                             class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
@@ -60,7 +60,7 @@
                 @endcan
 
                 @can('create', App\Models\Quotation::class)
-                <form method="POST" action="{{ route('service-templates.convert', $template) }}" class="inline">
+                <form method="POST" action="{{ route('service-templates.convert', $serviceTemplate) }}" class="inline">
                     @csrf
                     <button type="submit"
                             class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150">
@@ -84,10 +84,10 @@
                     <h2 class="text-lg font-medium text-gray-900">Template Overview</h2>
                 </div>
                 <div class="p-6">
-                    @if($template->description)
+                    @if($serviceTemplate->description)
                         <div class="mb-6">
                             <h3 class="text-sm font-medium text-gray-700 mb-2">Description</h3>
-                            <p class="text-gray-900">{{ $template->description }}</p>
+                            <p class="text-gray-900">{{ $serviceTemplate->description }}</p>
                         </div>
                     @endif
 
@@ -95,8 +95,8 @@
                         <div>
                             <h3 class="text-sm font-medium text-gray-700 mb-1">Estimated Hours</h3>
                             <p class="text-lg font-semibold text-gray-900">
-                                @if($template->estimated_hours)
-                                    {{ number_format($template->estimated_hours, 1) }} hours
+                                @if($serviceTemplate->estimated_hours)
+                                    {{ number_format($serviceTemplate->estimated_hours, 1) }} hours
                                 @else
                                     <span class="text-gray-400">Not specified</span>
                                 @endif
@@ -106,8 +106,8 @@
                         <div>
                             <h3 class="text-sm font-medium text-gray-700 mb-1">Base Price</h3>
                             <p class="text-lg font-semibold text-gray-900">
-                                @if($template->base_price)
-                                    RM {{ number_format($template->base_price, 2) }}
+                                @if($serviceTemplate->base_price)
+                                    RM {{ number_format($serviceTemplate->base_price, 2) }}
                                 @else
                                     <span class="text-gray-400">Variable pricing</span>
                                 @endif
@@ -117,7 +117,7 @@
                         <div>
                             <h3 class="text-sm font-medium text-gray-700 mb-1">Usage Count</h3>
                             <p class="text-lg font-semibold text-gray-900">
-                                {{ $template->usage_count ?? 0 }} times
+                                {{ $serviceTemplate->usage_count ?? 0 }} times
                             </p>
                         </div>
                     </div>
@@ -125,13 +125,13 @@
             </div>
 
             <!-- Template Sections -->
-            @if($template->sections && $template->sections->count() > 0)
+            @if($serviceTemplate->sections && $serviceTemplate->sections->count() > 0)
                 <div class="bg-white rounded-lg shadow">
                     <div class="px-6 py-4 border-b border-gray-200">
                         <h2 class="text-lg font-medium text-gray-900">Template Sections</h2>
                     </div>
                     <div class="divide-y divide-gray-200">
-                        @foreach($template->sections->sortBy('sort_order') as $section)
+                        @foreach($serviceTemplate->sections->sortBy('sort_order') as $section)
                             <div class="p-6">
                                 <div class="flex items-center justify-between mb-4">
                                     <h3 class="text-md font-medium text-gray-900">{{ $section->name }}</h3>
@@ -214,9 +214,9 @@
                         </svg>
                         <h3 class="mt-2 text-sm font-medium text-gray-900">No sections defined</h3>
                         <p class="mt-1 text-sm text-gray-500">This template doesn't have any sections yet.</p>
-                        @can('update', $template)
+                        @can('update', $serviceTemplate)
                             <div class="mt-6">
-                                <a href="{{ route('service-templates.edit', $template) }}"
+                                <a href="{{ route('service-templates.edit', $serviceTemplate) }}"
                                    class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                     Add Sections
                                 </a>
@@ -238,7 +238,7 @@
                         <dt class="text-sm font-medium text-gray-700">Category</dt>
                         <dd class="mt-1">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {{ $template->category }}
+                                {{ $serviceTemplate->category }}
                             </span>
                         </dd>
                     </div>
@@ -246,31 +246,31 @@
                     <div>
                         <dt class="text-sm font-medium text-gray-700">Created By</dt>
                         <dd class="mt-1 text-sm text-gray-900">
-                            {{ $template->createdBy->name ?? 'Unknown' }}
+                            {{ $serviceTemplate->createdBy->name ?? 'Unknown' }}
                         </dd>
                     </div>
 
                     <div>
                         <dt class="text-sm font-medium text-gray-700">Created</dt>
                         <dd class="mt-1 text-sm text-gray-900">
-                            {{ $template->created_at->format('M j, Y g:i A') }}
+                            {{ $serviceTemplate->created_at->format('M j, Y g:i A') }}
                         </dd>
                     </div>
 
-                    @if($template->updated_at && $template->updated_at != $template->created_at)
+                    @if($serviceTemplate->updated_at && $serviceTemplate->updated_at != $serviceTemplate->created_at)
                         <div>
                             <dt class="text-sm font-medium text-gray-700">Last Updated</dt>
                             <dd class="mt-1 text-sm text-gray-900">
-                                {{ $template->updated_at->format('M j, Y g:i A') }}
+                                {{ $serviceTemplate->updated_at->format('M j, Y g:i A') }}
                             </dd>
                         </div>
                     @endif
 
-                    @if($template->last_used_at)
+                    @if($serviceTemplate->last_used_at)
                         <div>
                             <dt class="text-sm font-medium text-gray-700">Last Used</dt>
                             <dd class="mt-1 text-sm text-gray-900">
-                                {{ $template->last_used_at->diffForHumans() }}
+                                {{ $serviceTemplate->last_used_at->diffForHumans() }}
                             </dd>
                         </div>
                     @endif
@@ -278,11 +278,11 @@
             </div>
 
             <!-- Applicable Teams -->
-            @if($template->applicable_teams && count($template->applicable_teams) > 0)
+            @if($serviceTemplate->applicable_teams && count($serviceTemplate->applicable_teams) > 0)
                 <div class="bg-white rounded-lg shadow p-6">
                     <h2 class="text-lg font-medium text-gray-900 mb-4">Applicable Teams</h2>
                     <div class="space-y-2">
-                        @foreach($template->applicable_teams as $teamId)
+                        @foreach($serviceTemplate->applicable_teams as $teamId)
                             @if($team = $teams->find($teamId))
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0">
@@ -309,25 +309,25 @@
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
                         <span class="text-sm text-gray-600">Times Used</span>
-                        <span class="text-sm font-medium text-gray-900">{{ $template->usage_count ?? 0 }}</span>
+                        <span class="text-sm font-medium text-gray-900">{{ $serviceTemplate->usage_count ?? 0 }}</span>
                     </div>
 
                     <div class="flex items-center justify-between">
                         <span class="text-sm text-gray-600">Total Sections</span>
-                        <span class="text-sm font-medium text-gray-900">{{ $template->sections ? $template->sections->count() : 0 }}</span>
+                        <span class="text-sm font-medium text-gray-900">{{ $serviceTemplate->sections ? $serviceTemplate->sections->count() : 0 }}</span>
                     </div>
 
                     <div class="flex items-center justify-between">
                         <span class="text-sm text-gray-600">Total Items</span>
                         <span class="text-sm font-medium text-gray-900">
-                            {{ $template->sections ? $template->sections->sum(function($section) { return $section->items ? $section->items->count() : 0; }) : 0 }}
+                            {{ $serviceTemplate->sections ? $serviceTemplate->sections->sum(function($section) { return $section->items ? $section->items->count() : 0; }) : 0 }}
                         </span>
                     </div>
 
                     @php
                         $templateTotal = 0;
-                        if ($template->sections) {
-                            foreach ($template->sections as $section) {
+                        if ($serviceTemplate->sections) {
+                            foreach ($serviceTemplate->sections as $section) {
                                 if ($section->items) {
                                     foreach ($section->items as $item) {
                                         $templateTotal += ($item->quantity ?? 1) * ($item->unit_price ?? 0);
@@ -351,9 +351,9 @@
                 <h2 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
 
                 <div class="space-y-3">
-                    @can('update', $template)
-                        @if($template->is_active)
-                            <form method="POST" action="{{ route('service-templates.toggle-status', $template) }}">
+                    @can('update', $serviceTemplate)
+                        @if($serviceTemplate->is_active)
+                            <form method="POST" action="{{ route('service-templates.toggle-status', $serviceTemplate) }}">
                                 @csrf
                                 @method('PATCH')
                                 <button type="submit"
@@ -362,7 +362,7 @@
                                 </button>
                             </form>
                         @else
-                            <form method="POST" action="{{ route('service-templates.toggle-status', $template) }}">
+                            <form method="POST" action="{{ route('service-templates.toggle-status', $serviceTemplate) }}">
                                 @csrf
                                 @method('PATCH')
                                 <button type="submit"
@@ -373,8 +373,8 @@
                         @endif
                     @endcan
 
-                    @can('delete', $template)
-                        <form method="POST" action="{{ route('service-templates.destroy', $template) }}"
+                    @can('delete', $serviceTemplate)
+                        <form method="POST" action="{{ route('service-templates.destroy', $serviceTemplate) }}"
                               onsubmit="return confirm('Are you sure you want to delete this template? This action cannot be undone.')">
                             @csrf
                             @method('DELETE')
