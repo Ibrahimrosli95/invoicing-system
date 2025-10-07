@@ -216,13 +216,27 @@
 
                                                 <!-- Row 2: Unit, Quantity, Unit Price -->
                                                 <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-                                                    <div>
+                                                    <div x-data="{ showCustomUnit: false }">
                                                         <label class="block text-xs font-medium text-gray-700 mb-1">Unit</label>
+                                                        <select x-model="item.unit"
+                                                                @change="showCustomUnit = ($event.target.value === 'custom'); if ($event.target.value !== 'custom') { item.customUnit = ''; }"
+                                                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                                            <option value="m2">m² (Square Meter)</option>
+                                                            <option value="ft2">ft² (Square Feet)</option>
+                                                            <option value="pcs">pcs (Pieces)</option>
+                                                            <option value="L/S">L/S (Lump Sum)</option>
+                                                            <option value="custom">Custom</option>
+                                                        </select>
                                                         <input type="text"
+                                                               x-show="showCustomUnit || item.unit === 'custom'"
+                                                               x-model="item.customUnit"
                                                                :name="'sections[' + sectionIndex + '][items][' + itemIndex + '][unit]'"
-                                                               x-model="item.unit"
-                                                               class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                                                               placeholder="e.g., sqft, kg">
+                                                               class="mt-2 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                                               placeholder="Enter custom unit">
+                                                        <input type="hidden"
+                                                               x-show="!(showCustomUnit || item.unit === 'custom')"
+                                                               :name="'sections[' + sectionIndex + '][items][' + itemIndex + '][unit]'"
+                                                               :value="item.unit">
                                                     </div>
                                                     <div>
                                                         <label class="block text-xs font-medium text-gray-700 mb-1">Default Qty</label>
@@ -383,7 +397,8 @@ function serviceTemplateForm() {
                 id: this.itemIdCounter++,
                 description: '',
                 details: '',
-                unit: '',
+                unit: 'm2',
+                customUnit: '',
                 default_quantity: 1,
                 default_unit_price: 0,
                 amount_override: null,
