@@ -25,7 +25,7 @@
                         </span>
                     @endif
                 </div>
-                <p class="mt-1 text-sm text-gray-600">{{ $serviceTemplate->category }} • Created {{ $serviceTemplate->created_at->diffForHumans() }}</p>
+                <p class="mt-1 text-sm text-gray-600">{{ $serviceTemplate->category->name ?? 'N/A' }} • Created {{ $serviceTemplate->created_at->diffForHumans() }}</p>
             </div>
             <div class="mt-4 sm:mt-0 flex space-x-3">
                 <a href="{{ route('service-templates.index') }}"
@@ -151,36 +151,41 @@
                                         <table class="min-w-full divide-y divide-gray-200">
                                             <thead class="bg-gray-50">
                                                 <tr>
-                                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
-                                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
-                                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                                                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</th>
+                                                    <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                                                 </tr>
                                             </thead>
                                             <tbody class="bg-white divide-y divide-gray-200">
                                                 @php $sectionTotal = 0; @endphp
                                                 @foreach($section->items->sortBy('sort_order') as $item)
                                                     @php
-                                                        $itemTotal = ($item->quantity ?? 1) * ($item->unit_price ?? 0);
+                                                        $itemTotal = ($item->default_quantity ?? 1) * ($item->default_unit_price ?? 0);
                                                         $sectionTotal += $itemTotal;
                                                     @endphp
                                                     <tr>
                                                         <td class="px-4 py-2 text-sm text-gray-900">
-                                                            {{ $item->name }}
-                                                            @if($item->description)
-                                                                <div class="text-xs text-gray-500">{{ $item->description }}</div>
+                                                            {{ $item->description }}
+                                                            @if($item->specifications)
+                                                                <div class="text-xs text-gray-500 mt-1">{{ $item->specifications }}</div>
+                                                            @endif
+                                                            @if($item->item_code)
+                                                                <div class="text-xs text-gray-400 mt-1">Code: {{ $item->item_code }}</div>
                                                             @endif
                                                         </td>
-                                                        <td class="px-4 py-2 text-sm text-gray-900">{{ $item->quantity ?? 1 }}</td>
-                                                        <td class="px-4 py-2 text-sm text-gray-900">
-                                                            @if($item->unit_price)
-                                                                RM {{ number_format($item->unit_price, 2) }}
+                                                        <td class="px-4 py-2 text-sm text-gray-900">{{ $item->unit ?? 'Nos' }}</td>
+                                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">{{ number_format($item->default_quantity ?? 1, 2) }}</td>
+                                                        <td class="px-4 py-2 text-sm text-gray-900 text-right">
+                                                            @if($item->default_unit_price)
+                                                                RM {{ number_format($item->default_unit_price, 2) }}
                                                             @else
                                                                 <span class="text-gray-400">TBD</span>
                                                             @endif
                                                         </td>
-                                                        <td class="px-4 py-2 text-sm font-medium text-gray-900">
-                                                            @if($item->unit_price)
+                                                        <td class="px-4 py-2 text-sm font-medium text-gray-900 text-right">
+                                                            @if($item->default_unit_price)
                                                                 RM {{ number_format($itemTotal, 2) }}
                                                             @else
                                                                 <span class="text-gray-400">TBD</span>
@@ -192,8 +197,8 @@
                                             @if($sectionTotal > 0)
                                                 <tfoot class="bg-gray-50">
                                                     <tr>
-                                                        <td colspan="3" class="px-4 py-2 text-sm font-medium text-gray-900 text-right">Section Total:</td>
-                                                        <td class="px-4 py-2 text-sm font-bold text-gray-900">RM {{ number_format($sectionTotal, 2) }}</td>
+                                                        <td colspan="4" class="px-4 py-2 text-sm font-medium text-gray-900 text-right">Section Total:</td>
+                                                        <td class="px-4 py-2 text-sm font-bold text-gray-900 text-right">RM {{ number_format($sectionTotal, 2) }}</td>
                                                     </tr>
                                                 </tfoot>
                                             @endif
@@ -238,7 +243,7 @@
                         <dt class="text-sm font-medium text-gray-700">Category</dt>
                         <dd class="mt-1">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {{ $serviceTemplate->category }}
+                                {{ $serviceTemplate->category->name ?? 'N/A' }}
                             </span>
                         </dd>
                     </div>
@@ -330,7 +335,7 @@
                             foreach ($serviceTemplate->sections as $section) {
                                 if ($section->items) {
                                     foreach ($section->items as $item) {
-                                        $templateTotal += ($item->quantity ?? 1) * ($item->unit_price ?? 0);
+                                        $templateTotal += ($item->default_quantity ?? 1) * ($item->default_unit_price ?? 0);
                                     }
                                 }
                             }
