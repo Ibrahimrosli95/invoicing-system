@@ -127,11 +127,11 @@ class ServiceTemplateController extends Controller
             // Create the template
             $template = ServiceTemplate::create([
                 'name' => $validated['name'],
-                'description' => $validated['description'],
+                'description' => $validated['description'] ?? null,
                 'category_id' => $validated['category_id'],
                 'applicable_teams' => $validated['applicable_teams'] ?? null,
-                'estimated_hours' => $validated['estimated_hours'],
-                'base_price' => $validated['base_price'],
+                'estimated_hours' => $validated['estimated_hours'] ?? null,
+                'base_price' => $validated['base_price'] ?? null,
                 'requires_approval' => $validated['requires_approval'] ?? false,
             ]);
 
@@ -139,12 +139,12 @@ class ServiceTemplateController extends Controller
             foreach ($validated['sections'] as $sectionData) {
                 $section = $template->sections()->create([
                     'name' => $sectionData['name'],
-                    'description' => $sectionData['description'],
+                    'description' => $sectionData['description'] ?? null,
                     'default_discount_percentage' => $sectionData['default_discount_percentage'] ?? 0,
                     'sort_order' => $sectionData['sort_order'] ?? 0,
                     'is_required' => $sectionData['is_required'] ?? true,
-                    'estimated_hours' => $sectionData['estimated_hours'],
-                    'instructions' => $sectionData['instructions'],
+                    'estimated_hours' => $sectionData['estimated_hours'] ?? null,
+                    'instructions' => $sectionData['instructions'] ?? null,
                 ]);
 
                 foreach ($sectionData['items'] as $itemData) {
@@ -153,15 +153,15 @@ class ServiceTemplateController extends Controller
                         'unit' => $itemData['unit'] ?? 'Nos',
                         'default_quantity' => $itemData['default_quantity'],
                         'default_unit_price' => $itemData['default_unit_price'],
-                        'item_code' => $itemData['item_code'],
-                        'specifications' => $itemData['specifications'],
-                        'notes' => $itemData['notes'],
+                        'item_code' => $itemData['item_code'] ?? null,
+                        'specifications' => $itemData['specifications'] ?? null,
+                        'notes' => $itemData['notes'] ?? null,
                         'sort_order' => $itemData['sort_order'] ?? 0,
                         'is_required' => $itemData['is_required'] ?? true,
                         'quantity_editable' => $itemData['quantity_editable'] ?? true,
                         'price_editable' => $itemData['price_editable'] ?? true,
-                        'cost_price' => $itemData['cost_price'],
-                        'minimum_price' => $itemData['minimum_price'],
+                        'cost_price' => $itemData['cost_price'] ?? null,
+                        'minimum_price' => $itemData['minimum_price'] ?? null,
                     ]);
                 }
             }
