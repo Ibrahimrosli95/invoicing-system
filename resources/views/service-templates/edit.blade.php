@@ -9,10 +9,10 @@
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">Edit Service Template</h1>
-                <p class="mt-1 text-sm text-gray-600">Update the service template: {{ $template->name }}</p>
+                <p class="mt-1 text-sm text-gray-600">Update the service template: {{ $serviceTemplate->name }}</p>
             </div>
             <div class="flex space-x-3">
-                <a href="{{ route('service-templates.show', $template) }}"
+                <a href="{{ route('service-templates.show', $serviceTemplate) }}"
                    class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400 focus:bg-gray-400 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -31,7 +31,7 @@
         </div>
     </div>
 
-    <form method="POST" action="{{ route('service-templates.update', $template) }}" x-data="serviceTemplateForm()">
+    <form method="POST" action="{{ route('service-templates.update', $serviceTemplate) }}" x-data="serviceTemplateForm()">
         @csrf
         @method('PUT')
 
@@ -68,7 +68,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Template Name</label>
-                            <input type="text" name="name" id="name" value="{{ old('name', $template->name) }}" required
+                            <input type="text" name="name" id="name" value="{{ old('name', $serviceTemplate->name) }}" required
                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                    placeholder="e.g., Standard Installation Package">
                             @error('name')
@@ -83,7 +83,7 @@
                                         class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                                     <option value="">Select Category</option>
                                     @foreach($categories ?? [] as $category)
-                                        <option value="{{ $category->id }}" {{ old('category_id', $template->category_id) == $category->id ? 'selected' : '' }}>
+                                        <option value="{{ $category->id }}" {{ old('category_id', $serviceTemplate->category_id) == $category->id ? 'selected' : '' }}>
                                             {{ $category->name }}
                                         </option>
                                     @endforeach
@@ -106,7 +106,7 @@
                             <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                             <textarea name="description" id="description" rows="3"
                                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                                      placeholder="Describe what this template includes...">{{ old('description', $template->description) }}</textarea>
+                                      placeholder="Describe what this template includes...">{{ old('description', $serviceTemplate->description) }}</textarea>
                             @error('description')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -114,7 +114,7 @@
 
                         <div>
                             <label for="estimated_hours" class="block text-sm font-medium text-gray-700 mb-1">Estimated Hours</label>
-                            <input type="number" name="estimated_hours" id="estimated_hours" value="{{ old('estimated_hours', $template->estimated_hours) }}" step="0.5" min="0"
+                            <input type="number" name="estimated_hours" id="estimated_hours" value="{{ old('estimated_hours', $serviceTemplate->estimated_hours) }}" step="0.5" min="0"
                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                    placeholder="8.0">
                             @error('estimated_hours')
@@ -124,7 +124,7 @@
 
                         <div>
                             <label for="base_price" class="block text-sm font-medium text-gray-700 mb-1">Base Price (RM)</label>
-                            <input type="number" name="base_price" id="base_price" value="{{ old('base_price', $template->base_price) }}" step="0.01" min="0"
+                            <input type="number" name="base_price" id="base_price" value="{{ old('base_price', $serviceTemplate->base_price) }}" step="0.01" min="0"
                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                    placeholder="1500.00">
                             @error('base_price')
@@ -321,7 +321,7 @@
                                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                                 @foreach($teams ?? [] as $team)
                                     <option value="{{ $team->id }}"
-                                            {{ (collect(old('applicable_teams', $template->applicable_teams ?? []))->contains($team->id)) ? 'selected' : '' }}>
+                                            {{ (collect(old('applicable_teams', $serviceTemplate->applicable_teams ?? []))->contains($team->id)) ? 'selected' : '' }}>
                                         {{ $team->name }}
                                     </option>
                                 @endforeach
@@ -335,7 +335,7 @@
                         <div class="flex items-center">
                             <input type="hidden" name="is_active" value="0">
                             <input type="checkbox" name="is_active" id="is_active" value="1"
-                                   {{ old('is_active', $template->is_active) ? 'checked' : '' }}
+                                   {{ old('is_active', $serviceTemplate->is_active) ? 'checked' : '' }}
                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                             <label for="is_active" class="ml-2 block text-sm text-gray-900">
                                 Active Template
@@ -345,7 +345,7 @@
                         <div class="flex items-center">
                             <input type="hidden" name="requires_approval" value="0">
                             <input type="checkbox" name="requires_approval" id="requires_approval" value="1"
-                                   {{ old('requires_approval', $template->requires_approval) ? 'checked' : '' }}
+                                   {{ old('requires_approval', $serviceTemplate->requires_approval) ? 'checked' : '' }}
                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                             <label for="requires_approval" class="ml-2 block text-sm text-gray-900">
                                 Requires Approval
@@ -361,18 +361,18 @@
                     <div class="space-y-3">
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-600">Times Used</span>
-                            <span class="text-sm font-medium text-gray-900">{{ $template->usage_count ?? 0 }}</span>
+                            <span class="text-sm font-medium text-gray-900">{{ $serviceTemplate->usage_count ?? 0 }}</span>
                         </div>
 
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-600">Created</span>
-                            <span class="text-sm font-medium text-gray-900">{{ $template->created_at->format('M j, Y') }}</span>
+                            <span class="text-sm font-medium text-gray-900">{{ $serviceTemplate->created_at->format('M j, Y') }}</span>
                         </div>
 
-                        @if($template->last_used_at)
+                        @if($serviceTemplate->last_used_at)
                             <div class="flex items-center justify-between">
                                 <span class="text-sm text-gray-600">Last Used</span>
-                                <span class="text-sm font-medium text-gray-900">{{ $template->last_used_at->diffForHumans() }}</span>
+                                <span class="text-sm font-medium text-gray-900">{{ $serviceTemplate->last_used_at->diffForHumans() }}</span>
                             </div>
                         @endif
                     </div>
@@ -388,7 +388,7 @@
                             Update Template
                         </button>
 
-                        <a href="{{ route('service-templates.show', $template) }}"
+                        <a href="{{ route('service-templates.show', $serviceTemplate) }}"
                            class="w-full bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium text-center hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 block">
                             Cancel
                         </a>
@@ -402,7 +402,7 @@
 <script>
 function serviceTemplateForm() {
     return {
-        sections: {!! json_encode($template->sections->map(function($section) {
+        sections: {!! json_encode($serviceTemplate->sections->map(function($section) {
             return [
                 'id' => $section->id,
                 'name' => $section->name,
@@ -421,8 +421,8 @@ function serviceTemplateForm() {
                 })->toArray()
             ];
         })->toArray()) !!},
-        sectionIdCounter: {{ $template->sections->max('id') + 1 ?? 1 }},
-        itemIdCounter: {{ $template->sections->flatMap->items->max('id') + 1 ?? 1 }},
+        sectionIdCounter: {{ $serviceTemplate->sections->max('id') + 1 ?? 1 }},
+        itemIdCounter: {{ $serviceTemplate->sections->flatMap->items->max('id') + 1 ?? 1 }},
 
         addSection() {
             this.sections.push({
