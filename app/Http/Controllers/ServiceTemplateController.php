@@ -168,6 +168,10 @@ class ServiceTemplateController extends Controller
 
             DB::commit();
 
+            // Refresh the template to get the latest data with relationships
+            $template->refresh();
+            $template->load(['sections.items', 'category']);
+
             return redirect()->route('service-templates.show', $template)
                 ->with('success', 'Service template created successfully.');
 
@@ -184,7 +188,7 @@ class ServiceTemplateController extends Controller
      */
     public function show(ServiceTemplate $serviceTemplate)
     {
-        $serviceTemplate->load(['sections.items', 'company', 'createdBy', 'updatedBy']);
+        $serviceTemplate->load(['sections.items', 'category', 'company', 'createdBy', 'updatedBy']);
 
         // Check authorization
         if (!$serviceTemplate->canBeUsedBy(Auth::user())) {
@@ -239,15 +243,104 @@ class ServiceTemplateController extends Controller
             'base_price' => 'nullable|numeric|min:0|max:99999999.99',
             'requires_approval' => 'boolean',
             'is_active' => 'boolean',
+            'sections' => 'required|array|min:1',
+            'sections.*.name' => 'required|string|max:200',
+            'sections.*.description' => 'nullable|string',
+            'sections.*.sort_order' => 'integer|min:0',
+            'sections.*.items' => 'required|array|min:1',
+            'sections.*.items.*.description' => 'required|string|max:500',
+            'sections.*.items.*.unit' => 'string|max:20',
+            'sections.*.items.*.default_quantity' => 'required|numeric|min:0.01|max:999999.99',
+            'sections.*.items.*.default_unit_price' => 'required|numeric|min:0|max:99999999.99',
         ]);
 
         try {
-            $serviceTemplate->update($validated);
+            DB::beginTransaction();
+
+            // Update basic template info
+            $serviceTemplate->update([
+                'name' => $validated['name'],
+                'description' => $validated['description'] ?? null,
+                'category_id' => $validated['category_id'],
+                'applicable_teams' => $validated['applicable_teams'] ?? null,
+                'estimated_hours' => $validated['estimated_hours'] ?? null,
+                'base_price' => $validated['base_price'] ?? null,
+                'requires_approval' => $validated['requires_approval'] ?? false,
+                'is_active' => $validated['is_active'] ?? true,
+            ]);
+
+            // Get existing section and item IDs
+            $existingSectionIds = [];
+            $existingItemIds = [];
+
+            // Update or create sections
+            foreach ($validated['sections'] as $sectionData) {
+                if (isset($sectionData['id']) && is_numeric($sectionData['id'])) {
+                    // Update existing section
+                    $section = $serviceTemplate->sections()->find($sectionData['id']);
+                    if ($section) {
+                        $section->update([
+                            'name' => $sectionData['name'],
+                            'description' => $sectionData['description'] ?? null,
+                            'sort_order' => $sectionData['sort_order'] ?? 0,
+                        ]);
+                        $existingSectionIds[] = $section->id;
+                    }
+                } else {
+                    // Create new section
+                    $section = $serviceTemplate->sections()->create([
+                        'name' => $sectionData['name'],
+                        'description' => $sectionData['description'] ?? null,
+                        'sort_order' => $sectionData['sort_order'] ?? 0,
+                    ]);
+                    $existingSectionIds[] = $section->id;
+                }
+
+                // Update or create items
+                foreach ($sectionData['items'] as $itemData) {
+                    if (isset($itemData['id']) && is_numeric($itemData['id'])) {
+                        // Update existing item
+                        $item = $section->items()->find($itemData['id']);
+                        if ($item) {
+                            $item->update([
+                                'description' => $itemData['description'],
+                                'unit' => $itemData['unit'] ?? 'Nos',
+                                'default_quantity' => $itemData['default_quantity'],
+                                'default_unit_price' => $itemData['default_unit_price'],
+                            ]);
+                            $existingItemIds[] = $item->id;
+                        }
+                    } else {
+                        // Create new item
+                        $item = $section->items()->create([
+                            'description' => $itemData['description'],
+                            'unit' => $itemData['unit'] ?? 'Nos',
+                            'default_quantity' => $itemData['default_quantity'],
+                            'default_unit_price' => $itemData['default_unit_price'],
+                        ]);
+                        $existingItemIds[] = $item->id;
+                    }
+                }
+
+                // Delete items that were removed
+                $section->items()->whereNotIn('id', $existingItemIds)->delete();
+                $existingItemIds = []; // Reset for next section
+            }
+
+            // Delete sections that were removed
+            $serviceTemplate->sections()->whereNotIn('id', $existingSectionIds)->delete();
+
+            DB::commit();
+
+            // Refresh the template to get the latest data
+            $serviceTemplate->refresh();
+            $serviceTemplate->load(['sections.items', 'category']);
 
             return redirect()->route('service-templates.show', $serviceTemplate)
                 ->with('success', 'Service template updated successfully.');
 
         } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()->back()
                 ->withErrors(['error' => 'Failed to update service template: ' . $e->getMessage()])
                 ->withInput();
