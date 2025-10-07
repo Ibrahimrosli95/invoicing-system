@@ -108,25 +108,27 @@ class ServiceTemplate extends Model
     public function scopeForUserTeams($query)
     {
         $user = auth()->user();
-        
+
         if ($user->hasAnyRole(['superadmin', 'company_manager', 'finance_manager'])) {
             return $query; // Can see all templates
         }
-        
+
         if ($user->hasRole('sales_manager')) {
             // Can see templates for teams they manage + company-wide templates
             $managedTeamIds = Team::where('manager_id', $user->id)->pluck('id')->toArray();
             return $query->where(function ($q) use ($managedTeamIds) {
                 $q->whereJsonContains('applicable_teams', $managedTeamIds)
-                  ->orWhereNull('applicable_teams'); // Company-wide templates
+                  ->orWhereNull('applicable_teams')
+                  ->orWhere('applicable_teams', '[]'); // Empty array = company-wide
             });
         }
-        
+
         // Sales coordinators and executives see templates for their teams
         $userTeamIds = $user->teams()->pluck('teams.id')->toArray();
         return $query->where(function ($q) use ($userTeamIds) {
             $q->whereJsonContains('applicable_teams', $userTeamIds)
-              ->orWhereNull('applicable_teams'); // Company-wide templates
+              ->orWhereNull('applicable_teams')
+              ->orWhere('applicable_teams', '[]'); // Empty array = company-wide
         });
     }
 
@@ -161,7 +163,8 @@ class ServiceTemplate extends Model
         }
 
         // Check team-specific access
-        if (empty($this->applicable_teams)) {
+        // Company-wide if applicable_teams is null or empty array
+        if (empty($this->applicable_teams) || $this->applicable_teams === null) {
             return true; // Company-wide template
         }
 
