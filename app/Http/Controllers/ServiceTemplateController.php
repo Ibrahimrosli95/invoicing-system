@@ -202,7 +202,10 @@ class ServiceTemplateController extends Controller
             'complexity_score' => $serviceTemplate->getComplexityScore(),
         ];
 
-        return view('service-templates.show', compact('serviceTemplate', 'analytics'));
+        // Get teams for applicable teams display
+        $teams = Team::forCompany()->get();
+
+        return view('service-templates.show', compact('serviceTemplate', 'analytics', 'teams'));
     }
 
     /**
