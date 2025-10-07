@@ -402,7 +402,7 @@
 <script>
 function serviceTemplateForm() {
     return {
-        sections: @json($template->sections->map(function($section) {
+        sections: {!! json_encode($template->sections->map(function($section) {
             return [
                 'id' => $section->id,
                 'name' => $section->name,
@@ -412,18 +412,15 @@ function serviceTemplateForm() {
                 'items' => $section->items->map(function($item) {
                     return [
                         'id' => $item->id,
-                        'description' => $item->description ?? $item->name ?? '',
-                        'details' => $item->details ?? '',
+                        'description' => $item->description ?? '',
                         'unit' => $item->unit ?? '',
-                        'default_quantity' => $item->default_quantity ?? $item->quantity ?? 1,
-                        'default_unit_price' => $item->default_unit_price ?? $item->unit_price ?? 0,
-                        'amount_override' => $item->amount_override,
-                        'amount_manually_edited' => $item->amount_manually_edited ?? false,
+                        'default_quantity' => $item->default_quantity ?? 1,
+                        'default_unit_price' => $item->default_unit_price ?? 0,
                         'existing' => true
                     ];
                 })->toArray()
             ];
-        })->toArray()),
+        })->toArray()) !!},
         sectionIdCounter: {{ $template->sections->max('id') + 1 ?? 1 }},
         itemIdCounter: {{ $template->sections->flatMap->items->max('id') + 1 ?? 1 }},
 
