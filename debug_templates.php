@@ -41,11 +41,11 @@ if ($user) {
     echo "Company ID: {$user->company_id}\n";
     echo "Roles: " . $user->roles->pluck('name')->implode(', ') . "\n";
     echo "Teams: " . $user->teams->pluck('name')->implode(', ') . "\n\n";
-    
+
     // Test the query
     $visibleTemplates = ServiceTemplate::forCompany()->forUserTeams()->get();
     echo "Templates visible to this user: {$visibleTemplates->count()}\n";
-    
+
     if ($visibleTemplates->count() > 0) {
         foreach ($visibleTemplates as $template) {
             echo "  - {$template->name}\n";
