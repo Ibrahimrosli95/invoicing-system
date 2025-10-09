@@ -194,6 +194,7 @@ Route::middleware('auth')->group(function () {
     // Quotation utility routes (before resource routes)
     Route::get('quotations-pricing-items', [QuotationController::class, 'getPricingItems'])->name('quotations.pricing-items');
     Route::post('quotations/get-segment-pricing', [QuotationController::class, 'getSegmentPricing'])->name('quotations.get-segment-pricing');
+    Route::get('quotations/search-customers-leads', [QuotationController::class, 'searchCustomersAndLeads'])->name('quotations.search-customers-leads');
 
     // Quotation product/service specific indexes (before resource routes)
     Route::get('quotations/product-index', [QuotationController::class, 'productIndex'])->name('quotations.product-index');

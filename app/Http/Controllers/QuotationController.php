@@ -1275,4 +1275,190 @@ class QuotationController extends Controller
             'recentClients' => $recentClients,
         ];
     }
+
+    /**
+     * Unified search for both customers and leads (for repeat customer detection).
+     * Searches customers table first (paid customers), then leads table.
+     * Deduplicates by phone number, prioritizing customers over leads.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function searchCustomersAndLeads(Request $request): JsonResponse
+    {
+        $request->validate([
+            'q' => 'required|string|min:2',
+            'limit' => 'nullable|integer|min:1|max:50',
+        ]);
+
+        $searchTerm = $request->q;
+        $limit = $request->limit ?: 10;
+        $results = [];
+        $seenPhones = []; // Track phone numbers to prevent duplicates
+
+        // 1. Search Customers table first (prioritize paying customers)
+        $customers = \App\Models\Customer::forCompany()
+            ->active()
+            ->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('company_name', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('phone', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('email', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('city', 'LIKE', "%{$searchTerm}%");
+            })
+            ->with(['customerSegment'])
+            ->limit($limit)
+            ->get();
+
+        foreach ($customers as $customer) {
+            $phone = $this->normalizePhone($customer->phone);
+
+            if (!in_array($phone, $seenPhones)) {
+                $seenPhones[] = $phone;
+                $results[] = [
+                    'id' => $customer->id,
+                    'name' => $customer->name,
+                    'company_name' => $customer->company_name,
+                    'phone' => $customer->phone,
+                    'email' => $customer->email,
+                    'address' => $customer->address,
+                    'city' => $customer->city,
+                    'state' => $customer->state,
+                    'postal_code' => $customer->postal_code,
+                    'customer_segment' => $customer->customerSegment?->name,
+                    'customer_segment_id' => $customer->customer_segment_id,
+                    'is_new_customer' => $customer->is_new_customer,
+                    'source' => 'customer', // Indicates this is from customers table
+                    'has_purchase_history' => true,
+                    'badge' => [
+                        'text' => 'Customer',
+                        'class' => 'bg-green-100 text-green-800',
+                    ],
+                ];
+            }
+        }
+
+        // 2. Search Leads table (for leads that haven't become customers yet)
+        // Only if we haven't reached the limit
+        if (count($results) < $limit) {
+            $remainingLimit = $limit - count($results);
+
+            $leads = Lead::forCompany()
+                ->where(function ($q) use ($searchTerm) {
+                    $q->where('name', 'LIKE', "%{$searchTerm}%")
+                      ->orWhere('company', 'LIKE', "%{$searchTerm}%")
+                      ->orWhere('phone', 'LIKE', "%{$searchTerm}%")
+                      ->orWhere('email', 'LIKE', "%{$searchTerm}%")
+                      ->orWhere('city', 'LIKE', "%{$searchTerm}%");
+                })
+                ->whereNotIn('status', ['CONVERTED']) // Exclude converted leads (they should be customers)
+                ->limit($remainingLimit)
+                ->get();
+
+            foreach ($leads as $lead) {
+                $phone = $this->normalizePhone($lead->phone);
+
+                // Only add if we haven't seen this phone number in customers
+                if (!in_array($phone, $seenPhones)) {
+                    $seenPhones[] = $phone;
+                    $results[] = [
+                        'id' => $lead->id,
+                        'name' => $lead->name,
+                        'company_name' => $lead->company,
+                        'phone' => $lead->phone,
+                        'email' => $lead->email,
+                        'address' => $lead->address,
+                        'city' => $lead->city,
+                        'state' => $lead->state,
+                        'postal_code' => $lead->postal_code,
+                        'customer_segment' => null, // Leads don't have segments yet
+                        'customer_segment_id' => null,
+                        'is_new_customer' => true,
+                        'source' => 'lead', // Indicates this is from leads table
+                        'lead_id' => $lead->id, // Include lead_id for linking
+                        'lead_status' => $lead->status,
+                        'has_purchase_history' => false,
+                        'badge' => [
+                            'text' => 'Lead',
+                            'class' => 'bg-blue-100 text-blue-800',
+                        ],
+                    ];
+                }
+            }
+        }
+
+        // 3. Search Quotations table (for quotations without leads or customers)
+        // This catches standalone quotations that haven't been linked
+        if (count($results) < $limit) {
+            $remainingLimit = $limit - count($results);
+
+            $quotations = Quotation::forCompany()
+                ->where(function ($q) use ($searchTerm) {
+                    $q->where('customer_name', 'LIKE', "%{$searchTerm}%")
+                      ->orWhere('customer_phone', 'LIKE', "%{$searchTerm}%")
+                      ->orWhere('customer_email', 'LIKE', "%{$searchTerm}%");
+                })
+                ->whereNull('lead_id') // Only quotations without leads
+                ->select('customer_name', 'customer_phone', 'customer_email', 'customer_address',
+                         'customer_city', 'customer_state', 'customer_postal_code')
+                ->distinct()
+                ->limit($remainingLimit)
+                ->get();
+
+            foreach ($quotations as $quotation) {
+                $phone = $this->normalizePhone($quotation->customer_phone);
+
+                // Only add if we haven't seen this phone number
+                if (!in_array($phone, $seenPhones) && $quotation->customer_phone) {
+                    $seenPhones[] = $phone;
+                    $results[] = [
+                        'id' => null,
+                        'name' => $quotation->customer_name,
+                        'company_name' => null,
+                        'phone' => $quotation->customer_phone,
+                        'email' => $quotation->customer_email,
+                        'address' => $quotation->customer_address,
+                        'city' => $quotation->customer_city,
+                        'state' => $quotation->customer_state,
+                        'postal_code' => $quotation->customer_postal_code,
+                        'customer_segment' => null,
+                        'customer_segment_id' => null,
+                        'is_new_customer' => true,
+                        'source' => 'quotation', // Indicates this is from quotations
+                        'has_purchase_history' => false,
+                        'badge' => [
+                            'text' => 'Previous Quote',
+                            'class' => 'bg-yellow-100 text-yellow-800',
+                        ],
+                    ];
+                }
+            }
+        }
+
+        return response()->json([
+            'customers' => $results,
+            'count' => count($results),
+            'sources' => [
+                'customers' => count(array_filter($results, fn($r) => $r['source'] === 'customer')),
+                'leads' => count(array_filter($results, fn($r) => $r['source'] === 'lead')),
+                'quotations' => count(array_filter($results, fn($r) => $r['source'] === 'quotation')),
+            ],
+        ]);
+    }
+
+    /**
+     * Normalize phone number for comparison (remove formatting).
+     *
+     * @param string|null $phone
+     * @return string
+     */
+    private function normalizePhone(?string $phone): string
+    {
+        if (!$phone) {
+            return '';
+        }
+
+        // Remove all non-numeric characters
+        return preg_replace('/\D/', '', $phone);
+    }
 }

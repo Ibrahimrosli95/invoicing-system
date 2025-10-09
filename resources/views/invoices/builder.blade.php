@@ -2164,14 +2164,14 @@ function invoiceBuilder() {
             }
         },
 
-        // Customer Search
+        // Customer Search - Unified search across customers, leads, and quotations
         searchCustomers() {
             if (this.customerSearch.length < 2) {
                 this.customerResults = [];
                 return;
             }
 
-            fetch(`/customers/search?q=${encodeURIComponent(this.customerSearch)}`)
+            fetch(`/quotations/search-customers-leads?q=${encodeURIComponent(this.customerSearch)}`)
                 .then(response => response.json())
                 .then(data => {
                     this.customerResults = data.customers || [];
@@ -2705,6 +2705,9 @@ function invoiceBuilder() {
 
         getInvoiceData() {
             return {
+                // Lead linkage (if customer is from lead)
+                lead_id: this.selectedCustomer.lead_id || null,
+
                 // Customer information from selected customer
                 customer_name: this.selectedCustomer.name || '',
                 customer_company: this.selectedCustomer.company_name || '',
