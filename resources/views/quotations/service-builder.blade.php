@@ -310,47 +310,47 @@
                                     <table class="w-full">
                                         <thead class="bg-gray-50 border-b border-gray-200">
                                             <tr>
-                                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-center w-12">SI</th>
-                                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-left">Details</th>
-                                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-center w-24">Unit</th>
-                                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-center w-24">Quantity</th>
-                                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-right w-32">Rate (RM)</th>
-                                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-right w-40">Amount (RM)</th>
-                                                <th class="px-6 py-3 text-xs font-medium text-gray-500 uppercase text-center w-16">Action</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-12">SI</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left" style="width: 40%;">Details</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-20">Unit</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-20">Qty</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-28">Rate (RM)</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-32">Amount (RM)</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-14">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-100">
                                             <template x-for="(item, itemIndex) in section.items" :key="item.id">
                                                 <tr class="hover:bg-gray-50">
-                                                    <td class="px-6 py-3 text-center text-sm text-gray-600" x-text="itemIndex + 1"></td>
+                                                    <td class="px-4 py-3 text-center text-sm text-gray-600" x-text="itemIndex + 1"></td>
                                                     <!-- Details -->
-                                                    <td class="px-6 py-3">
+                                                    <td class="px-4 py-3">
                                                         <input type="text" x-model="item.description"
                                                                placeholder="Item description..."
                                                                class="w-full border-0 bg-transparent text-sm focus:ring-0 p-0">
                                                     </td>
                                                     <!-- Unit -->
-                                                    <td class="px-6 py-3">
+                                                    <td class="px-4 py-3">
                                                         <input type="text" x-model="item.unit"
                                                                placeholder="Nos"
                                                                class="w-full border-0 bg-transparent text-sm text-center focus:ring-0 p-0">
                                                     </td>
                                                     <!-- Quantity -->
-                                                    <td class="px-6 py-3">
+                                                    <td class="px-4 py-3">
                                                         <input type="number" x-model="item.quantity"
                                                                @input="recalculateItemAmount(sectionIndex, itemIndex)"
                                                                class="w-full border-0 bg-transparent text-sm text-center focus:ring-0 p-0"
                                                                min="0.01" step="0.01">
                                                     </td>
                                                     <!-- Rate -->
-                                                    <td class="px-6 py-3">
+                                                    <td class="px-4 py-3">
                                                         <input type="number" x-model="item.unit_price"
                                                                @input="recalculateItemAmount(sectionIndex, itemIndex)"
                                                                class="w-full border-0 bg-transparent text-sm text-right focus:ring-0 p-0"
                                                                min="0" step="0.01">
                                                     </td>
                                                     <!-- Amount (Editable with Override Indicator) -->
-                                                    <td class="px-6 py-3">
+                                                    <td class="px-4 py-3">
                                                         <div class="flex items-center justify-end gap-2">
                                                             <input type="number" x-model="item.amount"
                                                                    @input="handleAmountOverride(sectionIndex, itemIndex, $event.target.value)"
@@ -370,7 +370,7 @@
                                                         </div>
                                                     </td>
                                                     <!-- Action -->
-                                                    <td class="px-6 py-3 text-center">
+                                                    <td class="px-4 py-3 text-center">
                                                         <button @click="removeItemFromSection(sectionIndex, itemIndex)" type="button"
                                                                 x-show="section.items.length > 1"
                                                                 class="text-red-400 hover:text-red-600">
@@ -384,7 +384,7 @@
 
                                             <!-- Add Item Row -->
                                             <tr class="bg-gray-50">
-                                                <td colspan="7" class="px-6 py-3">
+                                                <td colspan="7" class="px-4 py-3">
                                                     <button @click="addItemToSection(sectionIndex)" type="button"
                                                             class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-700">
                                                         <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -399,10 +399,10 @@
                                         <!-- Section Subtotal -->
                                         <tfoot class="bg-blue-50 border-t-2 border-blue-200">
                                             <tr>
-                                                <td colspan="5" class="px-6 py-3 text-right text-sm font-semibold text-gray-900">
+                                                <td colspan="5" class="px-4 py-3 text-right text-sm font-semibold text-gray-900">
                                                     Section Subtotal:
                                                 </td>
-                                                <td class="px-6 py-3 text-right text-sm font-bold text-blue-600">
+                                                <td class="px-4 py-3 text-right text-sm font-bold text-blue-600">
                                                     RM <span x-text="getSectionSubtotal(section).toFixed(2)">0.00</span>
                                                 </td>
                                                 <td></td>
