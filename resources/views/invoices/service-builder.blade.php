@@ -1351,7 +1351,7 @@
     </div>
 
     <!-- Enhanced Service Template Selection Modal with Tabs -->
-    <div x-show="showTemplateModal && !templateModal.type"
+    <div x-show="showTemplateModal"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
@@ -1583,7 +1583,7 @@
     </div>
 
     <!-- Template Selection Modal -->
-    <div x-show="showTemplateModal"
+    <div x-show="showNotesTemplateModal"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
@@ -1592,12 +1592,12 @@
          x-transition:leave-end="opacity-0"
          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center min-h-screen px-4 z-50"
          style="display: none;">
-        <div @click.away="showTemplateModal = false"
+        <div @click.away="showNotesTemplateModal = false"
              class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
             <!-- Header -->
             <div class="flex items-center justify-between bg-gray-50 px-6 py-4 border-b">
                 <h2 class="text-lg font-semibold text-gray-900" x-text="templateModal.title">Select Template</h2>
-                <button @click="showTemplateModal = false"
+                <button @click="showNotesTemplateModal = false"
                         class="text-gray-500 hover:text-gray-700 text-xl font-semibold">
                     &times;
                 </button>
@@ -1649,7 +1649,7 @@
                    class="text-sm text-blue-600 hover:text-blue-800">
                     Manage Templates
                 </a>
-                <button @click="showTemplateModal = false"
+                <button @click="showNotesTemplateModal = false"
                         class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg">
                     Close
                 </button>
@@ -1939,7 +1939,7 @@ function invoiceBuilder() {
         // UI State
         showCustomerDropdown: false,
         showNewCustomerModal: false,
-        showTemplateModal: false,
+        showNotesTemplateModal: false,
                 // Customer Management
         customerSearch: '',
         customerResults: [],
@@ -3450,7 +3450,7 @@ function invoiceBuilder() {
             this.templateModal.title = title;
             this.templateModal.loading = true;
             this.templateModal.templates = [];
-            this.showTemplateModal = true;
+            this.showNotesTemplateModal = true;
 
             try {
                 const response = await fetch('/api/invoice-note-templates/by-type?type=' + type, {
@@ -3468,7 +3468,7 @@ function invoiceBuilder() {
                     // Auto-select default template if available and current field is empty
                     if (data.default && this.isFieldEmpty(type)) {
                         this.selectTemplate(data.default);
-                        this.showTemplateModal = false;
+                        this.showNotesTemplateModal = false;
                     }
                 } else {
                     throw new Error('Failed to load templates');
@@ -3496,7 +3496,7 @@ function invoiceBuilder() {
                     this.paymentInstructions = template.content;
                     break;
             }
-            this.showTemplateModal = false;
+            this.showNotesTemplateModal = false;
             this.$dispatch('notify', {
                 type: 'success',
                 message: 'Template applied successfully!'
