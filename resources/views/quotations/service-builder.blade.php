@@ -311,11 +311,11 @@
                                         <thead class="bg-gray-50 border-b border-gray-200">
                                             <tr>
                                                 <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-12">SI</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left" style="width: 45%;">Details</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-28">Unit</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-20">Qty</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-28">Rate (RM)</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-32">Amount (RM)</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left" style="width: 42%;">Details</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-32">Unit</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-28">Qty</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-32">Rate (RM)</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-36">Amount (RM)</th>
                                                 <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-14">Action</th>
                                             </tr>
                                         </thead>
@@ -1553,7 +1553,10 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
                                 </svg>
                             </div>
-                            <p class="text-sm text-gray-600">No sections available. Create service templates with sections first.</p>
+                            <p class="text-sm text-gray-600 mb-2">No sections available</p>
+                            <p class="text-xs text-gray-500" x-show="allSections.length === 0">Create service templates with sections first.</p>
+                            <p class="text-xs text-gray-500" x-show="allSections.length > 0">Try selecting a different template filter.</p>
+                            <p class="text-xs text-gray-400 mt-2">Total sections loaded: <span x-text="allSections.length"></span></p>
                         </div>
                     </div>
 
@@ -2996,6 +2999,11 @@ function quotationBuilder() {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     }
                 });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
 
                 // Flatten sections with template info and calculated totals
@@ -3009,7 +3017,7 @@ function quotationBuilder() {
                 }));
             } catch (error) {
                 console.error('Error loading sections:', error);
-                this.$dispatch('notify', { type: 'error', message: 'Failed to load sections' });
+                this.$dispatch('notify', { type: 'error', message: 'Failed to load sections. Please try again.' });
             }
         },
 
@@ -3020,7 +3028,6 @@ function quotationBuilder() {
             }
 
             // Store count before clearing
-            const sectionCount = this.selectedSectionIds.length;
             let addedCount = 0;
             let itemsAdded = 0;
 

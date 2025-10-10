@@ -311,11 +311,11 @@
                                         <thead class="bg-gray-50 border-b border-gray-200">
                                             <tr>
                                                 <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-12">SI</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left" style="width: 45%;">Details</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-28">Unit</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-20">Qty</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-28">Rate (RM)</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-32">Amount (RM)</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left" style="width: 42%;">Details</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-32">Unit</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-28">Qty</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-32">Rate (RM)</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-36">Amount (RM)</th>
                                                 <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-14">Action</th>
                                             </tr>
                                         </thead>
@@ -3056,12 +3056,31 @@ function invoiceBuilder() {
         // Template Section Loading Methods
         async loadAllSections() {
             try {
-                const response = await fetch('/api/service-template-sections');
+                const response = await fetch('/api/service-template-sections', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
-                this.allSections = data || [];
+
+                // Flatten sections with template info and calculated totals
+                this.allSections = data.map(section => ({
+                    ...section,
+                    template_name: section.template?.name || 'Unknown Template',
+                    items_count: section.items?.length || 0,
+                    estimated_total: section.items?.reduce((sum, item) =>
+                        sum + ((item.default_quantity || 0) * (item.default_unit_price || 0)), 0
+                    ) || 0
+                }));
             } catch (error) {
                 console.error('Error loading sections:', error);
-                alert('Failed to load template sections. Please try again.');
+                this.$dispatch('notify', { type: 'error', message: 'Failed to load sections. Please try again.' });
             }
         },
 
