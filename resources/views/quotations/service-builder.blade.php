@@ -308,16 +308,16 @@
 
                                     <!-- Section Items Table -->
                                     <div class="overflow-x-auto">
-                                    <table class="w-full table-fixed min-w-[800px]">
+                                    <table class="w-full min-w-[800px]">
                                         <thead class="bg-gray-50 border-b border-gray-200">
                                             <tr>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 5%;">SI</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left align-top" style="width: 32%;">Details</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 15%;">Unit</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 12%;">Qty</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right" style="width: 14%;">Rate</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right" style="width: 16%;">Amount</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 6%;">
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 50px;">SI</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left align-top" style="width: 30%;">Details</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 120px;">Unit</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 100px;">Qty</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right" style="width: 120px;">Rate</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right" style="width: 140px;">Amount</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 60px;">
                                                     <span class="sr-only">Actions</span>
                                                 </th>
                                             </tr>
@@ -325,9 +325,9 @@
                                         <tbody class="divide-y divide-gray-100">
                                             <template x-for="(item, itemIndex) in section.items" :key="item.id">
                                                 <tr class="hover:bg-gray-50 align-top">
-                                                    <td class="px-4 py-3 text-center text-sm text-gray-600" style="width: 5%;" x-text="itemIndex + 1"></td>
+                                                    <td class="px-4 py-3 text-center text-sm text-gray-600" style="width: 50px;" x-text="itemIndex + 1"></td>
                                                     <!-- Details -->
-                                                    <td class="px-4 py-3 align-top" style="width: 32%;">
+                                                    <td class="px-4 py-3 align-top" style="width: 30%;">
                                                         <textarea x-model="item.description"
                                                                   placeholder="Item description..."
                                                                   rows="2"
@@ -335,7 +335,7 @@
                                                                   @input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"></textarea>
                                                     </td>
                                                     <!-- Unit -->
-                                                    <td class="px-4 py-3 align-top" style="width: 15%;">
+                                                    <td class="px-4 py-3 align-top" style="width: 120px;">
                                                         <div class="relative flex items-center justify-center">
                                                             <select x-model="item.unit"
                                                                     class="w-full min-w-0 border-0 bg-transparent text-sm text-center focus:ring-0 pl-2 pr-8 py-1"
@@ -355,14 +355,14 @@
                                                         </div>
                                                     </td>
                                                     <!-- Quantity -->
-                                                    <td class="px-4 py-3 align-top" style="width: 12%;">
+                                                    <td class="px-4 py-3 align-top" style="width: 100px;">
                                                         <input type="number" x-model="item.quantity"
                                                                @input="recalculateItemAmount(sectionIndex, itemIndex)"
                                                                class="w-full min-w-0 border-0 bg-transparent text-sm text-center focus:ring-0 px-2"
                                                                min="0.01" step="0.01">
                                                     </td>
                                                     <!-- Rate -->
-                                                    <td class="px-4 py-3 align-top" style="width: 14%;">
+                                                    <td class="px-4 py-3 align-top" style="width: 120px;">
                                                         <input type="text"
                                                                inputmode="decimal"
                                                                x-model="item.unit_price_input"
@@ -373,7 +373,7 @@
                                                                placeholder="0.00">
                                                     </td>
                                                     <!-- Amount (Editable with Override Indicator) -->
-                                                    <td class="px-4 py-3 align-top" style="width: 16%;">
+                                                    <td class="px-4 py-3 align-top" style="width: 140px;">
                                                         <div class="flex items-center justify-end gap-1">
                                                             <input type="text"
                                                                    inputmode="decimal"
@@ -397,7 +397,7 @@
                                                         </div>
                                                     </td>
                                                     <!-- Action -->
-                                                    <td class="px-4 py-3 text-center" style="width: 6%;">
+                                                    <td class="px-4 py-3 text-center" style="width: 60px;">
                                                         <button @click="removeItemFromSection(sectionIndex, itemIndex)" type="button"
                                                                 x-show="section.items.length > 1"
                                                                 class="text-red-400 hover:text-red-600">
