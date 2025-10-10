@@ -310,21 +310,21 @@
                                     <table class="w-full table-fixed">
                                         <thead class="bg-gray-50 border-b border-gray-200">
                                             <tr>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 6%;">SI</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left align-top" style="width: 52%;">Details</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 8%;">Unit</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 12%;">Qty</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right" style="width: 11%;">Rate (RM)</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right" style="width: 11%;">Amount (RM)</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 40px;">Action</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 6%; min-width: 60px;">SI</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left align-top" style="width: 52%; min-width: 260px;">Details</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 8%; min-width: 90px;">Unit</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 12%; min-width: 100px;">Qty</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right" style="width: 11%; min-width: 120px;">Rate (RM)</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right" style="width: 11%; min-width: 130px;">Amount (RM)</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 40px; min-width: 40px;">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-100">
                                             <template x-for="(item, itemIndex) in section.items" :key="item.id">
                                                 <tr class="hover:bg-gray-50 align-top">
-                                                    <td class="px-4 py-3 text-center text-sm text-gray-600" style="width: 6%;" x-text="itemIndex + 1"></td>
+                                                    <td class="px-4 py-3 text-center text-sm text-gray-600" style="width: 6%; min-width: 60px;" x-text="itemIndex + 1"></td>
                                                     <!-- Details -->
-                                                    <td class="px-4 py-3 align-top" style="width: 52%;">
+                                                    <td class="px-4 py-3 align-top" style="width: 52%; min-width: 260px;">
                                                         <textarea x-model="item.description"
                                                                   placeholder="Item description..."
                                                                   rows="2"
@@ -332,10 +332,10 @@
                                                                   @input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"></textarea>
                                                     </td>
                                                     <!-- Unit -->
-                                                    <td class="px-4 py-3 align-top" style="width: 8%;">
+                                                    <td class="px-4 py-3 align-top" style="width: 8%; min-width: 90px;">
                                                         <div class="relative flex items-center justify-center">
                                                             <select x-model="item.unit"
-                                                                    class="w-full border-0 bg-transparent text-sm text-center focus:ring-0 px-2 py-1 pr-10 appearance-none">
+                                                                    class="w-full border-0 bg-transparent text-sm text-center focus:ring-0 px-3 py-1 pr-10 appearance-none">
                                                                 <option value="m2">m2</option>
                                                                 <option value="ft2">ft2</option>
                                                                 <option value="pcs">pcs</option>
@@ -351,26 +351,26 @@
                                                         </div>
                                                     </td>
                                                     <!-- Quantity -->
-                                                    <td class="px-4 py-3 align-top" style="width: 12%;">
+                                                    <td class="px-4 py-3 align-top" style="width: 12%; min-width: 100px;">
                                                         <input type="number" x-model="item.quantity"
                                                                @input="recalculateItemAmount(sectionIndex, itemIndex)"
-                                                               class="w-full border-0 bg-transparent text-sm text-center focus:ring-0 px-2 min-w-[4.5rem]"
+                                                               class="w-full border-0 bg-transparent text-sm text-center focus:ring-0 px-3 min-w-[6rem]"
                                                                min="0.01" step="0.01">
                                                     </td>
                                                     <!-- Rate -->
-                                                    <td class="px-4 py-3 align-top" style="width: 11%;">
+                                                    <td class="px-4 py-3 align-top" style="width: 11%; min-width: 120px;">
                                                         <input type="text"
                                                                inputmode="decimal"
                                                                x-model="item.unit_price_input"
                                                                @focus="prepareCurrencyInput(sectionIndex, itemIndex, 'unit_price'); $event.target.select()"
                                                                @blur="finalizeCurrencyInput(sectionIndex, itemIndex, 'unit_price')"
                                                                @input="handleCurrencyInput(sectionIndex, itemIndex, 'unit_price', $event.target.value)"
-                                                               class="w-full border-0 bg-transparent text-sm text-right focus:ring-0 px-2 pr-2 min-w-[6.5rem]"
+                                                               class="w-full border-0 bg-transparent text-sm text-right focus:ring-0 px-3 pr-2 min-w-[7.5rem]"
                                                                placeholder="0.00">
                                                     </td>
                                                     <!-- Amount (Editable with Override Indicator) -->
-                                                    <td class="px-4 py-3 align-top" style="width: 11%;">
-                                                        <div class="flex items-center justify-end gap-2 min-w-[7rem]">
+                                                    <td class="px-4 py-3 align-top" style="width: 11%; min-width: 130px;">
+                                                        <div class="flex items-center justify-end gap-2 min-w-[8rem]">
                                                             <input type="text"
                                                                    inputmode="decimal"
                                                                    x-model="item.amount_input"
@@ -378,7 +378,7 @@
                                                                    @blur="finalizeCurrencyInput(sectionIndex, itemIndex, 'amount')"
                                                                    @input="handleCurrencyInput(sectionIndex, itemIndex, 'amount', $event.target.value)"
                                                                    :class="item.amount_manually_edited ? 'bg-amber-50 border-amber-300 text-amber-900' : 'border-transparent'"
-                                                                   class="w-full border rounded-md px-3 py-2 text-sm text-right focus:ring-0 focus:border-blue-500 min-w-[6.75rem]"
+                                                                   class="w-full border rounded-md px-3 py-2 text-sm text-right focus:ring-0 focus:border-blue-500 min-w-[8rem]"
                                                                    placeholder="0.00">
                                                             <!-- Reset Override Button -->
                                                             <button type="button"
@@ -393,7 +393,7 @@
                                                         </div>
                                                     </td>
                                                     <!-- Action -->
-                                                    <td class="px-4 py-3 text-center" style="width: 40px;">
+                                                    <td class="px-4 py-3 text-center" style="width: 40px; min-width: 40px;">
                                                         <button @click="removeItemFromSection(sectionIndex, itemIndex)" type="button"
                                                                 x-show="section.items.length > 1"
                                                                 class="text-red-400 hover:text-red-600">
@@ -545,7 +545,7 @@
                                                                    @focus="prepareCurrencyInput(sectionIndex, itemIndex, 'unit_price'); $event.target.select()"
                                                                    @blur="finalizeCurrencyInput(sectionIndex, itemIndex, 'unit_price')"
                                                                    @input="handleCurrencyInput(sectionIndex, itemIndex, 'unit_price', $event.target.value)"
-                                                                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-right focus:ring-blue-500 focus:border-blue-500 min-w-[6.5rem]"
+                                                                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-right focus:ring-blue-500 focus:border-blue-500 min-w-[7.5rem]"
                                                                    placeholder="0.00">
                                                         </div>
                                                     </div>
@@ -562,7 +562,7 @@
                                                                        @blur="finalizeCurrencyInput(sectionIndex, itemIndex, 'amount')"
                                                                        @input="handleCurrencyInput(sectionIndex, itemIndex, 'amount', $event.target.value)"
                                                                        :class="item.amount_manually_edited ? 'bg-amber-50 border-amber-300 text-amber-900' : 'border-gray-300'"
-                                                                       class="min-w-[6.75rem] border rounded-md px-3 py-2 text-sm text-right focus:ring-blue-500 focus:border-blue-500"
+                                                                       class="min-w-[8.5rem] border rounded-md px-3 py-2 text-sm text-right focus:ring-blue-500 focus:border-blue-500"
                                                                        placeholder="0.00">
                                                                 <!-- Reset Override Button -->
                                                                 <button type="button"
