@@ -331,9 +331,15 @@
                                                     </td>
                                                     <!-- Unit -->
                                                     <td class="px-4 py-3">
-                                                        <input type="text" x-model="item.unit"
-                                                               placeholder="Nos"
-                                                               class="w-full border-0 bg-transparent text-sm text-center focus:ring-0 p-0">
+                                                        <select x-model="item.unit"
+                                                                class="w-full border-0 bg-transparent text-sm text-center focus:ring-0 p-0">
+                                                            <option value="m2">m2</option>
+                                                            <option value="ft2">ft2</option>
+                                                            <option value="pcs">pcs</option>
+                                                            <option value="units">units</option>
+                                                            <option value="L/S">L/S</option>
+                                                            <option value="custom">custom</option>
+                                                        </select>
                                                     </td>
                                                     <!-- Quantity -->
                                                     <td class="px-4 py-3">

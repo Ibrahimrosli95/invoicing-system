@@ -233,17 +233,18 @@
 
                                                 <!-- Row 2: Unit, Quantity, Unit Price -->
                                                 <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-                                                    <div x-data="{ showCustomUnit: item.unit && !['m2', 'ft2', 'pcs', 'L/S'].includes(item.unit) }">
+                                                    <div x-data="{ showCustomUnit: item.unit && !['m2', 'ft2', 'pcs', 'units', 'L/S'].includes(item.unit) }">
                                                         <label class="block text-xs font-medium text-gray-700 mb-1">Unit</label>
                                                         <select x-model="item.unit"
-                                                                x-init="if (item.unit && !['m2', 'ft2', 'pcs', 'L/S', 'custom'].includes(item.unit)) { item.customUnit = item.unit; item.unit = 'custom'; }"
+                                                                x-init="if (item.unit && !['m2', 'ft2', 'pcs', 'units', 'L/S', 'custom'].includes(item.unit)) { item.customUnit = item.unit; item.unit = 'custom'; }"
                                                                 @change="showCustomUnit = ($event.target.value === 'custom'); if ($event.target.value !== 'custom') { item.customUnit = ''; }"
                                                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                                                             <option value="m2" :selected="item.unit === 'm2'">m²</option>
                                                             <option value="ft2" :selected="item.unit === 'ft2'">ft²</option>
                                                             <option value="pcs" :selected="item.unit === 'pcs'">pcs</option>
+                                                            <option value="units" :selected="item.unit === 'units'">units</option>
                                                             <option value="L/S" :selected="item.unit === 'L/S'">L/S</option>
-                                                            <option value="custom" :selected="!['m2', 'ft2', 'pcs', 'L/S'].includes(item.unit)">Custom</option>
+                                                            <option value="custom" :selected="!['m2', 'ft2', 'pcs', 'units', 'L/S'].includes(item.unit)">Custom</option>
                                                         </select>
                                                         <input type="text"
                                                                x-show="showCustomUnit || item.unit === 'custom'"

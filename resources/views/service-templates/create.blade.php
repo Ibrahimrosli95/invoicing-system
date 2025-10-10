@@ -224,6 +224,7 @@
                                                             <option value="m2">m²</option>
                                                             <option value="ft2">ft²</option>
                                                             <option value="pcs">pcs</option>
+                                                            <option value="units">units</option>
                                                             <option value="L/S">L/S</option>
                                                             <option value="custom">Custom</option>
                                                         </select>
