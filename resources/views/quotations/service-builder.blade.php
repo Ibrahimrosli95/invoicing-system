@@ -3011,12 +3011,17 @@ function quotationBuilder() {
 
             // Store count before clearing
             const sectionCount = this.selectedSectionIds.length;
+            let addedCount = 0;
+            let itemsAdded = 0;
 
             // Load each selected section
             for (const sectionId of this.selectedSectionIds) {
                 const section = this.allSections.find(s => s.id === sectionId);
                 if (section) {
+                    const itemCount = section.items ? section.items.length : 0;
                     this.addSectionFromTemplate(section);
+                    addedCount++;
+                    itemsAdded += itemCount;
                 }
             }
 
@@ -3027,7 +3032,7 @@ function quotationBuilder() {
 
             this.$dispatch('notify', {
                 type: 'success',
-                message: `${sectionCount === 1 ? '1 section' : sectionCount + ' sections'} added successfully!`
+                message: `${addedCount} ${addedCount === 1 ? 'section' : 'sections'} with ${itemsAdded} ${itemsAdded === 1 ? 'item' : 'items'} added successfully!`
             });
         },
 

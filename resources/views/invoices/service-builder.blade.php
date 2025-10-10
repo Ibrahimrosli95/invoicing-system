@@ -1558,7 +1558,7 @@
                                     class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition">
                                 Cancel
                             </button>
-                            <button @click="loadSelectedSections"
+                            <button @click="addSectionFromTemplate(selectedSectionIds)"
                                     :disabled="selectedSectionIds.length === 0"
                                     :class="selectedSectionIds.length > 0 ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
                                     class="px-4 py-2 text-sm font-medium rounded-md transition">
@@ -3082,14 +3082,18 @@ function invoiceBuilder() {
 
         addSectionFromTemplate(selectedSectionIds) {
             if (!selectedSectionIds || selectedSectionIds.length === 0) {
-                alert('Please select at least one section.');
+                this.$dispatch('notify', { type: 'warning', message: 'Please select at least one section' });
                 return;
             }
+
+            let addedCount = 0;
+            let itemsAdded = 0;
 
             selectedSectionIds.forEach(sectionId => {
                 const section = this.allSections.find(s => s.id === sectionId);
                 if (!section) return;
 
+                const itemCount = section.items ? section.items.length : 0;
                 const newSection = {
                     id: this.sectionIdCounter++,
                     name: section.name || '',
@@ -3106,12 +3110,19 @@ function invoiceBuilder() {
                     }))
                 };
                 this.sections.push(newSection);
+                addedCount++;
+                itemsAdded += itemCount;
             });
 
             this.calculateTotals();
             this.showTemplateModal = false;
             this.selectedSectionIds = [];
             this.sectionFilterTemplate = '';
+
+            this.$dispatch('notify', {
+                type: 'success',
+                message: `${addedCount} ${addedCount === 1 ? 'section' : 'sections'} with ${itemsAdded} ${itemsAdded === 1 ? 'item' : 'items'} added successfully!`
+            });
         },
 
         // Amount Calculation Methods
