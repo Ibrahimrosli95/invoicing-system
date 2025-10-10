@@ -307,64 +307,79 @@
                                     </div>
 
                                     <!-- Section Items Table -->
-                                    <table class="w-full">
+                                    <table class="w-full table-fixed">
                                         <thead class="bg-gray-50 border-b border-gray-200">
                                             <tr>
                                                 <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-12">SI</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left" style="width: 42%;">Details</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left align-top w-[40%]">Details</th>
                                                 <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-32">Unit</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-28">Qty</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-32">Rate (RM)</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-36">Amount (RM)</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-14">Action</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-24">Qty</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-40">Rate (RM)</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-48">Amount (RM)</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-16">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-100">
                                             <template x-for="(item, itemIndex) in section.items" :key="item.id">
-                                                <tr class="hover:bg-gray-50">
+                                                <tr class="hover:bg-gray-50 align-top">
                                                     <td class="px-4 py-3 text-center text-sm text-gray-600" x-text="itemIndex + 1"></td>
                                                     <!-- Details -->
-                                                    <td class="px-4 py-3">
+                                                    <td class="px-4 py-3 align-top">
                                                         <textarea x-model="item.description"
                                                                   placeholder="Item description..."
                                                                   rows="2"
-                                                                  class="w-full border-0 bg-transparent text-sm focus:ring-0 p-0 resize-none overflow-hidden"
+                                                                  class="w-full border-0 bg-transparent text-sm focus:ring-0 p-0 resize-none overflow-hidden leading-5 min-h-[2.5rem]"
                                                                   @input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"></textarea>
                                                     </td>
                                                     <!-- Unit -->
-                                                    <td class="px-4 py-3">
-                                                        <select x-model="item.unit"
-                                                                class="w-full border-0 bg-transparent text-sm text-center focus:ring-0 p-0">
-                                                            <option value="m2">m2</option>
-                                                            <option value="ft2">ft2</option>
-                                                            <option value="pcs">pcs</option>
-                                                            <option value="units">units</option>
-                                                            <option value="L/S">L/S</option>
-                                                            <option value="custom">custom</option>
-                                                        </select>
+                                                    <td class="px-4 py-3 align-top">
+                                                        <div class="relative flex items-center justify-center">
+                                                            <select x-model="item.unit"
+                                                                    class="w-full border-0 bg-transparent text-sm text-center focus:ring-0 px-2 py-1 pr-10 appearance-none">
+                                                                <option value="m2">m2</option>
+                                                                <option value="ft2">ft2</option>
+                                                                <option value="pcs">pcs</option>
+                                                                <option value="units">units</option>
+                                                                <option value="L/S">L/S</option>
+                                                                <option value="custom">custom</option>
+                                                            </select>
+                                                            <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-400">
+                                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                                </svg>
+                                                            </div>
+                                                        </div>
                                                     </td>
                                                     <!-- Quantity -->
-                                                    <td class="px-4 py-3">
+                                                    <td class="px-4 py-3 align-top">
                                                         <input type="number" x-model="item.quantity"
                                                                @input="recalculateItemAmount(sectionIndex, itemIndex)"
-                                                               class="w-full border-0 bg-transparent text-sm text-center focus:ring-0 p-0"
+                                                               class="w-full border-0 bg-transparent text-sm text-center focus:ring-0 px-2 min-w-[4.5rem]"
                                                                min="0.01" step="0.01">
                                                     </td>
                                                     <!-- Rate -->
-                                                    <td class="px-4 py-3">
-                                                        <input type="number" x-model="item.unit_price"
-                                                               @input="recalculateItemAmount(sectionIndex, itemIndex)"
-                                                               class="w-full border-0 bg-transparent text-sm text-right focus:ring-0 p-0"
-                                                               min="0" step="0.01">
+                                                    <td class="px-4 py-3 align-top">
+                                                        <input type="text"
+                                                               inputmode="decimal"
+                                                               x-model="item.unit_price_input"
+                                                               @focus="prepareCurrencyInput(sectionIndex, itemIndex, 'unit_price'); $event.target.select()"
+                                                               @blur="finalizeCurrencyInput(sectionIndex, itemIndex, 'unit_price')"
+                                                               @input="handleCurrencyInput(sectionIndex, itemIndex, 'unit_price', $event.target.value)"
+                                                               class="w-full border-0 bg-transparent text-sm text-right focus:ring-0 px-2 pr-2 min-w-[8.5rem]"
+                                                               placeholder="0.00">
                                                     </td>
                                                     <!-- Amount (Editable with Override Indicator) -->
-                                                    <td class="px-4 py-3">
-                                                        <div class="flex items-center justify-end gap-2">
-                                                            <input type="number" x-model="item.amount"
-                                                                   @input="handleAmountOverride(sectionIndex, itemIndex, $event.target.value)"
-                                                                   :class="item.amount_manually_edited ? 'bg-amber-50 border-amber-300 text-amber-900' : 'bg-transparent'"
-                                                                   class="w-24 border-0 text-sm text-right focus:ring-0 p-0"
-                                                                   min="0" step="0.01">
+                                                    <td class="px-4 py-3 align-top">
+                                                        <div class="flex items-center justify-end gap-2 min-w-[10.5rem]">
+                                                            <input type="text"
+                                                                   inputmode="decimal"
+                                                                   x-model="item.amount_input"
+                                                                   @focus="prepareCurrencyInput(sectionIndex, itemIndex, 'amount'); $event.target.select()"
+                                                                   @blur="finalizeCurrencyInput(sectionIndex, itemIndex, 'amount')"
+                                                                   @input="handleCurrencyInput(sectionIndex, itemIndex, 'amount', $event.target.value)"
+                                                                   :class="item.amount_manually_edited ? 'bg-amber-50 border-amber-300 text-amber-900' : 'border-transparent'"
+                                                                   class="w-full border rounded-md px-3 py-2 text-sm text-right focus:ring-0 focus:border-blue-500 min-w-[9.5rem]"
+                                                                   placeholder="0.00">
                                                             <!-- Reset Override Button -->
                                                             <button type="button"
                                                                     x-show="item.amount_manually_edited"
@@ -411,7 +426,7 @@
                                                     Section Subtotal:
                                                 </td>
                                                 <td class="px-4 py-3 text-right text-sm font-bold text-blue-600">
-                                                    RM <span x-text="getSectionSubtotal(section).toFixed(2)">0.00</span>
+                                                    <span x-text="formatCurrency(getSectionSubtotal(section))">RM 0.00</span>
                                                 </td>
                                                 <td></td>
                                             </tr>
@@ -498,15 +513,22 @@
                                                     <div class="grid grid-cols-3 gap-2">
                                                         <div>
                                                             <label class="block text-xs font-medium text-gray-700 mb-1">Unit</label>
-                                                            <select x-model="item.unit"
-                                                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-center focus:ring-blue-500 focus:border-blue-500">
-                                                                <option value="m2">m2</option>
-                                                                <option value="ft2">ft2</option>
-                                                                <option value="pcs">pcs</option>
-                                                                <option value="units">units</option>
-                                                                <option value="L/S">L/S</option>
-                                                                <option value="custom">custom</option>
-                                                            </select>
+                                                            <div class="relative">
+                                                                <select x-model="item.unit"
+                                                                        class="w-full border border-gray-300 rounded-md px-3 py-2 pr-10 text-sm text-center focus:ring-blue-500 focus:border-blue-500 appearance-none">
+                                                                    <option value="m2">m2</option>
+                                                                    <option value="ft2">ft2</option>
+                                                                    <option value="pcs">pcs</option>
+                                                                    <option value="units">units</option>
+                                                                    <option value="L/S">L/S</option>
+                                                                    <option value="custom">custom</option>
+                                                                </select>
+                                                                <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
+                                                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                                    </svg>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                         <div>
                                                             <label class="block text-xs font-medium text-gray-700 mb-1">Qty</label>
@@ -517,10 +539,14 @@
                                                         </div>
                                                         <div>
                                                             <label class="block text-xs font-medium text-gray-700 mb-1">Rate</label>
-                                                            <input type="number" x-model="item.unit_price"
-                                                                   @input="recalculateItemAmount(sectionIndex, itemIndex)"
+                                                            <input type="text"
+                                                                   inputmode="decimal"
+                                                                   x-model="item.unit_price_input"
+                                                                   @focus="prepareCurrencyInput(sectionIndex, itemIndex, 'unit_price'); $event.target.select()"
+                                                                   @blur="finalizeCurrencyInput(sectionIndex, itemIndex, 'unit_price')"
+                                                                   @input="handleCurrencyInput(sectionIndex, itemIndex, 'unit_price', $event.target.value)"
                                                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-right focus:ring-blue-500 focus:border-blue-500"
-                                                                   min="0" step="0.01">
+                                                                   placeholder="0.00">
                                                         </div>
                                                     </div>
 
@@ -529,11 +555,15 @@
                                                         <div class="flex items-center justify-between gap-2">
                                                             <label class="text-xs font-medium text-gray-700">Amount (RM):</label>
                                                             <div class="flex items-center gap-2">
-                                                                <input type="number" x-model="item.amount"
-                                                                       @input="handleAmountOverride(sectionIndex, itemIndex, $event.target.value)"
+                                                               <input type="text"
+                                                                       inputmode="decimal"
+                                                                       x-model="item.amount_input"
+                                                                       @focus="prepareCurrencyInput(sectionIndex, itemIndex, 'amount'); $event.target.select()"
+                                                                       @blur="finalizeCurrencyInput(sectionIndex, itemIndex, 'amount')"
+                                                                       @input="handleCurrencyInput(sectionIndex, itemIndex, 'amount', $event.target.value)"
                                                                        :class="item.amount_manually_edited ? 'bg-amber-50 border-amber-300 text-amber-900' : 'border-gray-300'"
-                                                                       class="w-24 border rounded-md px-3 py-2 text-sm text-right focus:ring-blue-500 focus:border-blue-500"
-                                                                       min="0" step="0.01">
+                                                                       class="min-w-[10rem] border rounded-md px-3 py-2 text-sm text-right focus:ring-blue-500 focus:border-blue-500"
+                                                                       placeholder="0.00">
                                                                 <!-- Reset Override Button -->
                                                                 <button type="button"
                                                                         x-show="item.amount_manually_edited"
@@ -572,7 +602,7 @@
                                             <div class="flex justify-between items-center">
                                                 <span class="text-sm font-semibold text-gray-900">Section Total:</span>
                                                 <span class="text-sm font-bold text-blue-600">
-                                                    RM <span x-text="getSectionSubtotal(section).toFixed(2)">0.00</span>
+                                                    <span x-text="formatCurrency(getSectionSubtotal(section))">RM 0.00</span>
                                                 </span>
                                             </div>
                                         </div>
@@ -1456,7 +1486,7 @@
                                     <div class="text-xs text-gray-500">Items</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-lg font-bold text-purple-600">RM <span x-text="(template.base_price || 0).toFixed(0)"></span></div>
+                                    <div class="text-lg font-bold text-purple-600" x-text="formatCurrency(template.base_price || 0)"></div>
                                     <div class="text-xs text-gray-500">Est. Price</div>
                                 </div>
                             </div>
@@ -1539,7 +1569,7 @@
                                             </svg>
                                             <span x-text="section.items_count + ' items'"></span>
                                             <span class="mx-2">•</span>
-                                            <span x-text="'Est. RM ' + (section.estimated_total || 0).toFixed(2)"></span>
+                                            <span x-text="'Est. ' + formatCurrency(section.estimated_total || 0)"></span>
                                         </div>
                                     </div>
                                 </label>
@@ -1873,8 +1903,8 @@
                                 <td style="text-align: center;" x-text="index + 1"></td>
                                 <td x-text="item.description"></td>
                                 <td style="text-align: center;" x-text="item.quantity"></td>
-                                <td style="text-align: right;" x-text="'RM ' + parseFloat(item.unit_price).toFixed(2)"></td>
-                                <td style="text-align: right;" x-text="'RM ' + (item.quantity * item.unit_price).toFixed(2)"></td>
+                                <td style="text-align: right;" x-text="formatCurrency(item.unit_price)"></td>
+                                <td style="text-align: right;" x-text="formatCurrency(item.quantity * item.unit_price)"></td>
                             </tr></template>
                         </tbody></table>
 
@@ -1885,12 +1915,12 @@
                             </td>
                             <td :style="optionalSections.show_payment_instructions && paymentInstructions ? 'width: 50%;' : 'width: 100%;'" style="vertical-align: top;">
                                 <table class="preview-totals-table">
-                                    <tr><td>Subtotal</td><td x-text="'RM ' + subtotal.toFixed(2)"></td></tr>
-                                    <tr x-show="discountAmount > 0"><td>Discount</td><td x-text="'-RM ' + discountAmount.toFixed(2)"></td></tr>
-                                    <tr x-show="taxAmount > 0"><td>Tax</td><td x-text="'RM ' + taxAmount.toFixed(2)"></td></tr>
-                                    <tr class="preview-total-row"><td>Total</td><td x-text="'RM ' + total.toFixed(2)"></td></tr>
-                                    <tr><td>Paid</td><td x-text="'RM ' + paidAmount.toFixed(2)"></td></tr>
-                                    <tr class="preview-balance-row"><td>Balance Due</td><td x-text="'RM ' + (total - paidAmount).toFixed(2)"></td></tr>
+                                    <tr><td>Subtotal</td><td x-text="formatCurrency(subtotal)"></td></tr>
+                                    <tr x-show="discountAmount > 0"><td>Discount</td><td x-text="'- ' + formatCurrency(discountAmount)"></td></tr>
+                                    <tr x-show="taxAmount > 0"><td>Tax</td><td x-text="formatCurrency(taxAmount)"></td></tr>
+                                    <tr class="preview-total-row"><td>Total</td><td x-text="formatCurrency(total)"></td></tr>
+                                    <tr><td>Paid</td><td x-text="formatCurrency(paidAmount)"></td></tr>
+                                    <tr class="preview-balance-row"><td>Balance Due</td><td x-text="formatCurrency(total - paidAmount)"></td></tr>
                                 </table>
                             </td>
                         </tr></table>
@@ -2990,11 +3020,23 @@ function invoiceBuilder() {
 
                 // Populate items within section
                 section.items.forEach(item => {
+                    const rawQuantity = parseFloat(item.default_quantity ?? item.quantity ?? 1);
+                    const quantity = isNaN(rawQuantity) ? 1 : rawQuantity;
+                    const rawUnitPrice = parseFloat(item.unit_price ?? item.default_unit_price ?? 0);
+                    const unitPrice = isNaN(rawUnitPrice) ? 0 : rawUnitPrice;
+                    const amount = quantity * unitPrice;
+
                     newSection.items.push({
                         id: this.itemIdCounter++,
                         description: item.description,
-                        quantity: item.default_quantity || 1,
-                        unit_price: item.unit_price || 0
+                        details: item.details || '',
+                        unit: item.unit || 'Nos',
+                        quantity: quantity,
+                        unit_price: unitPrice,
+                        unit_price_input: this.formatNumberForDisplay(unitPrice),
+                        amount: amount,
+                        amount_input: this.formatNumberForDisplay(amount),
+                        amount_manually_edited: false
                     });
                 });
 
@@ -3032,11 +3074,21 @@ function invoiceBuilder() {
         },
 
         addItemToSection(sectionIndex) {
+            if (!this.sections[sectionIndex]) {
+                return;
+            }
+
             this.sections[sectionIndex].items.push({
                 id: this.itemIdCounter++,
                 description: '',
+                details: '',
+                unit: 'units',
                 quantity: 1,
-                unit_price: 0
+                unit_price: 0,
+                unit_price_input: this.formatNumberForDisplay(0),
+                amount: 0,
+                amount_input: this.formatNumberForDisplay(0),
+                amount_manually_edited: false
             });
         },
 
@@ -3049,7 +3101,11 @@ function invoiceBuilder() {
 
         getSectionSubtotal(section) {
             return section.items.reduce((total, item) => {
-                return total + (parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0));
+                const amountValue = item.amount !== undefined
+                    ? parseFloat(item.amount || 0)
+                    : (parseFloat(item.quantity || 0) * parseFloat(item.unit_price || 0));
+
+                return total + (isNaN(amountValue) ? 0 : amountValue);
             }, 0);
         },
 
@@ -3092,17 +3148,30 @@ function invoiceBuilder() {
                     id: this.sectionIdCounter++,
                     name: section.name || '',
                     description: section.description || '',
-                    items: (section.items || []).map(item => ({
+                    items: []
+                };
+
+                (section.items || []).forEach(item => {
+                    const rawQuantity = parseFloat(item.default_quantity ?? item.quantity ?? 1);
+                    const quantity = isNaN(rawQuantity) ? 1 : rawQuantity;
+                    const rawUnitPrice = parseFloat(item.default_unit_price ?? item.unit_price ?? 0);
+                    const unitPrice = isNaN(rawUnitPrice) ? 0 : rawUnitPrice;
+                    const amount = quantity * unitPrice;
+
+                    newSection.items.push({
                         id: this.itemIdCounter++,
                         description: item.description || '',
                         details: item.details || '',
-                        unit: item.unit || '',
-                        quantity: parseFloat(item.default_quantity) || 1,
-                        unit_price: parseFloat(item.default_unit_price) || 0,
-                        amount_override: item.amount_override ? parseFloat(item.amount_override) : null,
-                        amount_manually_edited: item.amount_manually_edited || false
-                    }))
-                };
+                        unit: item.unit || 'Nos',
+                        quantity: quantity,
+                        unit_price: unitPrice,
+                        unit_price_input: this.formatNumberForDisplay(unitPrice),
+                        amount: amount,
+                        amount_input: this.formatNumberForDisplay(amount),
+                        amount_manually_edited: false
+                    });
+                });
+
                 this.sections.push(newSection);
             });
 
@@ -3127,17 +3196,30 @@ function invoiceBuilder() {
                     id: this.sectionIdCounter++,
                     name: section.name || '',
                     description: section.description || '',
-                    items: (section.items || []).map(item => ({
+                    items: []
+                };
+
+                (section.items || []).forEach(item => {
+                    const rawQuantity = parseFloat(item.default_quantity ?? item.quantity ?? 1);
+                    const quantity = isNaN(rawQuantity) ? 1 : rawQuantity;
+                    const rawUnitPrice = parseFloat(item.default_unit_price ?? item.unit_price ?? 0);
+                    const unitPrice = isNaN(rawUnitPrice) ? 0 : rawUnitPrice;
+                    const amount = quantity * unitPrice;
+
+                    newSection.items.push({
                         id: this.itemIdCounter++,
                         description: item.description || '',
                         details: item.details || '',
-                        unit: item.unit || '',
-                        quantity: parseFloat(item.default_quantity) || 1,
-                        unit_price: parseFloat(item.default_unit_price) || 0,
-                        amount_override: item.amount_override ? parseFloat(item.amount_override) : null,
-                        amount_manually_edited: item.amount_manually_edited || false
-                    }))
-                };
+                        unit: item.unit || 'Nos',
+                        quantity: quantity,
+                        unit_price: unitPrice,
+                        unit_price_input: this.formatNumberForDisplay(unitPrice),
+                        amount: amount,
+                        amount_input: this.formatNumberForDisplay(amount),
+                        amount_manually_edited: false
+                    });
+                });
+
                 this.sections.push(newSection);
                 addedCount++;
                 itemsAdded += itemCount;
@@ -3155,34 +3237,58 @@ function invoiceBuilder() {
         },
 
         // Amount Calculation Methods
-        recalculateItemAmount(item) {
-            const quantity = parseFloat(item.quantity) || 0;
-            const unitPrice = parseFloat(item.unit_price) || 0;
-            const calculatedAmount = quantity * unitPrice;
-
-            // Only recalculate if not manually overridden
-            if (!item.amount_override && !item.amount_manually_edited) {
-                this.calculateTotals();
-            }
-
-            return calculatedAmount;
-        },
-
-        handleAmountOverride(item, newAmount) {
-            const amount = parseFloat(newAmount);
-            if (isNaN(amount) || amount < 0) {
-                alert('Please enter a valid positive amount.');
+        recalculateItemAmount(sectionIndex, itemIndex) {
+            const item = this.sections[sectionIndex]?.items[itemIndex];
+            if (!item) {
                 return;
             }
 
-            item.amount_override = amount;
-            item.amount_manually_edited = true;
+            if (!item.amount_manually_edited) {
+                const quantity = parseFloat(item.quantity || 0) || 0;
+                const unitPrice = parseFloat(item.unit_price || 0) || 0;
+                item.amount = quantity * unitPrice;
+                item.amount_input = this.formatNumberForDisplay(item.amount);
+            }
+
             this.calculateTotals();
         },
 
-        resetAmountOverride(item) {
-            item.amount_override = null;
+        handleAmountOverride(sectionIndex, itemIndex, newAmount, formatDisplay = false) {
+            const item = this.sections[sectionIndex]?.items[itemIndex];
+            if (!item) {
+                return;
+            }
+
+            const quantity = parseFloat(item.quantity || 0) || 0;
+            const calculatedAmount = quantity * (parseFloat(item.unit_price || 0) || 0);
+            const overrideAmount = typeof newAmount === 'number'
+                ? newAmount
+                : this.parseCurrencyInput(newAmount);
+
+            if (Math.abs(overrideAmount - calculatedAmount) > 0.01) {
+                item.amount_manually_edited = true;
+                item.amount = overrideAmount;
+            } else {
+                item.amount_manually_edited = false;
+                item.amount = calculatedAmount;
+            }
+
+            if (formatDisplay) {
+                item.amount_input = this.formatNumberForDisplay(item.amount);
+            }
+
+            this.calculateTotals();
+        },
+
+        resetAmountOverride(sectionIndex, itemIndex) {
+            const item = this.sections[sectionIndex]?.items[itemIndex];
+            if (!item) {
+                return;
+            }
+
             item.amount_manually_edited = false;
+            item.amount = (parseFloat(item.quantity || 0) || 0) * (parseFloat(item.unit_price || 0) || 0);
+            item.amount_input = this.formatNumberForDisplay(item.amount);
             this.calculateTotals();
         },
 
@@ -3196,7 +3302,15 @@ function invoiceBuilder() {
                 unit: originalItem.unit || '',
                 quantity: parseFloat(originalItem.quantity) || 1,
                 unit_price: parseFloat(originalItem.unit_price) || 0,
-                amount_override: originalItem.amount_override ? parseFloat(originalItem.amount_override) : null,
+                unit_price_input: originalItem.unit_price_input || this.formatNumberForDisplay(originalItem.unit_price),
+                amount: originalItem.amount !== undefined
+                    ? parseFloat(originalItem.amount) || 0
+                    : (parseFloat(originalItem.quantity) || 0) * (parseFloat(originalItem.unit_price) || 0),
+                amount_input: originalItem.amount_input || this.formatNumberForDisplay(
+                    originalItem.amount !== undefined
+                        ? originalItem.amount
+                        : (parseFloat(originalItem.quantity) || 0) * (parseFloat(originalItem.unit_price) || 0)
+                ),
                 amount_manually_edited: originalItem.amount_manually_edited || false
             };
 
@@ -3210,16 +3324,24 @@ function invoiceBuilder() {
                 id: this.sectionIdCounter++,
                 name: originalSection.name + ' (Copy)',
                 description: originalSection.description || '',
-                items: (originalSection.items || []).map(item => ({
-                    id: this.itemIdCounter++,
-                    description: item.description || '',
-                    details: item.details || '',
-                    unit: item.unit || '',
-                    quantity: parseFloat(item.quantity) || 1,
-                    unit_price: parseFloat(item.unit_price) || 0,
-                    amount_override: item.amount_override ? parseFloat(item.amount_override) : null,
-                    amount_manually_edited: item.amount_manually_edited || false
-                }))
+                items: (originalSection.items || []).map(item => {
+                    const amountValue = item.amount !== undefined
+                        ? parseFloat(item.amount) || 0
+                        : (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
+
+                    return {
+                        id: this.itemIdCounter++,
+                        description: (item.description || '') + ' (Copy)',
+                        details: item.details || '',
+                        unit: item.unit || '',
+                        quantity: parseFloat(item.quantity) || 1,
+                        unit_price: parseFloat(item.unit_price) || 0,
+                        unit_price_input: item.unit_price_input || this.formatNumberForDisplay(item.unit_price),
+                        amount: amountValue,
+                        amount_input: item.amount_input || this.formatNumberForDisplay(amountValue),
+                        amount_manually_edited: item.amount_manually_edited || false
+                    };
+                })
             };
 
             this.sections.splice(sectionIndex + 1, 0, duplicatedSection);
@@ -3268,7 +3390,118 @@ function invoiceBuilder() {
 
         // Currency Formatting
         formatCurrency(amount) {
-            return 'RM ' + parseFloat(amount || 0).toFixed(2);
+            const value = this.normalizeNumericValue(amount, 0);
+            return 'RM ' + this.formatWithGrouping(value);
+        },
+
+        formatNumberForDisplay(value) {
+            const numericValue = this.normalizeNumericValue(value, 0);
+            return this.formatWithGrouping(numericValue);
+        },
+
+        formatNumberForEditing(value) {
+            const numericValue = this.normalizeNumericValue(value, 0);
+            return numericValue.toFixed(2);
+        },
+
+        sanitizeCurrencyInput(value) {
+            if (value === null || value === undefined) {
+                return '';
+            }
+
+            const stringValue = value.toString();
+            const isNegative = stringValue.trim().startsWith('-');
+            const unsigned = stringValue.replace(/[^0-9.]/g, '');
+            if (unsigned === '') {
+                return isNegative ? '-' : '';
+            }
+
+            const parts = unsigned.split('.');
+            const normalized = parts[0] + (parts.length > 1 ? '.' + parts.slice(1).join('') : '');
+            return (isNegative ? '-' : '') + normalized;
+        },
+
+        parseCurrencyInput(value) {
+            return this.normalizeNumericValue(value, 0);
+        },
+
+        normalizeNumericValue(value, defaultValue = 0) {
+            if (value === null || value === undefined || value === '') {
+                return defaultValue;
+            }
+
+            if (typeof value === 'number') {
+                return isFinite(value) ? value : defaultValue;
+            }
+
+            const cleaned = value.toString().replace(/[^0-9.\-]/g, '');
+            const parsed = parseFloat(cleaned);
+            return isNaN(parsed) ? defaultValue : parsed;
+        },
+
+        formatWithGrouping(value, decimals = 2) {
+            if (!isFinite(value)) {
+                const fallback = Number(0).toFixed(decimals);
+                const [fallbackWhole, fallbackFraction] = fallback.split('.');
+                const groupedFallback = fallbackWhole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                return fallbackFraction !== undefined ? `${groupedFallback}.${fallbackFraction}` : groupedFallback;
+            }
+
+            const fixed = Number(value || 0).toFixed(decimals);
+            const [whole, fraction] = fixed.split('.');
+            const groupedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            return fraction !== undefined ? `${groupedWhole}.${fraction}` : groupedWhole;
+        },
+
+        prepareCurrencyInput(sectionIndex, itemIndex, field) {
+            const item = this.sections[sectionIndex]?.items[itemIndex];
+            if (!item) {
+                return;
+            }
+
+            const key = `${field}_input`;
+            const baseValue = field === 'amount' ? item.amount : item.unit_price;
+            item[key] = this.formatNumberForEditing(baseValue);
+        },
+
+        handleCurrencyInput(sectionIndex, itemIndex, field, value) {
+            const item = this.sections[sectionIndex]?.items[itemIndex];
+            if (!item) {
+                return;
+            }
+
+            const key = `${field}_input`;
+            const sanitized = this.sanitizeCurrencyInput(value);
+            item[key] = sanitized;
+
+            const numericValue = this.parseCurrencyInput(sanitized);
+
+            if (field === 'unit_price') {
+                item.unit_price = numericValue;
+                this.recalculateItemAmount(sectionIndex, itemIndex);
+            } else if (field === 'amount') {
+                this.handleAmountOverride(sectionIndex, itemIndex, numericValue);
+            }
+        },
+
+        finalizeCurrencyInput(sectionIndex, itemIndex, field) {
+            const item = this.sections[sectionIndex]?.items[itemIndex];
+            if (!item) {
+                return;
+            }
+
+            const key = `${field}_input`;
+            const sanitized = this.sanitizeCurrencyInput(item[key]);
+            const numericValue = this.parseCurrencyInput(sanitized);
+
+            if (field === 'unit_price') {
+                item.unit_price = numericValue;
+                item[key] = this.formatNumberForDisplay(item.unit_price);
+                this.recalculateItemAmount(sectionIndex, itemIndex);
+            } else if (field === 'amount') {
+                this.handleAmountOverride(sectionIndex, itemIndex, numericValue, true);
+                item[key] = this.formatNumberForDisplay(item.amount);
+            }
         },
 
         // Show Notification
