@@ -307,17 +307,17 @@
                                     </div>
 
                                     <!-- Section Items Table -->
-                                    <div class="w-full overflow-x-auto">
-                                    <table class="w-full table-fixed">
+                                    <div class="overflow-x-auto">
+                                    <table class="w-full table-fixed min-w-[720px]">
                                         <thead class="bg-gray-50 border-b border-gray-200">
                                             <tr>
                                                 <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 40px;">SI</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left align-top" style="width: 38%;">Details</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left align-top" style="width: 36%;">Details</th>
                                                 <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 12%;">Unit</th>
                                                 <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 14%;">Qty</th>
                                                 <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right" style="width: 15%;">Rate</th>
                                                 <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right" style="width: 16%;">Amount</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 40px;">
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 48px;">
                                                     <span class="sr-only">Actions</span>
                                                 </th>
                                             </tr>
@@ -327,7 +327,7 @@
                                                 <tr class="hover:bg-gray-50 align-top">
                                                     <td class="px-4 py-3 text-center text-sm text-gray-600" style="width: 40px;" x-text="itemIndex + 1"></td>
                                                     <!-- Details -->
-                                                    <td class="px-4 py-3 align-top" style="width: 38%;">
+                                                    <td class="px-4 py-3 align-top" style="width: 36%;">
                                                         <textarea x-model="item.description"
                                                                   placeholder="Item description..."
                                                                   rows="2"
@@ -338,7 +338,7 @@
                                                     <td class="px-4 py-3 align-top" style="width: 12%;">
                                                         <div class="relative flex items-center justify-center">
                                                             <select x-model="item.unit"
-                                                                    class="w-full min-w-0 border-0 bg-transparent text-sm text-center focus:ring-0 px-2 py-1 pr-8 appearance-none">
+                                                                    class="w-full min-w-0 border-0 bg-transparent text-sm text-center focus:ring-0 pl-2 pr-7 py-1 appearance-none">
                                                                 <option value="m2">m2</option>
                                                                 <option value="ft2">ft2</option>
                                                                 <option value="pcs">pcs</option>
@@ -346,7 +346,7 @@
                                                                 <option value="L/S">L/S</option>
                                                                 <option value="custom">custom</option>
                                                             </select>
-                                                            <div class="pointer-events-none absolute inset-y-0 right-1 flex items-center text-gray-400">
+                                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1 text-gray-400">
                                                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                                                 </svg>
@@ -396,7 +396,7 @@
                                                         </div>
                                                     </td>
                                                     <!-- Action -->
-                                                    <td class="px-4 py-3 text-center" style="width: 40px;">
+                                                    <td class="px-4 py-3 text-center" style="width: 48px;">
                                                         <button @click="removeItemFromSection(sectionIndex, itemIndex)" type="button"
                                                                 x-show="section.items.length > 1"
                                                                 class="text-red-400 hover:text-red-600">
