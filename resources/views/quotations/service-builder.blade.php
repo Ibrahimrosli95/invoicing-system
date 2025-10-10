@@ -311,8 +311,8 @@
                                         <thead class="bg-gray-50 border-b border-gray-200">
                                             <tr>
                                                 <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-12">SI</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left" style="width: 40%;">Details</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-20">Unit</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left" style="width: 45%;">Details</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-28">Unit</th>
                                                 <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-20">Qty</th>
                                                 <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-28">Rate (RM)</th>
                                                 <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-32">Amount (RM)</th>
@@ -325,9 +325,11 @@
                                                     <td class="px-4 py-3 text-center text-sm text-gray-600" x-text="itemIndex + 1"></td>
                                                     <!-- Details -->
                                                     <td class="px-4 py-3">
-                                                        <input type="text" x-model="item.description"
-                                                               placeholder="Item description..."
-                                                               class="w-full border-0 bg-transparent text-sm focus:ring-0 p-0">
+                                                        <textarea x-model="item.description"
+                                                                  placeholder="Item description..."
+                                                                  rows="2"
+                                                                  class="w-full border-0 bg-transparent text-sm focus:ring-0 p-0 resize-none overflow-hidden"
+                                                                  @input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"></textarea>
                                                     </td>
                                                     <!-- Unit -->
                                                     <td class="px-4 py-3">
@@ -485,18 +487,26 @@
                                                     <!-- Description -->
                                                     <div>
                                                         <label class="block text-xs font-medium text-gray-700 mb-1">Details</label>
-                                                        <input type="text" x-model="item.description"
-                                                               placeholder="Item description..."
-                                                               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
+                                                        <textarea x-model="item.description"
+                                                                  placeholder="Item description..."
+                                                                  rows="2"
+                                                                  class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 resize-none overflow-hidden"
+                                                                  @input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"></textarea>
                                                     </div>
 
                                                     <!-- Unit, Quantity and Rate -->
                                                     <div class="grid grid-cols-3 gap-2">
                                                         <div>
                                                             <label class="block text-xs font-medium text-gray-700 mb-1">Unit</label>
-                                                            <input type="text" x-model="item.unit"
-                                                                   placeholder="Nos"
-                                                                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-center focus:ring-blue-500 focus:border-blue-500">
+                                                            <select x-model="item.unit"
+                                                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-center focus:ring-blue-500 focus:border-blue-500">
+                                                                <option value="m2">m2</option>
+                                                                <option value="ft2">ft2</option>
+                                                                <option value="pcs">pcs</option>
+                                                                <option value="units">units</option>
+                                                                <option value="L/S">L/S</option>
+                                                                <option value="custom">custom</option>
+                                                            </select>
                                                         </div>
                                                         <div>
                                                             <label class="block text-xs font-medium text-gray-700 mb-1">Qty</label>
