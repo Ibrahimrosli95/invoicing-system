@@ -311,11 +311,11 @@
                                         <thead class="bg-gray-50 border-b border-gray-200">
                                             <tr>
                                                 <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-12">SI</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left align-top w-[52%]">Details</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-28">Unit</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-24">Qty</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-36">Rate (RM)</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-44">Amount (RM)</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left align-top w-[64%]">Details</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-24">Unit</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-20">Qty</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-32">Rate (RM)</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right w-36">Amount (RM)</th>
                                                 <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center w-16">Action</th>
                                             </tr>
                                         </thead>
@@ -365,12 +365,12 @@
                                                                @focus="prepareCurrencyInput(sectionIndex, itemIndex, 'unit_price'); $event.target.select()"
                                                                @blur="finalizeCurrencyInput(sectionIndex, itemIndex, 'unit_price')"
                                                                @input="handleCurrencyInput(sectionIndex, itemIndex, 'unit_price', $event.target.value)"
-                                                               class="w-full border-0 bg-transparent text-sm text-right focus:ring-0 px-2 pr-2 min-w-[8.5rem]"
+                                                               class="w-full border-0 bg-transparent text-sm text-right focus:ring-0 px-2 pr-2 min-w-[6.5rem]"
                                                                placeholder="0.00">
                                                     </td>
                                                     <!-- Amount (Editable with Override Indicator) -->
                                                     <td class="px-4 py-3 align-top">
-                                                        <div class="flex items-center justify-end gap-2 min-w-[9.5rem]">
+                                                        <div class="flex items-center justify-end gap-2 min-w-[7rem]">
                                                             <input type="text"
                                                                    inputmode="decimal"
                                                                    x-model="item.amount_input"
@@ -378,7 +378,7 @@
                                                                    @blur="finalizeCurrencyInput(sectionIndex, itemIndex, 'amount')"
                                                                    @input="handleCurrencyInput(sectionIndex, itemIndex, 'amount', $event.target.value)"
                                                                    :class="item.amount_manually_edited ? 'bg-amber-50 border-amber-300 text-amber-900' : 'border-transparent'"
-                                                                   class="w-full border rounded-md px-3 py-2 text-sm text-right focus:ring-0 focus:border-blue-500 min-w-[9.5rem]"
+                                                                   class="w-full border rounded-md px-3 py-2 text-sm text-right focus:ring-0 focus:border-blue-500 min-w-[6.75rem]"
                                                                    placeholder="0.00">
                                                             <!-- Reset Override Button -->
                                                             <button type="button"
@@ -545,7 +545,7 @@
                                                                    @focus="prepareCurrencyInput(sectionIndex, itemIndex, 'unit_price'); $event.target.select()"
                                                                    @blur="finalizeCurrencyInput(sectionIndex, itemIndex, 'unit_price')"
                                                                    @input="handleCurrencyInput(sectionIndex, itemIndex, 'unit_price', $event.target.value)"
-                                                                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-right focus:ring-blue-500 focus:border-blue-500"
+                                                                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-right focus:ring-blue-500 focus:border-blue-500 min-w-[6.5rem]"
                                                                    placeholder="0.00">
                                                         </div>
                                                     </div>
@@ -562,7 +562,7 @@
                                                                        @blur="finalizeCurrencyInput(sectionIndex, itemIndex, 'amount')"
                                                                        @input="handleCurrencyInput(sectionIndex, itemIndex, 'amount', $event.target.value)"
                                                                        :class="item.amount_manually_edited ? 'bg-amber-50 border-amber-300 text-amber-900' : 'border-gray-300'"
-                                                                       class="min-w-[9.5rem] border rounded-md px-3 py-2 text-sm text-right focus:ring-blue-500 focus:border-blue-500"
+                                                                       class="min-w-[6.75rem] border rounded-md px-3 py-2 text-sm text-right focus:ring-blue-500 focus:border-blue-500"
                                                                        placeholder="0.00">
                                                                 <!-- Reset Override Button -->
                                                                 <button type="button"
