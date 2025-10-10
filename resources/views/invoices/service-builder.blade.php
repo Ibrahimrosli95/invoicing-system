@@ -307,35 +307,38 @@
                                     </div>
 
                                     <!-- Section Items Table -->
+                                    <div class="w-full overflow-x-auto">
                                     <table class="w-full table-fixed">
                                         <thead class="bg-gray-50 border-b border-gray-200">
                                             <tr>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 6%; min-width: 56px;">SI</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left align-top" style="width: 50%; min-width: 240px;">Details</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 10%; min-width: 95px;">Unit</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 12%; min-width: 110px;">Qty</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right" style="width: 11%; min-width: 130px;">Rate (RM)</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right" style="width: 11%; min-width: 140px;">Amount (RM)</th>
-                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 40px;">Action</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 40px;">SI</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-left align-top" style="width: 38%;">Details</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 12%;">Unit</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 14%;">Qty</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right" style="width: 15%;">Rate</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-right" style="width: 16%;">Amount</th>
+                                                <th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase text-center" style="width: 40px;">
+                                                    <span class="sr-only">Actions</span>
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-100">
                                             <template x-for="(item, itemIndex) in section.items" :key="item.id">
                                                 <tr class="hover:bg-gray-50 align-top">
-                                                    <td class="px-4 py-3 text-center text-sm text-gray-600" style="width: 6%; min-width: 56px;" x-text="itemIndex + 1"></td>
+                                                    <td class="px-4 py-3 text-center text-sm text-gray-600" style="width: 40px;" x-text="itemIndex + 1"></td>
                                                     <!-- Details -->
-                                                    <td class="px-4 py-3 align-top" style="width: 50%; min-width: 240px;">
+                                                    <td class="px-4 py-3 align-top" style="width: 38%;">
                                                         <textarea x-model="item.description"
                                                                   placeholder="Item description..."
                                                                   rows="2"
-                                                                  class="w-full border-0 bg-transparent text-sm focus:ring-0 p-0 resize-none overflow-hidden leading-5 min-h-[2.5rem]"
+                                                                  class="w-full min-w-0 border-0 bg-transparent text-sm focus:ring-0 p-0 resize-none overflow-hidden leading-5 min-h-[2.5rem]"
                                                                   @input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px'"></textarea>
                                                     </td>
                                                     <!-- Unit -->
-                                                    <td class="px-4 py-3 align-top" style="width: 10%; min-width: 95px;">
+                                                    <td class="px-4 py-3 align-top" style="width: 12%;">
                                                         <div class="relative flex items-center justify-center">
                                                             <select x-model="item.unit"
-                                                                    class="w-full border-0 bg-transparent text-sm text-center focus:ring-0 px-3 py-1 pr-10 appearance-none">
+                                                                    class="w-full min-w-0 border-0 bg-transparent text-sm text-center focus:ring-0 px-2 py-1 pr-8 appearance-none">
                                                                 <option value="m2">m2</option>
                                                                 <option value="ft2">ft2</option>
                                                                 <option value="pcs">pcs</option>
@@ -343,7 +346,7 @@
                                                                 <option value="L/S">L/S</option>
                                                                 <option value="custom">custom</option>
                                                             </select>
-                                                            <div class="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-400">
+                                                            <div class="pointer-events-none absolute inset-y-0 right-1 flex items-center text-gray-400">
                                                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                                                 </svg>
@@ -351,26 +354,26 @@
                                                         </div>
                                                     </td>
                                                     <!-- Quantity -->
-                                                    <td class="px-4 py-3 align-top" style="width: 12%; min-width: 110px;">
+                                                    <td class="px-4 py-3 align-top" style="width: 14%;">
                                                         <input type="number" x-model="item.quantity"
                                                                @input="recalculateItemAmount(sectionIndex, itemIndex)"
-                                                               class="w-full border-0 bg-transparent text-sm text-center focus:ring-0 px-3 min-w-[6rem]"
+                                                               class="w-full min-w-[5.5rem] border-0 bg-transparent text-sm text-center focus:ring-0 px-2"
                                                                min="0.01" step="0.01">
                                                     </td>
                                                     <!-- Rate -->
-                                                    <td class="px-4 py-3 align-top" style="width: 11%; min-width: 130px;">
+                                                    <td class="px-4 py-3 align-top" style="width: 15%;">
                                                         <input type="text"
                                                                inputmode="decimal"
                                                                x-model="item.unit_price_input"
                                                                @focus="prepareCurrencyInput(sectionIndex, itemIndex, 'unit_price'); $event.target.select()"
                                                                @blur="finalizeCurrencyInput(sectionIndex, itemIndex, 'unit_price')"
                                                                @input="handleCurrencyInput(sectionIndex, itemIndex, 'unit_price', $event.target.value)"
-                                                               class="w-full border-0 bg-transparent text-sm text-right focus:ring-0 px-3 pr-2 min-w-[7.75rem]"
+                                                               class="w-full min-w-[7rem] border-0 bg-transparent text-sm text-right focus:ring-0 px-2 pr-1"
                                                                placeholder="0.00">
                                                     </td>
                                                     <!-- Amount (Editable with Override Indicator) -->
-                                                    <td class="px-4 py-3 align-top" style="width: 11%; min-width: 140px;">
-                                                        <div class="flex items-center justify-end gap-2 min-w-[8.25rem]">
+                                                    <td class="px-4 py-3 align-top" style="width: 16%;">
+                                                        <div class="flex items-center justify-end gap-1">
                                                             <input type="text"
                                                                    inputmode="decimal"
                                                                    x-model="item.amount_input"
@@ -378,13 +381,13 @@
                                                                    @blur="finalizeCurrencyInput(sectionIndex, itemIndex, 'amount')"
                                                                    @input="handleCurrencyInput(sectionIndex, itemIndex, 'amount', $event.target.value)"
                                                                    :class="item.amount_manually_edited ? 'bg-amber-50 border-amber-300 text-amber-900' : 'border-transparent'"
-                                                                   class="w-full border rounded-md px-3 py-2 text-sm text-right focus:ring-0 focus-border-blue-500 min-w-[8.25rem]"
+                                                                   class="w-full min-w-[7.5rem] border rounded-md px-2 py-1.5 text-sm text-right focus:ring-0 focus:border-blue-500"
                                                                    placeholder="0.00">
                                                             <!-- Reset Override Button -->
                                                             <button type="button"
                                                                     x-show="item.amount_manually_edited"
                                                                     @click="resetAmountOverride(sectionIndex, itemIndex)"
-                                                                    class="text-amber-600 hover:text-amber-700"
+                                                                    class="text-amber-600 hover:text-amber-700 flex-shrink-0"
                                                                     title="Reset to calculated amount">
                                                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -393,7 +396,7 @@
                                                         </div>
                                                     </td>
                                                     <!-- Action -->
-                                                    <td class="px-4 py-3 text-center" style="width: 40px; min-width: 40px;">
+                                                    <td class="px-4 py-3 text-center" style="width: 40px;">
                                                         <button @click="removeItemFromSection(sectionIndex, itemIndex)" type="button"
                                                                 x-show="section.items.length > 1"
                                                                 class="text-red-400 hover:text-red-600">
@@ -432,6 +435,11 @@
                                             </tr>
                                         </tfoot>
                                     </table>
+                                    </div>
+                                    <!-- Currency Indicator -->
+                                    <div class="mt-2 text-xs text-gray-500 italic">
+                                        All amounts in Malaysian Ringgit (RM)
+                                    </div>
                                 </div>
                             </template>
 
